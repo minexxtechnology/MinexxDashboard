@@ -1,0 +1,2 @@
+# MinexxDashboard
+Minexx Trace Dashboard

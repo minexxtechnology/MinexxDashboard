@@ -36,31 +36,40 @@ function Home() {
 		subMonths(new Date(), 2).toString().substring(4, 7),
 		subMonths(new Date(), 1).toString().substring(4, 7)
 	]
-	const [eventsIncidents, seteventsIncidents] = useState([0,0,0,0,0,0,0])
-	const [eventsExports, seteventsExports] = useState([0,0,0,0,0,0,0])
-	const [eventsAssessments, seteventsAssessments] = useState([0,0,0,0,0,0,0])
-	const [incidentsoverview, setincidentsoverview] = useState([0,0,0,0,0,0,0])
-	const [series, setseries] = useState([])
+	const [series1, setseries1] = useState([])
+	const [series2, setseries2] = useState([])
+	const [series3, setseries3] = useState([])
+	const [total1, settotal1] = useState(0)
+	const [total2, settotal2] = useState(0)
+	const [total3, settotal3] = useState(0)
 	const dropdown_ = ['Purchase Tracker', 'Blending', 'Exports']
 	const [filter, setfilter] = useState(0)
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
 
-	const last6months =  () => {
-		var result = [];
-		for (var i=0; i<13; i++) {
-			result.push( subMonths(new Date(), `${i}`) )
-		}
-	
-		return result.reverse()
-	}
-
 	const loadOverview = async()=>{
-		axios.get(`${baseURL_}overview`).then(response=>{
-			setloading(false)
+
+		// setloading(false)
+		// settotals(response.data.events)
+
+		axios.get(`${baseURL_}overview/risks`).then(response=>{
+			setincidents(response.data.risks)
+			settotals({...{incidents: response.data.count}})
+		}).catch(err=>{ setloading(false) })
+
+		axios.get(`${baseURL_}overview/incidents`).then(response=>{
+			setseries1(response.data.incidents)
+			settotal1(response.data.count)
+		}).catch(err=>{ setloading(false) })
+
+		axios.get(`${baseURL_}overview/exports`).then(response=>{
+			setseries2(response.data.exports)
+			settotal2(response.data.count)
 			setexportweight((response.data.volume/1000).toFixed(1))
-			setincidents(response.data.incidentRisks)
-			settotals(response.data.events)
-			setseries(response.data.eventsOverview)
+		}).catch(err=>{ setloading(false) })
+
+		axios.get(`${baseURL_}overview/assessments`).then(response=>{
+			setseries3(response.data.assessments)
+			settotal3(response.data.count)
 		}).catch(err=>{ setloading(false) })
 
 	}
@@ -100,8 +109,8 @@ function Home() {
 								</div>
 							</div>
 							<div className="progress mt-3 mb-4" style={{height:"15px"}}>
-								<div className="progress-bar-striped progress-bar-animated" style={{width: "86%", height:"15px"}} role="progressbar">
-									<span className="sr-only">86% Complete</span>
+								<div className="progress-bar-striped progress-bar-animated" style={{width: "100%", height:"15px"}} role="progressbar">
+									<span className="sr-only">100% Complete</span>
 								</div>
 							</div>
 							<p className="fs-12">Cummulative export volume from all mines.</p>
@@ -203,7 +212,7 @@ function Home() {
 									</div>
 									<div>
 										<span className="fs-14">Incidents</span>
-										<h4 className="fs-5 font-w600 mb-0">{totals?.incidents}</h4>
+										<h4 className="fs-5 font-w600 mb-0">{total1}</h4>
 									</div>
 								</div>
 								<div className="round " id="dzNewSeries">
@@ -212,8 +221,8 @@ function Home() {
 										<label htmlFor="checkbox" className="checkmark"></label>
 									</div>
 									<div>
-										<span className="fs-14">Assessments</span>
-										<h4 className="fs-5 font-w600 mb-0">{totals?.assessments}</h4>
+										<span className="fs-14">Exports</span>
+										<h4 className="fs-5 font-w600 mb-0">{total2}</h4>
 									</div>	
 								</div>
 								
@@ -223,14 +232,14 @@ function Home() {
 										<label htmlFor="checkbox" className="checkmark"></label>
 									</div>
 									<div>
-										<span className="fs-14">Exports</span>
-										<h4 className="fs-5 font-w600 mb-0">{totals.exports}</h4>
+										<span className="fs-14">Assessments</span>
+										<h4 className="fs-5 font-w600 mb-0">{total3}</h4>
 									</div>	
 								</div>
 							</div>
 						</div>
 						<div style={{ height: 'auto' }} className="card-body custome-tooltip">
-							<HomeSalesRevenueChart series={series} days={months}/>
+							<HomeSalesRevenueChart series1={series1} series2={series2} series3={series3} days={months}/>
 						</div>
 					</div>
 				</div>

@@ -168,7 +168,20 @@ const HomeSalesRevenueChart = (props) => {
 		<div id="activity">
 			<ReactApexChart
 				options={options}
-				series={props.series}
+				series={[
+					{
+						name: 'Incidents',
+						data: props.series1
+					},
+					{
+						name: 'Exports',
+						data: props.series2
+					},
+					{
+						name: 'Assessments',
+						data: props.series3
+					}
+				]}
 				type="area"
 				height={400}
 			/>

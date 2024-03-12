@@ -1,10 +1,32 @@
-import React from "react";
+import React, {useState} from "react";
 import logo from "../../images/logo.png";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { baseURL_ } from "../../config";
+
 const ForgotPassword = ({ history }) => {
+  const [email, setemail] = useState()
+  const [loading, setloading] = useState(false)
   const onSubmit = (e) => {
     e.preventDefault();
-    history.push("/login");
+    if(email){
+      if(email.length<8){
+        return
+      }
+      axios.post(`${baseURL_}forgot`, {email}).then(response=>{
+        setloading(false)
+        setemail()
+        toast.success(response.data.message)
+      }).catch(err=>{
+        setloading(false)
+        try{
+          toast.error(err.response.data.message)
+        }catch(e){
+          toast.warn(err.message)
+        }
+      })
+    }
   };
   return (
     <div className="authincation h-100 p-meddle">
@@ -31,14 +53,17 @@ const ForgotPassword = ({ history }) => {
                         </label>
                         <input
                           type="email"
+                          value={email}
+                          onChange={e=>setemail(e.currentTarget.value)}
                           className="form-control"
                           placeholder="Email address"
                         />
                       </div>
                       <div className="text-center">
                         <input
+                          disabled={loading}
                           type="submit"
-                          value="Send Password Reset Link"
+                          value={loading ? "Please wait..." : "Reset Password"}
                           className="btn bg-white text-primary btn-block"
                         />
                       </div>

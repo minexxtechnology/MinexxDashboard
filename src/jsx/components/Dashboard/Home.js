@@ -202,6 +202,7 @@ function Home() {
 						<div className="card-header border-0 pb-0 d-sm-flex d-block">
 							<div>
 								<h4 className="mb-0 fs-20">Events Overview</h4>
+								<small className='font-w200 fs-12'><i className='fa fa-info-circle'></i> The assessments overview might take some time to load...</small>
 							</div>
 							<div className="d-flex align-items-center mb-3 mb-sm-0">
 

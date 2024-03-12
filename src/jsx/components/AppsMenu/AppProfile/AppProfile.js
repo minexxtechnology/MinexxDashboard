@@ -1,33 +1,19 @@
 import React, { Fragment, useReducer, useState } from "react";
-import { Button, Dropdown, Modal, Tab, Nav } from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import LightGallery from 'lightgallery/react';
 // import styles
 import 'lightgallery/css/lightgallery.css';
 import 'lightgallery/css/lg-zoom.css';
 import 'lightgallery/css/lg-thumbnail.css';
-import lgThumbnail from 'lightgallery/plugins/thumbnail';
-import lgZoom from 'lightgallery/plugins/zoom';
 
 //** Import Image */
 //** Import Image */
-import profile01 from "../../../../images/profile/1.jpg";
-import profile02 from "../../../../images/profile/2.jpg";
-import profile03 from "../../../../images/profile/3.jpg";
-import profile04 from "../../../../images/profile/4.jpg";
-import profile05 from "../../../../images/profile/5.jpg";
-import profile06 from "../../../../images/profile/6.jpg";
-import profile07 from "../../../../images/profile/7.jpg";
-import profile08 from "../../../../images/profile/8.jpg";
-import profile09 from "../../../../images/profile/9.jpg";
-import profile from "../../../../images/profile/profile.png";
 import PageTitle from "../../../layouts/PageTitle";
+import {baseURL_} from "../../../../config"
+import axios from "axios";
+import { toast } from "react-toastify";
 
-const galleryBlog = [
-	{image: profile03}, {image: profile04},
-	{image: profile02}, {image: profile04},
-	{image: profile03}, {image: profile02},
-];
+
 const initialState = false;
 const reducer = (state, action) =>{
 	switch (action.type){
@@ -50,6 +36,9 @@ const AppProfile = () => {
 	const onInit = () => {
 		//console.log('lightGallery has been initialized');
 	};
+	const [password, setpassword] = useState()
+	const [cpassword, setcpassword] = useState()
+	const [loading, setloading] = useState(false)
 	const [user, setuser] = useState(JSON.parse(localStorage.getItem(`_authUsr`)))
   	const options = {
      	settings: {
@@ -57,6 +46,68 @@ const AppProfile = () => {
      	},
  	};
 	const [state, dispatch] = useReducer(reducer, initialState);
+
+	const changePassword = (e)=>{
+		e.preventDefault()
+		if(!password){
+			return toast.warn(`Please enter your current password!`, {style: {
+				fontFamily: 'Poppins',
+				fontWeight: 200,
+				fontSize: 12
+			}})
+		}
+		if(password.length < 8){
+			return toast.warn(`Plesse check your input, password should be 8 or more characters.`, {style: {
+				fontFamily: 'Poppins',
+				fontWeight: 200,
+				fontSize: 12
+			}})
+		}
+		if(!cpassword){
+			return toast.warn(`Please enter your new password!`, {style: {
+				fontFamily: 'Poppins',
+				fontWeight: 200,
+				fontSize: 12
+			}})
+		}
+		if(cpassword.length < 8){
+			return toast.warn(`Plesse check your input, new password should be 8 or more characters.`, {style: {
+				fontFamily: 'Poppins',
+				fontWeight: 200,
+				fontSize: 12
+			}})
+		}
+		axios.post(`${baseURL_}password`, {
+			email: user.email,
+			password,
+			cpassword
+		}).then(response=>{
+			setpassword(null)
+			setcpassword(null)
+			toast.success(response.data.message, {style: {
+				fontFamily: 'Poppins',
+				fontWeight: 200,
+				fontSize: 12
+			}})
+			setloading(false)
+		}).catch(err=>{
+			setloading(false)
+			try{
+				toast.error(err.response.data.message, {style: {
+					fontFamily: 'Poppins',
+					fontWeight: 200,
+					fontSize: 12
+				}})
+			}catch(e){
+				toast.error(err.message, {style: {
+					fontFamily: 'Poppins',
+					fontWeight: 200,
+					fontSize: 12
+				}})
+			}
+		})
+	}
+
 	return (
 		<Fragment>
 		  <PageTitle activeMenu="Profile" motherMenu="Account" />
@@ -480,7 +531,7 @@ const AppProfile = () => {
 									<div className="pt-3">
 										<div className="settings-form">
 											<h4 className="text-primary">Account Setting</h4>
-											<form onSubmit={(e) => e.preventDefault()}>
+											<form className="mt-3" onSubmit={(e) => e.preventDefault()}>
 												<div className="row">
 													<div className="form-group mb-3 col-md-6">
 														<label className="form-label" >First Name</label>
@@ -491,26 +542,23 @@ const AppProfile = () => {
 														<input type="text" placeholder="Surname" value={user.surname} className="form-control"/>
 													</div>
 												</div>
-												<div className="form-group mb-3">
-													<label className="form-label">Company</label>
-													<input type="text" placeholder="Company (if applicable)" value={user.company} className="form-control"/>
-												</div>
 												<div className="row">
 													<div className="form-group mb-3 col-md-6">
 														<label className="form-label" >Email</label>
 														<input type="email" placeholder="Email Address" value={user.email} className="form-control"/>
 													</div>
 													<div className="form-group mb-3 col-md-6">
-														<label className="form-label">Password</label>
-														<input type="password" placeholder="Password" className="form-control"/>
-													</div>
-												</div>
-												<div className="row">
-													<div className="form-group mb-3 col-md-6">
 														<label className="form-label" >Phone</label>
 														<input type="text" placeholder="Phone Number" value={user.phone} className="form-control" />
 													</div>
 												</div>
+												{/*<div className="row">
+													<div className="form-group mb-3">
+														<label className="form-label">Company</label>
+														<input type="text" placeholder="Company (if applicable)" value={user.company} className="form-control"/>
+													</div>
+												</div>*/}
+												
 												{/* <div className="form-group mb-3">
 													<div className="form-check custom-checkbox">
 														<input
@@ -537,6 +585,32 @@ const AppProfile = () => {
 				  </div> */}
 				</div>
 			  </div>
+			</div>
+
+
+			<div className="col-xl-12">
+			  <div className="card">
+					<div className="card-body">
+						<div className="pt-3">
+							<div className="settings-form">
+								<h4 className="text-primary">Change Password</h4>
+								<form className="mt-3" onSubmit={changePassword}>
+									<div className="row">
+										<div className="form-group mb-3 col-md-6">
+											<label className="form-label" >Current Password</label>
+											<input type="password" placeholder="Current Password" value={password} onChange={e=>setpassword(e.currentTarget.value)} className="form-control"/>
+										</div>
+										<div className="form-group mb-3 col-md-6">
+											<label className="form-label" >New Password</label>
+											<input type="password" placeholder="New Password" value={cpassword} onChange={e=>setcpassword(e.currentTarget.value)} className="form-control"/>
+										</div>
+									</div>
+									<button className="btn btn-primary" type="submit">Change Password</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		  </div>
 		  {/* send Modal */}

@@ -96,7 +96,7 @@ const Header = ({ onNote, toggle, onProfile, onNotification, onClick }) => {
 										<FontAwesomeIcon icon={icon({name: 'arrow-right-arrow-left'})} />
 										<span className="ms-2">Switch to {view === 'gold' ? '3Ts' : 'Gold'}</span>
 									</Link> : <></> }
-									<Link to="/profile" className="dropdown-item ai-icon">
+									{/*<Link to="/profile" className="dropdown-item ai-icon">
 										<svg
 										id="icon-user1"
 										xmlns="http://www.w3.org/2000/svg"
@@ -114,7 +114,7 @@ const Header = ({ onNote, toggle, onProfile, onNotification, onClick }) => {
 										<circle cx={12} cy={7} r={4} />
 										</svg>
 										<span className="ms-2">My Account </span>
-									</Link>
+								</Link>*/}
 									<LogoutPage />
 								</Dropdown.Menu>
 							</Dropdown>

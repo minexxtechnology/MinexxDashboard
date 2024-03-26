@@ -20,32 +20,65 @@ const Export = () => {
         null,
         null,
         null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
         null
     ])
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
     const documents = [
-        `ITSCI Forms`,
-        `Transporter Document`,
-        `ASI Document`,
-        `RRA Export Document`,
-        `RMB Export Document`,
-        `Exporter Application Document`,
-        `Scanned Documents`,
-        `Other Documents`
+        `Provisional Invoice`,
+        `Freight Forwarder's Cargo Receipt`,
+        `Exporter Sheet`,
+        `Alex Stewart Certificate of Assay`,
+        `Alex Stewart Packing report including weight`,
+        `Certificate of Origin-certified by government authorities`,
+        `ICGLR Certificate`,
+        `Inland Transportation from Mine to the port`,
+        `Original Warehouse Certificate`,
+        `Certificate of Insurance`,
+        `Bill of Lading`,
+        `C2 Form`,
+        `Mine Sheets`,
+        `Processing Sheets`,
+        `RRA Customs Declaration`,
+        `Tag List`,
+        `Other Scanned Exporter Documents`,
+        `Other Exporter Documents`,
+        `Other Transporter Document`,
     ]
 
     const getExport = async()=>{
         axios.get(`${baseURL_}exports/${id}`).then(response=>{
             setexport_(response.data.export)
             setuploads([
+                response.data.export.provisionalInvoice,
+                response.data.export.cargoReceipt,
                 response.data.export.itsciForms,
-                response.data.export.transporterDocument,
                 response.data.export.asiDocument,
+                response.data.export.packingReport,
                 response.data.export.rraExportDocument,
                 response.data.export.rmbExportDocument,
-                response.data.export.exporterApplicationDocument,
+                response.data.export.otherDocument,
+                response.data.export.warehouseCert,
+                response.data.export.insuranceCert,
+                response.data.export.billOfLanding,
+                response.data.export.c2,
+                response.data.export.mineSheets,
+                response.data.export.processingSheets,
+                response.data.export.customsDeclaration,
+                response.data.export.tagList,
                 response.data.export.scannedExportDocuments,
-                response.data.export.otherDocument
+                response.data.export.exporterApplicationDocument,
+                response.data.export.transporterDocument
             ])
             changeTitle(`Shipment: ${response.data.export.exportationID}`)
         }).catch(err=>{

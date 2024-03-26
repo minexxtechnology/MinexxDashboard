@@ -14,8 +14,13 @@ const Exports = () => {
 	const fetchExports = async()=>{
 		try{
 			let response = await axios.get(`${baseURL_}exports`)
-			setexports(response.data.exports.filter(exp=>exp.company.type === `Exporter` || exp.company.name === `Minexx`).reverse())
-			setfiltered(response.data.exports.filter(exp=>exp.company.type === `Exporter` || exp.company.type === `Minexx`).reverse())
+			if(user.email === 'taniobis@buyer.email'){
+				setexports(response.data.exports.filter(exp=>exp.mineral === `Tantalum`).reverse())
+				setfiltered(response.data.exports.filter(exp=>exp.mineral === `Tantalum`).reverse())
+			}else{
+				setexports(response.data.exports.filter(exp=>exp.company.type === `Exporter` || exp.company.id === `r5kdo93g`).reverse())
+				setfiltered(response.data.exports.filter(exp=>exp.company.type === `Exporter` || exp.company.id === `r5kdo93g`).reverse())
+			}
 		}catch(err){
 			try{
 				//toast.warn(err.response.data.message)
@@ -160,7 +165,7 @@ const Exports = () => {
 										<tr role="row" className="odd">
 											<td colSpan={8} rowSpan={2} className="sorting_1 text-center">No export records to display yet.</td>
 										</tr>
-									: filtered.map(_export=>{
+									: filtered.filter(single=>single.mineral !== "Tantalum").map(_export=>{
 									return (<tr role="row" key={_export.id} className="odd">
 										<td className="sorting_1">
 											<div className="custom-control custom-checkbox ">

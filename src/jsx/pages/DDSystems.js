@@ -21,30 +21,30 @@ const DDSystems = () => {
 			title: 'Traceability Guide for 3TG Operators',
 			to: 'traceability-guide',
 		},
-		{
-			title: 'Risk Management Plan',
-			to: 'risk-management',
-		},
-		{
-			title: 'Shipment Conformance Notice',
-			to: 'shipment-conformance',
-		},
+		// {
+		// 	title: 'Risk Management Plan',
+		// 	to: 'risk-management',
+		// },
+		// {
+		// 	title: 'Shipment Conformance Notice',
+		// 	to: 'shipment-conformance',
+		// },
 		{
 			title: 'Supplier Code of Conduct',
 			to: 'code-of-conduct',
 		},
-		{
-			title: 'Operator Onboarding',
-			to: 'operator-onboarding',
-		},
-		{
-			title: 'Know Your Counterpart Form',
-			to: 'asm',
-		},
-		{
-			title: 'Trace Due Diligence Programme Introduction',
-			to: 'trace-due-diligence',
-		},
+		// {
+		// 	title: 'Operator Onboarding',
+		// 	to: 'operator-onboarding',
+		// },
+		// {
+		// 	title: 'Know Your Counterpart Form',
+		// 	to: 'asm',
+		// },
+		// {
+		// 	title: 'Trace Due Diligence Programme Introduction',
+		// 	to: 'trace-due-diligence',
+		// },
 		{
 			title: 'Rwanda - Internal Supplement',
 			to: 'internal-supplement-rw',

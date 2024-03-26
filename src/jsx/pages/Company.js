@@ -48,12 +48,13 @@ const Company = () => {
         }).catch(err=>{})
 
         axios.get(`${baseURL_}shareholders/${id}`).then(response=>{
+            console.log(response.data.shareholders)
             setshareholders(response.data.shareholders)
-        }).catch(err=>{})
+        }).catch(err=>{console.log("shareholders error:", err.message)})
 
         axios.get(`${baseURL_}owners/${id}`).then(response=>{
             setbeneficialOwners(response.data.beneficial_owners)
-        }).catch(err=>{})
+        }).catch(err=>{console.log("owners error:", err.message)})
     }
     
     useEffect(() => {
@@ -152,7 +153,7 @@ const Company = () => {
                                                     <span>Nationality: {shareholder?.nationality}</span><br/>
                                                     <span>Percentage Owned: {Number(shareholder?.percent) * 100}%</span><br/>
                                                     <span>Address: {shareholder?.address}</span><br/>
-                                                    <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(shareholder)}>View National ID</Link>
+                                                    { shareholder.nationalID ? <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(shareholder)}>View National ID</Link> : <div></div> }
                                                 </div>
                                             </div>
                                     </div>

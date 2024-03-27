@@ -128,7 +128,7 @@ const ComplianceTable = ({ documents }) => {
               {documents.length === 0 ? <tr>
                 <td className="pa-5 text-center font-w200" colSpan={4}>There are no documents to display.</td>
               </tr>
-              : documents.map( doc => <tr key={doc.id} role="row" className="odd">
+              : documents.map( (doc, i) => <tr key={`doc${i}`} role="row" className="odd">
                 {/**<td className="sorting_1">
                   <div className="checkbox me-0 align-self-center">
                     <div className="form-check custom-checkbox ">

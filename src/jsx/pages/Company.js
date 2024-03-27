@@ -48,11 +48,11 @@ const Company = () => {
         }).catch(err=>{})
 
         axios.get(`${baseURL_}shareholders/${id}`).then(response=>{
-            console.log(response.data.shareholders)
             setshareholders(response.data.shareholders)
         }).catch(err=>{console.log("shareholders error:", err.message)})
 
         axios.get(`${baseURL_}owners/${id}`).then(response=>{
+            console.log(response.data.beneficial_owners)
             setbeneficialOwners(response.data.beneficial_owners)
         }).catch(err=>{console.log("owners error:", err.message)})
     }
@@ -146,13 +146,13 @@ const Company = () => {
                                         </div>
                                     </div>
                                     : shareholders?.map((shareholder, i) => (
-                                        <div className='col-md-4'>
+                                        <div className='col-md-4' key={`sh${i}`}>
                                             <div className='card'>
                                                 <div className=' card-body'>
                                                     <h5 className='text-primary'>{shareholder?.name}</h5>
                                                     <span>Nationality: {shareholder?.nationality}</span><br/>
-                                                    <span>Percentage Owned: {Number(shareholder?.percent) * 100}%</span><br/>
-                                                    <span>Address: {shareholder?.address}</span><br/>
+                                                    <span>Percentage Owned: {shareholder?.percent}</span><br/>
+                                                    <span>Address: {shareholder?.address || `--`}</span><br/>
                                                     { shareholder.nationalID ? <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(shareholder)}>View National ID</Link> : <div></div> }
                                                 </div>
                                             </div>
@@ -167,12 +167,12 @@ const Company = () => {
                                         </div>
                                     </div>
                                     : beneficialOwners?.map((owner, i) => (
-                                    <div className='col-md-4'>
+                                    <div className='col-md-4' key={`own${i}`}>
                                         <div className='card'>
                                             <div className=' card-body'>
-                                                <h5 className='text-primary'>{owner?.person}</h5>
+                                                <h5 className='text-primary'>{owner?.name}</h5>
                                                 <span>Nationality: {owner?.nationality}</span><br/>
-                                                <span>Percentage Owned: {Number(owner?.percent) * 100}%</span><br/>
+                                                <span>Percentage Owned: {owner?.percent}</span><br/>
                                                 <span>Address: {owner?.address || '--'} </span><br/>
                                                 <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(owner)}>View National ID</Link>
                                             </div>

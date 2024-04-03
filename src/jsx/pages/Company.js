@@ -151,7 +151,7 @@ const Company = () => {
                                                 <div className=' card-body'>
                                                     <h5 className='text-primary'>{shareholder?.name}</h5>
                                                     <span>Nationality: {shareholder?.nationality}</span><br/>
-                                                    <span>Percentage Owned: {shareholder?.percent}</span><br/>
+                                                    <span>Percentage Owned: {shareholder?.percent}%</span><br/>
                                                     <span>Address: {shareholder?.address || `--`}</span><br/>
                                                     { shareholder.nationalID ? <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(shareholder)}>View National ID</Link> : <div></div> }
                                                 </div>
@@ -172,7 +172,7 @@ const Company = () => {
                                             <div className=' card-body'>
                                                 <h5 className='text-primary'>{owner?.name}</h5>
                                                 <span>Nationality: {owner?.nationality}</span><br/>
-                                                <span>Percentage Owned: {owner?.percent}</span><br/>
+                                                <span>Percentage Owned: {owner?.percent}%</span><br/>
                                                 <span>Address: {owner?.address || '--'} </span><br/>
                                                 <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(owner)}>View National ID</Link>
                                             </div>

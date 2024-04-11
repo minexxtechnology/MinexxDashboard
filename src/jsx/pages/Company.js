@@ -2,7 +2,7 @@ import React,{useState, useEffect, useRef, Fragment, useContext} from 'react';
 import {Link, useParams} from 'react-router-dom';
 import {Dropdown, ListGroup, Modal, Nav, Tab} from 'react-bootstrap';
 import GoogleMapReact from 'google-map-react';
-import { apiKey, baseURL, baseURL_ } from '../../config'
+import { apiHeaders, apiKey, baseURL, baseURL_ } from '../../config'
 import ComplianceTable from '../components/table/ComplianceTable';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -33,7 +33,9 @@ const Company = () => {
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
 
     const getCompany = async()=>{
-        axios.get(`${baseURL_}companies/${id}`).then(response=>{
+        axios.get(`${baseURL_}companies/${id}`, {
+            headers: apiHeaders
+        }).then(response=>{
             setcompany(response.data.company)
             changeTitle(response.data.company.name)
         }).catch(err=>{
@@ -43,16 +45,21 @@ const Company = () => {
 				toast.warn(err.message)
 			}
         })
-        axios.get(`${baseURL_}documents/${id}`).then(response=>{
+        axios.get(`${baseURL_}documents/${id}`, {
+            headers: apiHeaders
+        }).then(response=>{
             setdocuments(response.data.documents)
         }).catch(err=>{})
 
-        axios.get(`${baseURL_}shareholders/${id}`).then(response=>{
+        axios.get(`${baseURL_}shareholders/${id}`, {
+            headers: apiHeaders
+        }).then(response=>{
             setshareholders(response.data.shareholders)
         }).catch(err=>{console.log("shareholders error:", err.message)})
 
-        axios.get(`${baseURL_}owners/${id}`).then(response=>{
-            console.log(response.data.beneficial_owners)
+        axios.get(`${baseURL_}owners/${id}`, {
+            headers: apiHeaders
+        }).then(response=>{
             setbeneficialOwners(response.data.beneficial_owners)
         }).catch(err=>{console.log("owners error:", err.message)})
     }
@@ -74,8 +81,9 @@ const Company = () => {
             </Modal>
             <div className="row page-titles">
                 <ol className="breadcrumb">
-                    <li className="breadcrumb-item active"><Link to={"/overview"}> Dashboard</Link></li>
-                    <li className="breadcrumb-item"><Link to={""}> {company ? company.name : `Company Details`}</Link></li>
+                    <li className="breadcrumb-item active"><Link to={"/overview"}>Dashboard</Link></li>
+                    <li className="breadcrumb-item"><Link to={"/exports"}>Exports</Link></li>
+                    <li className="breadcrumb-item"><Link to={""}>{company ? company.name : `Company Details`}</Link></li>
                 </ol>
             </div>
             <div className="row">
@@ -174,7 +182,7 @@ const Company = () => {
                                                 <span>Nationality: {owner?.nationality}</span><br/>
                                                 <span>Percentage Owned: {owner?.percent}%</span><br/>
                                                 <span>Address: {owner?.address || '--'} </span><br/>
-                                                <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(owner)}>View National ID</Link>
+                                                { owner.nationalID ? <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(owner)}>View National ID</Link> : <div></div> }
                                             </div>
                                         </div>
                                     </div>

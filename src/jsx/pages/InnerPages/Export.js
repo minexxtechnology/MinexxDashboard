@@ -1,7 +1,7 @@
 import React,{useState, useEffect, useContext} from 'react';
 import {Link, useParams} from 'react-router-dom';
 import {Accordion, ListGroup, Nav, Tab} from 'react-bootstrap';
-import { baseURL_ } from '../../../config'
+import { apiHeaders, baseURL_ } from '../../../config'
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ThemeContext } from '../../../context/ThemeContext';
@@ -57,7 +57,9 @@ const Export = () => {
     ]
 
     const getExport = async()=>{
-        axios.get(`${baseURL_}exports/${id}`).then(response=>{
+        axios.get(`${baseURL_}exports/${id}`, {
+            headers: apiHeaders
+        }).then(response=>{
             setexport_(response.data.export)
             setuploads([
                 response.data.export.provisionalInvoice,
@@ -84,7 +86,7 @@ const Export = () => {
         }).catch(err=>{
             try{
                 // navigate(-1)
-				//toast.warn(err.response.data.message)
+				toast.warn(err.response.data.message)
 			}catch(e){
 				toast.warn(err.message)
 			}

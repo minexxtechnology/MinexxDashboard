@@ -31,7 +31,7 @@ const Mine = () => {
     const getMine = async()=>{
         
         // mine images
-        axios.get(`${baseURL_}mines/images/${id}`).then(response=>{
+        axios.get(`${baseURL_}mines/images/${id}`, { headers: apiHeaders }).then(response=>{
             setgallery(response.data.images)
         }).catch(()=>{})
         
@@ -82,16 +82,16 @@ const Mine = () => {
                                     Incident Info
                                 </Nav.Link>
                             </Nav.Item>
-                            <Nav.Item as="li" className="nav-item">
+                            {incidentview.image ?<Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#image" role="tab" eventKey="image">
                                     Image
                                 </Nav.Link>
-                            </Nav.Item>
-                            <Nav.Item as="li" className="nav-item">
+                            </Nav.Item> : <div></div>}
+                            {incidentview.proof ?<Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#proof" role="tab" eventKey="proof">
                                     Proof
                                 </Nav.Link>
-                            </Nav.Item>
+                            </Nav.Item>: <div></div>}
                         </Nav>
                         <Tab.Content>
                             <Tab.Pane eventKey="incidentInfo" id='incidentInfo'>
@@ -122,6 +122,7 @@ const Mine = () => {
             <div className="row page-titles">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item active"><Link to={"/overview"}> Dashboard</Link></li>
+                    <li className="breadcrumb-item"><Link to={"/mines"}> Mines</Link></li>
                     <li className="breadcrumb-item"><Link to={""}> {mine?.name}</Link></li>
                 </ol>
             </div>

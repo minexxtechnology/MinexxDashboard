@@ -15,6 +15,7 @@ const Mines = () => {
     const [suppliers, setsuppliers] = useState([])
     const [mines, setmines] = useState([])
 	const sort = 10;
+    const [init, setinit] = useState()
 	const activePag = useRef(0);
     const [filtered, setfiltered] = useState([])
 
@@ -31,10 +32,11 @@ const Mines = () => {
 
     const fetch = async()=>{
         try{
-            let response = await axios.get(`${baseURL_}companies`, { aders: apiHeaders })
+            let response = await axios.get(`${baseURL_}companies`, { headers: apiHeaders })
             let response_ = await axios.get(`${baseURL_}mines`, { headers: apiHeaders })
-            setsuppliers(response.data.companies.filter(single=>single.id===`ce62eb6o`))
-            setfiltered(response.data.companies.filter(single=>single.id===`ce62eb6o`))
+            setinit(response.data.companies[0].id)
+            setsuppliers(response.data.companies)
+            setfiltered(response.data.companies)
             setmines(response_.data.mines)
         }catch(err){
             try{
@@ -107,9 +109,9 @@ const Mines = () => {
             </div>
             <div className="row">
                 <div className="col-xl-12 col-xxl-12">
-                    <div className="card event-bx">
-                        <PerfectScrollbar className="card-body dz-scroll" style={{ height: 700, overflow: 'hidden' }}>
-                            <Accordion className="accordion accordion-rounded-stylish accordion-bordered mt-2" defaultActiveKey="ce62eb6o">
+                    <div className="card">
+                        <PerfectScrollbar className="card-body dz-scroll" style={{ overflow: 'hidden' }}>
+                            <Accordion className="accordion accordion-rounded-stylish accordion-bordered mt-2" defaultActiveKey={init}>
                                 { filtered.map((supplier, index) =>{
                                     return (<Accordion.Item className="accordion-item" key={supplier?.id} eventKey={supplier?.id}>
                                         <Accordion.Header className="accordion-header rounded-lg">

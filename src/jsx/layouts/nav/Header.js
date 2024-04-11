@@ -58,14 +58,14 @@ const Header = ({ onNote, toggle, onProfile, onNotification, onClick }) => {
 							<div id="google_translate_element"></div>
 						</div> 	
 						<ul className="navbar-nav header-right">
-							<li className="nav-item">
+							{/*<li className="nav-item">
 								<div className="input-group search-area ms-auto d-inline-flex">
 									<input type="text" className="form-control" placeholder="Search here"  />
 									<div className="input-group-append">
 										<button type="button" className="input-group-text"><i className="flaticon-381-search-2"></i></button>
 									</div>
 								</div>
-							</li>
+							</li>*/}
 							<Dropdown as="li" className="nav-item header-profile ">
 								{/*<Dropdown.Toggle as="a" to="#" variant="" className="nav-link i-false c-pointer">								
 									<img src={countries[lang]} width="20" alt=""/>

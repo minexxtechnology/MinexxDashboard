@@ -37,6 +37,7 @@ const Assessment = () => {
             <div className="row page-titles">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item active"><Link to={"/overview"}> Dashboard</Link></li>
+                    <li className="breadcrumb-item"><Link to={"/mines"}>Mines</Link></li>
                     <li className="breadcrumb-item"><Link to={""}>Assessment Details</Link></li>
                 </ol>
             </div>

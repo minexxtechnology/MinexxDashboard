@@ -242,7 +242,7 @@ export const RegulatorMenu = [
     },  
 ]
 
-export const BIMenu = [
+export const BMenu = [
     {   
         title:'Overview',
         iconStyle: <i className="flaticon-layout"></i>,
@@ -266,5 +266,58 @@ export const BIMenu = [
         title: 'Knowledge Base',
         iconStyle: <i className="flaticon-monitor"></i>,
         to: 'knowledge' 
+    }
+]
+
+export const IMenu = [
+    {   
+        title:'Overview',
+        iconStyle: <i className="flaticon-layout"></i>,
+        to: 'overview',
+    },
+
+    {   
+        title:'Exports',
+        iconStyle: <i className="flaticon-381-list"></i>,
+        to: 'exports',
+    },
+
+    
+    {   
+        title:'Mines',
+        iconStyle: <i className="flaticon-location"></i>,
+        to: 'mines',
+    },
+
+    {
+        title: 'Knowledge Base',
+        iconStyle: <i className="flaticon-monitor"></i>,
+        to: 'knowledge' 
+    },
+
+    {
+        title:'Reporting',
+        to: 'reports',
+        update:"New",
+        iconStyle : <i className="flaticon-business-report" />,
+        content: [
+            // {
+            //     title: 'Today\'s Report',
+            //     to: '/reports/today',
+            // },
+            {
+                title: 'Daily Report',
+                to: '/reports/daily',
+            },
+            {
+                title: 'MTD Performance',
+                to: '/reports/mtd',
+            },
+            {
+                title: 'Daily Deliveries',
+                to: '/reports/deliveries',
+            },
+        ]
+
     }
 ]

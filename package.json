@@ -36,6 +36,7 @@
     "jquery": "^3.7.1",
     "lightgallery": "^2.7.0",
     "mapbox-gl": "^3.1.0",
+    "moment": "^2.30.1",
     "node-sass": "^8.0.0",
     "nouislider": "^14.7.0",
     "nouislider-react": "^3.4.1",

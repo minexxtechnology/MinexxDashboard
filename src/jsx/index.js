@@ -205,7 +205,7 @@ const Markup = (props) => {
     {url:'users/:platform', component:<Users/> },
 
     //Reports
-    {url:'reports', component:<Reports/> },
+    {url:'reports/:type', component:<Reports/> },
 
 
     /// Apps

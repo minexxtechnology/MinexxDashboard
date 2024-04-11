@@ -82,6 +82,7 @@ const Assessments = () => {
             <div className="row page-titles">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item active"><Link to={"#"}> Events</Link></li>
+                    <li className="breadcrumb-item"><Link to={"/mines"}> Mines</Link></li>
                     <li className="breadcrumb-item"><Link to={"#"}> Assessments</Link></li>
                 </ol>
             </div>

@@ -1,29 +1,28 @@
 import React, { useContext, useEffect, useState } from "react";
 import {Link} from 'react-router-dom';
-import { baseURL_ } from "../../../config";
+import { apiHeaders, baseURL_ } from "../../../config";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { ThemeContext } from "../../../context/ThemeContext";
 
 const Exports = () => {	
 	const { changeTitle } = useContext(ThemeContext);
+	const auth = localStorage.getItem('_authTkn');
+    const refresh = localStorage.getItem('_authRfrsh')
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
 	const [exports, setexports] = useState([])
 	const [filtered, setfiltered] = useState([])
 
 	const fetchExports = async()=>{
 		try{
-			let response = await axios.get(`${baseURL_}exports`)
-			if(user.email === 'taniobis@buyer.email'){
-				setexports(response.data.exports.filter(exp=>exp.mineral === `Tantalum`).reverse())
-				setfiltered(response.data.exports.filter(exp=>exp.mineral === `Tantalum`).reverse())
-			}else{
-				setexports(response.data.exports.filter(exp=>exp.company.type === `Exporter` || exp.company.id === `r5kdo93g`).reverse())
-				setfiltered(response.data.exports.filter(exp=>exp.company.type === `Exporter` || exp.company.id === `r5kdo93g`).reverse())
-			}
+			let response = await axios.get(`${baseURL_}exports`, {
+				headers: apiHeaders
+			})
+			setexports(response.data.exports.reverse())
+			setfiltered(response.data.exports.reverse())
 		}catch(err){
 			try{
-				//toast.warn(err.response.data.message)
+				toast.warn(err.response.data.message)
 			}catch(e){
 				toast.warn(err.message)
 			}
@@ -165,7 +164,7 @@ const Exports = () => {
 										<tr role="row" className="odd">
 											<td colSpan={8} rowSpan={2} className="sorting_1 text-center">No export records to display yet.</td>
 										</tr>
-									: filtered.filter(single=>single.mineral !== "Tantalum").map(_export=>{
+									: filtered.map(_export=>{
 									return (<tr role="row" key={_export.id} className="odd">
 										<td className="sorting_1">
 											<div className="custom-control custom-checkbox ">

@@ -1,7 +1,10 @@
 import React,{useState, useEffect, useContext, useRef} from 'react';
 import { Dropdown } from 'react-bootstrap';
-import {Link} from 'react-router-dom';
+import {Link, useParams} from 'react-router-dom';
 import { ThemeContext } from '../../context/ThemeContext';
+import { apiHeaders, baseURL_ } from '../../config'
+import axios from 'axios';
+import moment from 'moment';
 
 const ticketData = [
     {number:"01", emplid:"Emp-0852", count:'3'},
@@ -15,10 +18,32 @@ const ticketData = [
 
 const Reports = () => {
 
+    const {type} = useParams()
+
     const { changeTitle } = useContext(ThemeContext)
     const [data, setData] = useState(
 		document.querySelectorAll("#report_wrapper tbody tr")
 	);
+    const [daily, setdaily] = useState({
+        cassiterite: {
+            dailyTarget: 0,
+            dailyActual: 0,
+            mtdTarget: 0,
+            mtdActual: 0,
+        },
+        coltan: {
+            dailyTarget: 0,
+            dailyActual: 0,
+            mtdTarget: 0,
+            mtdActual: 0,
+        },
+        wolframite: {
+            dailyTarget: 0,
+            dailyActual: 0,
+            mtdTarget: 0,
+            mtdActual: 0,
+          }
+    })
 	const sort = 10;
 	const activePag = useRef(0);
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
@@ -33,11 +58,23 @@ const Reports = () => {
 			}
 		}
 	};
+
+    const loadReport = ()=>{
+        axios.get(`${baseURL_}report/${type}`, {
+            headers: apiHeaders
+        }).then(response=>{
+            if(type === `daily`){
+                setdaily({ cassiterite: response.data.cassiterite, coltan: response.data.coltan, wolframite: response.data.wolframite })
+            }
+        }).catch(err=>{})
+    }
+
    // use effect
    useEffect(() => {
       setData(document.querySelectorAll("#report_wrapper tbody tr"));
       changeTitle(`Reports | Minexx`)
-	}, []);
+        loadReport()
+	}, [type]);
 
   
    // Active pagginarion
@@ -59,14 +96,16 @@ const Reports = () => {
 				<ol className="breadcrumb">
 					<li className="breadcrumb-item active"><Link to={"#"}>Dashboard</Link></li>
 					<li className="breadcrumb-item"><Link to={"#"} >Reports</Link></li>
+					<li className="breadcrumb-item"><Link to={"#"} >{ type === 'today' ? `Today's Report` : type === `daily` ? `Daily Report` : type === `mtd` ? `Month to Date Performance` : `Daily Deliveries`}</Link></li>
 				</ol>
 			</div>
-            <div className="row mb-5 align-items-center">
+            {/**<div className="row mb-5 align-items-center">
 				<div className="col-lg-3 mb-4 mb-lg-0">
 					<Link to={"#"} className="btn btn-outline-primary light  btn-lg btn-block rounded" onClick={()=>{} }> + Generate Report</Link>
 				</div>
-            </div>
+            </div>**/}
             <div className="row">
+                { type === `admin` ?
                 <div className="col-lg-12">
                     <div className="card">
                         <div className="card-header">
@@ -184,6 +223,203 @@ const Reports = () => {
                         </div>
                     </div>
                 </div>
+                :
+                type === `daily` ? 
+                <div className='row'>
+                    <div className="col-md-4">
+                        <div className="card">
+                            <div className="card-header">
+                                <h4 className="card-title">Cassiterite</h4>
+                            </div>
+                            <div className="card-body">
+                                <div className="table-responsive">
+                                    <div id="report_wrapper" className="no-footer">
+                                        <table id="example" className="display dataTablesCard table-responsive-sm dataTable no-footer">
+                                            <thead>
+                                                <tr>                                               	                                            
+                                                    <th>Date</th>
+                                                    <th>{new Date(moment().subtract(1, "day")).toUTCString().substring(0, 16)}</th>                                          
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr key="c1">     
+                                                    <td className="sorting_1">Daily Target (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.cassiterite.dailyTarget/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c2">     
+                                                    <td className="sorting_1">Daily Actuals (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.cassiterite.dailyActual/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c3">     
+                                                    <td className="sorting_1">MTD Target (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.cassiterite.mtdTarget/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c4">     
+                                                    <td className="sorting_1">MTD Actuals (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.cassiterite.mtdActual/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c5">     
+                                                    <td className="sorting_1">MTD Actuals vs Target (%)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{Number(daily.cassiterite.mtdActual/daily.cassiterite.mtdTarget)*100}%</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>                                        
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-md-4">
+                        <div className="card">
+                            <div className="card-header">
+                                <h4 className="card-title">Coltan</h4>
+                            </div>
+                            <div className="card-body">
+                                <div className="table-responsive">
+                                    <div className="dataTables_wrapper no-footer">
+                                        <table id="example" className="display dataTablesCard table-responsive-sm dataTable no-footer">
+                                            <thead>
+                                                <tr>                                               	                                            
+                                                    <th>Date</th>
+                                                    <th>{new Date(moment().subtract(1, "day")).toUTCString().substring(0, 16)}</th>                                          
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr key="c1">     
+                                                    <td className="sorting_1">Daily Target (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.coltan.dailyTarget/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c2">     
+                                                    <td className="sorting_1">Daily Actuals (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.coltan.dailyActual/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c3">     
+                                                    <td className="sorting_1">MTD Target (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.coltan.mtdTarget/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c4">     
+                                                    <td className="sorting_1">MTD Actuals (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.coltan.mtdActual/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c5">     
+                                                    <td className="sorting_1">MTD Actuals vs Target (%)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{(daily.coltan.mtdActual/daily.coltan.mtdTarget)*100}%</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>                                        
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-md-4">
+                        <div className="card">
+                            <div className="card-header">
+                                <h4 className="card-title">Wolframite</h4>
+                            </div>
+                            <div className="card-body">
+                                <div className="table-responsive">
+                                    <div className="dataTables_wrapper no-footer">
+                                        <table id="example" className="display dataTablesCard table-responsive-sm dataTable no-footer">
+                                            <thead>
+                                                <tr>                                               	                                            
+                                                    <th>Date</th>
+                                                    <th>{new Date(moment().subtract(1, "day")).toUTCString().substring(0, 16)}</th>                                          
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr key="c1">     
+                                                    <td className="sorting_1">Daily Target (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.wolframite.dailyTarget/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c2">     
+                                                    <td className="sorting_1">Daily Actuals (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.wolframite.dailyActual/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c3">     
+                                                    <td className="sorting_1">MTD Target (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.wolframite.mtdTarget/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c4">     
+                                                    <td className="sorting_1">MTD Actuals (TONS)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{daily.wolframite.mtdActual/1000}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="c5">     
+                                                    <td className="sorting_1">MTD Actuals vs Target (%)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{Number((daily.wolframite.mtdActual/daily.wolframite.mtdTarget)*100)}%</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>                                        
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                :
+                <div>
+                </div>
+                }
             </div>
         </>
     );

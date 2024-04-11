@@ -3,7 +3,7 @@ import loadable from "@loadable/component";
 import pMinDelay from "p-min-delay";
 import {Link} from 'react-router-dom';
 import {Dropdown} from "react-bootstrap";
-import  { baseURL_ } from '../../../config'
+import  { apiHeaders, baseURL_ } from '../../../config'
 import { subMonths } from 'date-fns'
 import { ThemeContext } from '../../../context/ThemeContext';
 import axios from 'axios';
@@ -51,23 +51,25 @@ function Home() {
 		// setloading(false)
 		// settotals(response.data.events)
 
-		axios.get(`${baseURL_}overview/risks`).then(response=>{
+		axios.get(`${baseURL_}overview/risks`, { headers: apiHeaders}).then(response=>{
 			setincidents(response.data.risks)
+			console.log("Risks: ", response.data.risks)
 			settotals({...{incidents: response.data.count}})
 		}).catch(err=>{ setloading(false) })
 
-		axios.get(`${baseURL_}overview/incidents`).then(response=>{
+		axios.get(`${baseURL_}overview/incidents`, { headers: apiHeaders}).then(response=>{
+			console.log("Incidents: ", response.data.incidents)
 			setseries1(response.data.incidents)
 			settotal1(response.data.count)
 		}).catch(err=>{ setloading(false) })
 
-		axios.get(`${baseURL_}overview/exports`).then(response=>{
+		axios.get(`${baseURL_}overview/exports`, { headers: apiHeaders}).then(response=>{
 			setseries2(response.data.exports)
 			settotal2(response.data.count)
 			setexportweight((response.data.volume/1000).toFixed(1))
 		}).catch(err=>{ setloading(false) })
 
-		axios.get(`${baseURL_}overview/assessments`).then(response=>{
+		axios.get(`${baseURL_}overview/assessments`, { headers: apiHeaders}).then(response=>{
 			setseries3(response.data.assessments)
 			settotal3(response.data.count)
 		}).catch(err=>{ setloading(false) })
@@ -202,7 +204,7 @@ function Home() {
 						<div className="card-header border-0 pb-0 d-sm-flex d-block">
 							<div>
 								<h4 className="mb-0 fs-20">Events Overview</h4>
-								<small className='font-w200 fs-12'><i className='fa fa-info-circle'></i> The assessments overview might take some time to load...</small>
+								<small className='font-w200 fs-12'><i className='fa fa-info-circle'></i> The events overview might take some time to load...</small>
 							</div>
 							<div className="d-flex align-items-center mb-3 mb-sm-0">
 

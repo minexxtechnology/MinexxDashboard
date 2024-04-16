@@ -25,7 +25,7 @@ export function login(email, password) {
         returnSecureToken: true,
     };
     return axios.post(
-        `https://pthxuif38b.execute-api.us-east-1.amazonaws.com/sessions`,
+        `https://minexx-p7n5ing2cq-uc.a.run.app/login`,
         postData,
     );
 }

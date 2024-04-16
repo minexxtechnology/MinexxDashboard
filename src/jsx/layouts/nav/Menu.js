@@ -306,15 +306,15 @@ export const IMenu = [
             //     to: '/reports/today',
             // },
             {
-                title: 'Daily Report',
+                title: 'Total Stock Delivery',
                 to: '/reports/daily',
             },
             {
-                title: 'MTD Performance',
+                title: 'In-Stock Country Balance',
                 to: '/reports/mtd',
             },
             {
-                title: 'Daily Deliveries',
+                title: 'Total Purchase',
                 to: '/reports/deliveries',
             },
         ]

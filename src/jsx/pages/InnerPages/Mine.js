@@ -23,7 +23,7 @@ const Mine = () => {
     const [headers, setheaders] = useState([])
     const [incidents, setincidents] = useState([])
     const [picture, setpicture] = useState()
-    const [location, setlocation] = useState('1.9403,29.8739')
+    const [location, setlocation] = useState()
     const [assessments, setassessments] = useState([])
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
     const [gallery, setgallery] = useState([])
@@ -154,11 +154,11 @@ const Mine = () => {
                                                     Gallery
                                                 </Nav.Link>
                                             </Nav.Item>
-                                            <Nav.Item as="li" className="nav-item">
+                                            { location ? <Nav.Item as="li" className="nav-item">
                                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#map" role="tab" eventKey="map">
                                                     Map
                                                 </Nav.Link>
-                                            </Nav.Item>
+                                            </Nav.Item> : <></> }
                                         </Nav>
                                     </div>
                                 </div>
@@ -273,11 +273,11 @@ const Mine = () => {
                                     </div>
                                 </div>
                             </Tab.Pane>
-                            <Tab.Pane id='map' eventKey={'map'}>
+                            { location ? <Tab.Pane id='map' eventKey={'map'}>
                                 <div className="card event-bx" style={{ height: '80vh', width: '100%' }}>
-                                    <iframe title={mine?.name} src={`https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15949.795161811555!2d${location.split(',')[1]}!3d${location.split(',')[0]}!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca50051ea7d29%3A0x6ac04434247b3e81!2s${mine?.name}!5e0!3m2!1sen!2sbw!4v1709046475985!5m2!1sen!2sbw`} width="100%" height="100%" style={{border:0}} allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>
+                                    <iframe src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDEabEXDTK0hQXB3l7WIXM2Cg4PJJo3x_o&q=${location.split(',')[0]},${location.split(',')[1]}`} width="100%" height="100%" title={mine?.name} style={{border:0}} allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                                 </div>
-                            </Tab.Pane>
+                            </Tab.Pane> : <></> }
                         </Tab.Content>
                     </div>
                 </Tab.Container>

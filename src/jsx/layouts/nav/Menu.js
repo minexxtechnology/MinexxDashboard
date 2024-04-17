@@ -5,111 +5,63 @@ export const RootMenu = [
         to: 'overview',
     },
 
-    // Organization
+    {   
+        title:'Exports',
+        iconStyle: <i className="flaticon-381-list"></i>,
+        to: 'exports',
+    },
+
+    
+    {   
+        title:'Mines',
+        iconStyle: <i className="flaticon-location"></i>,
+        to: 'mines',
+    },
+
     {
         title: 'Knowledge Base',
         iconStyle: <i className="flaticon-monitor"></i>,
         to: 'knowledge' 
     },
 
-    // Locations
-    {
-        title: 'Locations',
-        class: 'mm-collapse',
-        iconStyle: <i className="flaticon-location"></i>,
-        content: [
-            {
-                title: 'Mine Sites',
-                to: '/mine-sites',
-            },
-            {
-                title: 'Miners',
-                to: '/miners',
-            },
-            {
-                title: 'Villages',
-                to: '/villages',
-            },
-        ]
-    },
-
-    {   
-        title:'Suppliers',
-        iconStyle: <i className="flaticon-invoice"></i>,
-        to: 'suppliers',
-    },
-
-    // Shareholders
-    // {
-    //     title: 'Shareholders',
-    //     class: 'mm-collapse',
-    //     iconStyle: <i className="flaticon-content"></i>,
-    //     content: [
-    //         {
-    //             title: 'Suppliers',
-    //             to: '/suppliers',
-    //         },
-    //         {
-    //             title: 'Miners',
-    //             to: '/miners',
-    //         },
-    //     ]
-    // },
-
-    // Events
-    {
-        title: 'Events',
-        class: 'mm-collapse',
-        iconStyle: <i className="flaticon-381-list"></i>,
-        content: [
-            {
-                title: 'Incidents',
-                to: 'incidents',
-            },
-            {
-                title: 'Assessments',
-                to: '/assessments',
-            },
-            {
-                title: 'Exports',
-                to: '/exports',
-            },
-        ]
-    },
-
-    // Reporting
-    // {
-    //     title: 'Reporting',
-    //     class: 'mm-collapse',
-    //     iconStyle: <i className="flaticon-business-report"></i>,
-    //     content: [
-    //         {
-    //             title: 'Auto Reports',
-    //             to: 'report',
-    //         },
-    //         {
-    //             title: 'Custom/Manual',
-    //             to: 'manual-report',
-    //         },
-    //     ]
-    // },
     {
         title:'Reporting',
         to: 'reports',
         update:"New",
         iconStyle : <i className="flaticon-business-report" />,
+        content: [
+            // {
+            //     title: 'Today\'s Report',
+            //     to: '/reports/today',
+            // },
+            {
+                title: 'Total Stock Delivery',
+                to: '/reports/daily',
+            },
+            {
+                title: 'In-Stock Country Balance',
+                to: '/reports/mtd',
+            },
+            {
+                title: 'Total Purchase',
+                to: '/reports/deliveries',
+            },
+        ]
 
     },
-
     // Users
     {
-        title: 'Settings',
+        title: 'User Management',
         class: 'mm-collapse',
         iconStyle: <i className="flaticon-settings-1"></i>,
         content: [
             {
-                title: 'Manage Users',
-                to: '/users',
+                title: 'Dashboard Users',
+                to: '/users/dashboard',
+            },
+            {
+                title: 'App Users',
+                to: '/users/app',
             }
         ]
     }    

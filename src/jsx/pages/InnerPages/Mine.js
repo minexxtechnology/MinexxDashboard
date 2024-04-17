@@ -174,19 +174,24 @@ const Mine = () => {
                             <Tab.Pane eventKey="basic" id='basic'>
                                 <div className='card'>
                                     <div className='card-body'>
-                                        <img className='rounded mb-4' style={{ width: '100%' }} alt='' src={picture}/>
-                                        {/* src={`${mine?.image?.webContentLink?.replaceAll('uc', 'thumbnail')?.replaceAll('&export=download', '')}`}/> */}
-                                        <h4 className="text-primary mb-2">Mine Name</h4>
-                                        <Link className="text-black">{mine?.name || `--`}</Link>
-                                        
-                                        <h4 className="text-primary mb-2 mt-4">Mine Address</h4>
-                                        <Link className="text-black">{mine?.location || `--`}</Link>
-                                        
-                                        <h4 className="text-primary mb-2 mt-4">Mineral</h4>
-                                        <Link className="text-black">{mine?.mineral || `--`}</Link>
-                                        
-                                        <h4 className="text-primary mb-2 mt-4">Note</h4>
-                                        <Link className="text-black">{mine?.note || `--`}</Link>
+                                        <div className="row">
+                                            <div className="col-md-4">
+                                                <img className='rounded mb-4' style={{ width: '100%', minHeight: '400px', objectFit: 'cover' }} alt='' src={picture}/>
+                                            </div>
+                                            <div className="col-md-8">
+                                                <h4 className="text-primary mb-2">Mine Name</h4>
+                                                <Link className="text-black">{mine?.name || `--`}</Link>
+                                                
+                                                <h4 className="text-primary mb-2 mt-4">Mine Address</h4>
+                                                <Link className="text-black">{mine?.location || `--`}</Link>
+                                                
+                                                <h4 className="text-primary mb-2 mt-4">Mineral</h4>
+                                                <Link className="text-black">{mine?.mineral || `--`}</Link>
+                                                
+                                                <h4 className="text-primary mb-2 mt-4">Note</h4>
+                                                <Link className="text-black">{mine?.note || `--`}</Link>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </Tab.Pane>

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import {Link} from 'react-router-dom';
-import { apiHeaders, baseURL_ } from "../../../config";
+import { baseURL_ } from "../../../config";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { ThemeContext } from "../../../context/ThemeContext";
@@ -12,6 +12,10 @@ const Exports = () => {
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
 	const [exports, setexports] = useState([])
 	const [filtered, setfiltered] = useState([])
+	const apiHeaders = {
+        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
+        'x-refresh': localStorage.getItem(`_authRfrsh`)
+    }
 
 	const fetchExports = async()=>{
 		try{

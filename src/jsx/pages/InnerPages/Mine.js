@@ -8,7 +8,7 @@ import 'lightgallery/css/lg-zoom.css';
 import 'lightgallery/css/lg-thumbnail.css';
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
 import lgZoom from 'lightgallery/plugins/zoom';
-import { apiHeaders, baseURL_ } from '../../../config'
+import { baseURL_ } from '../../../config'
 import axios from 'axios';
 import { ThemeContext } from '../../../context/ThemeContext';
 import AssessmentsTable from '../../components/table/AssessmentsTable';
@@ -27,6 +27,10 @@ const Mine = () => {
     const [assessments, setassessments] = useState([])
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
     const [gallery, setgallery] = useState([])
+    const apiHeaders = {
+        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
+        'x-refresh': localStorage.getItem(`_authRfrsh`)
+    }
 
     const getMine = async()=>{
         

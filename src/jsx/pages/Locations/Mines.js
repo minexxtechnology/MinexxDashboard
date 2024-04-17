@@ -3,7 +3,7 @@ import {Link} from 'react-router-dom'
 import {Accordion} from 'react-bootstrap'
 import { ThemeContext } from '../../../context/ThemeContext'
 import PerfectScrollbar from "react-perfect-scrollbar"
-import { apiHeaders, baseURL_ } from '../../../config'
+import { baseURL_ } from '../../../config'
 import axios from 'axios'
 import { toast } from 'react-toastify';
 
@@ -18,6 +18,10 @@ const Mines = () => {
     const [init, setinit] = useState()
 	const activePag = useRef(0);
     const [filtered, setfiltered] = useState([])
+    const apiHeaders = {
+        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
+        'x-refresh': localStorage.getItem(`_authRfrsh`)
+    }
 
 	// Active data
 	const chageData = (frist, sec) => {

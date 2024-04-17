@@ -3,7 +3,7 @@ import loadable from "@loadable/component";
 import pMinDelay from "p-min-delay";
 import {Link} from 'react-router-dom';
 import {Dropdown} from "react-bootstrap";
-import  { apiHeaders, baseURL_ } from '../../../config'
+import  { baseURL_ } from '../../../config'
 import { subMonths } from 'date-fns'
 import { ThemeContext } from '../../../context/ThemeContext';
 import axios from 'axios';
@@ -45,6 +45,10 @@ function Home() {
 	const dropdown_ = ['Purchase Tracker', 'Blending', 'Exports']
 	const [filter, setfilter] = useState(0)
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
+	const apiHeaders = {
+        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
+        'x-refresh': localStorage.getItem(`_authRfrsh`)
+    }
 
 	const loadOverview = async()=>{
 

@@ -1,7 +1,7 @@
 import React,{useState, useEffect, useContext} from 'react';
 import {Link, useParams} from 'react-router-dom';
 import {Accordion, ListGroup, Nav, Tab} from 'react-bootstrap';
-import { apiHeaders, baseURL_ } from '../../../config'
+import {baseURL_ } from '../../../config'
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ThemeContext } from '../../../context/ThemeContext';
@@ -33,6 +33,10 @@ const Export = () => {
         null,
         null
     ])
+    const apiHeaders = {
+        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
+        'x-refresh': localStorage.getItem(`_authRfrsh`)
+    }
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
     const documents = [
         `Provisional Invoice`,

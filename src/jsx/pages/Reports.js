@@ -2,7 +2,7 @@ import React,{useState, useEffect, useContext, useRef} from 'react';
 import { Dropdown } from 'react-bootstrap';
 import {Link, useParams} from 'react-router-dom';
 import { ThemeContext } from '../../context/ThemeContext';
-import { apiHeaders, baseURL_ } from '../../config'
+import { baseURL_ } from '../../config'
 import axios from 'axios';
 import moment from 'moment';
 import {startOfMonth, isWeekend, isBefore} from 'date-fns'
@@ -93,6 +93,10 @@ const Reports = () => {
 	const sort = 10;
 	const activePag = useRef(0);
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
+    const apiHeaders = {
+        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
+        'x-refresh': localStorage.getItem(`_authRfrsh`)
+    }
 
 	// Active data
 	const chageData = (frist, sec) => {

@@ -2,7 +2,7 @@ import React,{useState, useEffect, useRef, Fragment, useContext} from 'react';
 import {Link, useParams} from 'react-router-dom';
 import {Dropdown, ListGroup, Modal, Nav, Tab} from 'react-bootstrap';
 import GoogleMapReact from 'google-map-react';
-import { apiHeaders, apiKey, baseURL, baseURL_ } from '../../config'
+import { baseURL_ } from '../../config'
 import ComplianceTable from '../components/table/ComplianceTable';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -31,6 +31,10 @@ const Company = () => {
     const [beneficialOwners, setbeneficialOwners] = useState([])
     const [sharehodlerID, setsharehodlerID] = useState()
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
+    const apiHeaders = {
+        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
+        'x-refresh': localStorage.getItem(`_authRfrsh`)
+    }
 
     const getCompany = async()=>{
         axios.get(`${baseURL_}companies/${id}`, {

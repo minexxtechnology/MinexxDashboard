@@ -56,18 +56,21 @@ const Reports = () => {
         cassiterite: {
             minexx: 0,
             supplier: 0,
+            buyer: 0,
             shipped: 0,
             rmr: 0,
         },
         coltan: {
             minexx: 0,
             supplier: 0,
+            buyer: 0,
             shipped: 0,
             rmr: 0,
         },
         wolframite: {
             minexx: 0,
             supplier: 0,
+            buyer: 0,
             shipped: 0,
             rmr: 0,
         }
@@ -532,7 +535,15 @@ const Reports = () => {
                                                     </td>
                                                 </tr>
                                                 <tr key="cb3">     
-                                                    <td className="sorting_1">Shipped (with Buyer)</td>
+                                                    <td className="sorting_1">With Buyer (SOLD)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{(balance.cassiterite.buyer/1000).toFixed(2)}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="cb4">     
+                                                    <td className="sorting_1">Shipped (TONS)</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.cassiterite.shipped/1000).toFixed(2)}</Link>
@@ -579,7 +590,15 @@ const Reports = () => {
                                                     </td>
                                                 </tr>
                                                 <tr key="ccb3">     
-                                                    <td className="sorting_1">Shipped (with Buyer)</td>
+                                                    <td className="sorting_1">With Buyer (SOLD)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{(balance.coltan.buyer/1000).toFixed(2)}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="ccb4">     
+                                                    <td className="sorting_1">Shipped (TONS)</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.coltan.shipped/1000).toFixed(2)}</Link>
@@ -626,7 +645,15 @@ const Reports = () => {
                                                     </td>
                                                 </tr>
                                                 <tr key="wb3">     
-                                                    <td className="sorting_1">Shipped (with Buyer)</td>
+                                                    <td className="sorting_1">With Buyer (SOLD)</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{(balance.wolframite.buyer/1000).toFixed(2)}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="wb4">     
+                                                    <td className="sorting_1">Shipped (TONS)</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.wolframite.shipped/1000).toFixed(2)}</Link>

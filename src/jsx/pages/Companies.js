@@ -1,23 +1,25 @@
 import React, { useContext, useEffect, useState } from "react";
-import {  Button, Dropdown, Modal, Nav, Tab } from "react-bootstrap";
+import {  Button, Dropdown, Modal } from "react-bootstrap";
 import {Link, useNavigate} from 'react-router-dom';
 import { baseURL_ } from "../../config";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { ThemeContext } from "../../context/ThemeContext";
+import { Logout } from '../../store/actions/AuthActions';
+import { useDispatch } from "react-redux";
 
 const Companies = () => {
 	
 	const { changeTitle } = useContext(ThemeContext);
 	const [expot, setexpot] = useState()
     const navigate = useNavigate()
+	const dispatch = useDispatch()
 	const [companies, setcompanies] = useState([])
 	const [filtered, setfiltered] = useState([])
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
 
 	const filter = e => {
 		let input = e.currentTarget.value
-
 		setfiltered(companies.filter(company=>company.name.toLowerCase().includes(input)))
 	}
 
@@ -28,9 +30,13 @@ const Companies = () => {
 			setfiltered( user.type === `minexx` ? response.data.companies : response.data.companies.filter(single=>single.type === `Exporter`))
 		}catch(err){
 			try{
-				// toast.warn(err.response.data.message)
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
 			}catch(e){
-				toast.warn(err.message)
+				toast.error(err.message)
 			}
 		}
 
@@ -68,6 +74,9 @@ const Companies = () => {
 					<div className="card">
 						<div className="card-header">
 							<h4 className="card-title">Companies</h4>
+							<div className="col-md-4">
+								<input className="form-control" placeholder="Search for company" onChange={filter} />
+							</div>
 						</div>
 						<div className="card-body">
 						<div className="table-responsive">
@@ -78,14 +87,6 @@ const Companies = () => {
 							>
 								<thead>
 								<tr role="row">
-									{/* <th
-                                        className="sorting"
-                                        tabIndex={0}
-                                        rowSpan={1}
-                                        colSpan={1}
-									>
-									    Company ID
-									</th> */}
 									<th
                                         className="sorting"
                                         tabIndex={0}
@@ -138,7 +139,6 @@ const Companies = () => {
 										</tr>
 									: filtered.map(company=>{
 									return (<tr role="row" className="clickable" key={company.id}>
-										{/* <td><span className="badge light badge-info">{company.id}</span></td> */}
 										<td onClick={()=>navigate(`/company/${company.id}`)}>
 											<span>
 												{company.name}
@@ -167,54 +167,6 @@ const Companies = () => {
 								}) }
 								</tbody>
 							</table>
-
-							{/* <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
-								<div className="dataTables_info">
-								Showing {activePag.current * sort + 1} to{" "}
-								{data.length > (activePag.current + 1) * sort
-									? (activePag.current + 1) * sort
-									: data.length}{" "}
-								of {data.length} entries
-								</div>
-								<div
-								className="dataTables_paginate paging_simple_numbers"
-								id="example5_paginate"
-								>
-								<Link
-									className="paginate_button previous disabled"
-									to="/table-datatable-basic"
-									onClick={() =>
-									activePag.current > 0 && onClick(activePag.current - 1)
-									}
-								>
-									Previous
-								</Link>
-								<span>
-									{paggination.map((number, i) => (
-									<Link
-										key={i}
-										to="/table-datatable-basic"
-										className={`paginate_button  ${
-										activePag.current === i ? "current" : ""
-										} `}
-										onClick={() => onClick(i)}
-									>
-										{number}
-									</Link>
-									))}
-								</span>
-								<Link
-									className="paginate_button next"
-									to="/table-datatable-basic"
-									onClick={() =>
-									activePag.current + 1 < paggination.length &&
-									onClick(activePag.current + 1)
-									}
-								>
-									Next
-								</Link>
-								</div>
-							</div> */}
 							</div>
 						</div>
 					</div>

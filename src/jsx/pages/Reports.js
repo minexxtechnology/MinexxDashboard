@@ -1,11 +1,14 @@
 import React,{useState, useEffect, useContext, useRef} from 'react';
 import { Dropdown } from 'react-bootstrap';
-import {Link, useParams} from 'react-router-dom';
+import {Link, useNavigate, useParams} from 'react-router-dom';
 import { ThemeContext } from '../../context/ThemeContext';
 import { baseURL_ } from '../../config'
 import axios from 'axios';
 import moment from 'moment';
 import {startOfMonth, isWeekend, isBefore} from 'date-fns'
+import { Logout } from '../../store/actions/AuthActions';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const ticketData = [
     {number:"01", emplid:"Emp-0852", count:'3'},
@@ -20,7 +23,8 @@ const ticketData = [
 const Reports = () => {
 
     const {type} = useParams()
-
+    const navigate = useNavigate()
+	const dispatch = useDispatch()
     const { changeTitle } = useContext(ThemeContext)
     const [data, setData] = useState(
 		document.querySelectorAll("#report_wrapper tbody tr")
@@ -101,7 +105,6 @@ const Reports = () => {
         'x-refresh': localStorage.getItem(`_authRfrsh`)
     }
 
-	// Active data
 	const chageData = (frist, sec) => {
 		for (var i = 0; i < data.length; ++i) {
 			if (i >= frist && i < sec) {
@@ -125,15 +128,24 @@ const Reports = () => {
             if(type === `deliveries`){
                 setdeliveries({ cassiterite: response.data.cassiterite, coltan: response.data.coltan, wolframite: response.data.wolframite })
             }
-        }).catch(err=>{})
+        }).catch(err=>{
+            try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+        })
     }
 
-   // use effect
-   useEffect(() => {
+    useEffect(() => {
       setData(document.querySelectorAll("#report_wrapper tbody tr"));
       changeTitle(`Reports | Minexx`)
         loadReport()
-	}, [type]);
+    }, [type]);
 
   
    // Active pagginarion

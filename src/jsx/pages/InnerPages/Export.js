@@ -1,14 +1,18 @@
 import React,{useState, useEffect, useContext} from 'react';
-import {Link, useParams} from 'react-router-dom';
+import {Link, useNavigate, useParams} from 'react-router-dom';
 import {Accordion, ListGroup, Nav, Tab} from 'react-bootstrap';
 import {baseURL_ } from '../../../config'
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ThemeContext } from '../../../context/ThemeContext';
+import { Logout } from '../../../store/actions/AuthActions';
+import { useDispatch } from 'react-redux';
 
 const Export = () => {
 
     const { id } = useParams()
+    const navigate = useNavigate()
+	const dispatch = useDispatch()
     const { changeTitle } = useContext(ThemeContext)
     const [ export_ , setexport_] = useState()
     const [document, setdocument] = useState(0)
@@ -89,10 +93,13 @@ const Export = () => {
             changeTitle(`Shipment: ${response.data.export.exportationID}`)
         }).catch(err=>{
             try{
-                // navigate(-1)
-				toast.warn(err.response.data.message)
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
 			}catch(e){
-				toast.warn(err.message)
+				toast.error(err.message)
 			}
         })
     }

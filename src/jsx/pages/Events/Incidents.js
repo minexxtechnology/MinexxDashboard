@@ -1,7 +1,7 @@
 import React from 'react';
 import loadable from "@loadable/component";
 import pMinDelay from "p-min-delay";
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { Modal, Dropdown } from "react-bootstrap";
 import IncidentData from '../../components/Karciz/Analytics/IncidentData';
 import {DropdownBlogYear} from '../../components/Karciz/Dropdown/DropdownBlog';
@@ -10,6 +10,8 @@ import axios from 'axios';
 import { baseURL_ } from '../../../config';
 import { toast } from 'react-toastify';
 import { useEffect } from 'react';
+import { Logout } from '../../../store/actions/AuthActions';
+import { useDispatch } from 'react-redux';
 
 const PieChart = loadable(() =>
 	pMinDelay(import("../../components/Karciz/Analytics/PieChart"), 1000)
@@ -17,6 +19,8 @@ const PieChart = loadable(() =>
 
 const Incidents = () =>{
 
+    const navigate = useNavigate()
+	const dispatch = useDispatch()
 	const [incident, setincident] = useState()
 	const [incidents, setincidents] = useState([])
 	const [filtered, setfiltered] = useState([])
@@ -35,9 +39,13 @@ const Incidents = () =>{
 			setfiltered(response.data.incidents)
 		}catch(err){
 			try{
-				//toast.warn(err.response.data.message)
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
 			}catch(e){
-				toast.warn(err.message)
+				toast.error(err.message)
 			}
 		}
 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: `https://pthxuif38b.execute-api.us-east-1.amazonaws.com`,
+    baseURL: `https://minexx-p7n5ing2cq-uc.a.run.app/`,
     headers: {
         'Access-Control-Allow-Origin': '*'
     }

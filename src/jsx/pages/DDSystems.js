@@ -8,7 +8,8 @@ import { ListGroup } from "react-bootstrap"
 const DDSystems = () => {
 
 	const { changeTitle } = useContext(ThemeContext)
-	const knowledgeBase = [
+	const user = JSON.parse(localStorage.getItem(`_authUsr`))
+	const knowledgeBase = user.type === 'buyer' || user.type === 'investor' ? [
 		{
 			title: 'KYC Form',
 			to: 'kyc',
@@ -21,30 +22,51 @@ const DDSystems = () => {
 			title: 'Traceability Guide for 3TG Operators',
 			to: 'traceability-guide',
 		},
-		// {
-		// 	title: 'Risk Management Plan',
-		// 	to: 'risk-management',
-		// },
-		// {
-		// 	title: 'Shipment Conformance Notice',
-		// 	to: 'shipment-conformance',
-		// },
 		{
 			title: 'Supplier Code of Conduct',
 			to: 'code-of-conduct',
 		},
-		// {
-		// 	title: 'Operator Onboarding',
-		// 	to: 'operator-onboarding',
-		// },
-		// {
-		// 	title: 'Know Your Counterpart Form',
-		// 	to: 'asm',
-		// },
-		// {
-		// 	title: 'Trace Due Diligence Programme Introduction',
-		// 	to: 'trace-due-diligence',
-		// },
+		{
+			title: 'Rwanda - Internal Supplement',
+			to: 'internal-supplement-rw',
+		}
+	] : [
+		{
+			title: 'KYC Form',
+			to: 'kyc',
+		},
+		{
+			title: 'Platform Grievance Mechanisms',
+			to: 'grievance',
+		},
+		{
+			title: 'Traceability Guide for 3TG Operators',
+			to: 'traceability-guide',
+		},
+		{
+			title: 'Risk Management Plan',
+			to: 'risk-management',
+		},
+		{
+			title: 'Shipment Conformance Notice',
+			to: 'shipment-conformance',
+		},
+		{
+			title: 'Supplier Code of Conduct',
+			to: 'code-of-conduct',
+		},
+		{
+			title: 'Operator Onboarding',
+			to: 'operator-onboarding',
+		},
+		{
+			title: 'Know Your Counterpart Form',
+			to: 'asm',
+		},
+		{
+			title: 'Trace Due Diligence Programme Introduction',
+			to: 'trace-due-diligence',
+		},
 		{
 			title: 'Rwanda - Internal Supplement',
 			to: 'internal-supplement-rw',

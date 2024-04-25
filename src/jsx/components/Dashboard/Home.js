@@ -1,12 +1,15 @@
 import React,{Fragment, useContext, useEffect, useState} from 'react';
 import loadable from "@loadable/component";
 import pMinDelay from "p-min-delay";
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {Dropdown} from "react-bootstrap";
 import  { baseURL_ } from '../../../config'
 import { subMonths } from 'date-fns'
 import { ThemeContext } from '../../../context/ThemeContext';
+import { Logout } from '../../../store/actions/AuthActions';
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const Doughnutchart = loadable(() =>
 	pMinDelay(import("./../Karciz/Dashboard/Doughnutchart"), 1000)
@@ -21,13 +24,11 @@ const HomeSalesRevenueChart = loadable(() =>
 
 function Home() {
 	const { changeBackground, changeTitle } = useContext(ThemeContext);
+	const navigate = useNavigate()
+	const dispatch = useDispatch()
 	const dropdown = ['Production', 'Blending', 'Processing', 'Purchases']
 	const [incidents, setincidents] = useState([])
-	const [totals, settotals] = useState({
-		exports: 0, incidents: 0, assessments: 0
-	})
 	const [exportweight, setexportweight] = useState(0)
-	const [loading, setloading] = useState(true)
 	const months = [
 		subMonths(new Date(), 6).toString().substring(4, 7),
 		subMonths(new Date(), 5).toString().substring(4, 7),
@@ -52,31 +53,65 @@ function Home() {
 
 	const loadOverview = async()=>{
 
-		// setloading(false)
-		// settotals(response.data.events)
-
 		axios.get(`${baseURL_}overview/risks`, { headers: apiHeaders}).then(response=>{
 			setincidents(response.data.risks)
-			console.log("Risks: ", response.data.risks)
-			settotals({...{incidents: response.data.count}})
-		}).catch(err=>{ setloading(false) })
+		}).catch(err=>{
+			try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+		})
 
 		axios.get(`${baseURL_}overview/incidents`, { headers: apiHeaders}).then(response=>{
-			console.log("Incidents: ", response.data.incidents)
 			setseries1(response.data.incidents)
 			settotal1(response.data.count)
-		}).catch(err=>{ setloading(false) })
+		}).catch(err=>{
+			try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+		})
 
 		axios.get(`${baseURL_}overview/exports`, { headers: apiHeaders}).then(response=>{
 			setseries2(response.data.exports)
 			settotal2(response.data.count)
 			setexportweight((response.data.volume/1000).toFixed(1))
-		}).catch(err=>{ setloading(false) })
+		}).catch(err=>{
+			try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+		})
 
 		axios.get(`${baseURL_}overview/assessments`, { headers: apiHeaders}).then(response=>{
 			setseries3(response.data.assessments)
 			settotal3(response.data.count)
-		}).catch(err=>{ setloading(false) })
+		}).catch(err=>{ 
+			try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+		})
 
 	}
 
@@ -108,10 +143,6 @@ function Home() {
 										</linearGradient>
 										</defs>
 									</svg>
-									{/*<div className="ms-3">
-										<p className="text-warning fs-20 mb-0">+4%</p>
-										<span className="fs-12">than last day</span>
-									</div>*/}
 								</div>
 							</div>
 							<div className="progress mt-3 mb-4" style={{height:"15px"}}>
@@ -126,62 +157,12 @@ function Home() {
 				</div>	
 				<div className="col-xl-8 col-xxl-7 col-lg-8">
 					<div className="row">
-						{/*<div className="col-sm-12">
-							<div className="card overflow-hidden">
-								<div className="card-header align-items-start pb-0 border-0">	
-									<div>
-										<h3 className="fs-16 mb-0">$ {exportvalue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</h3>
-										<span className="fs-12">Export Value</span>
-									</div>
-									{/*<Dropdown className="">
-										<Dropdown.Toggle  as="div" className="cursor-pointer fs-12">This Week</Dropdown.Toggle>	
-										<Dropdown.Menu alignRight={true} className="dropdown-menu-right">
-											<Dropdown.Item >Daily</Dropdown.Item>
-											<Dropdown.Item >Weekly</Dropdown.Item>		
-											<Dropdown.Item >Monthly</Dropdown.Item>		
-										</Dropdown.Menu>	
-									</Dropdown>*
-								</div>
-								<div className="card-body p-0">
-									<SalesChart className="me-3"/> 
-								</div>
-							</div>
-						</div>*/}
-						{/*<div className="col-sm-6">
-							<div className="card overflow-hidden">
-								<div className="card-header align-items-start pb-0 border-0">	
-									<div>
-										<h4 className="fs-16 mb-0">Increase 25%</h4>
-										<span className="fs-12">Export Value Comparison</span>
-									</div>
-									<Dropdown className="">
-										<Dropdown.Toggle variant="" as="div" className="cursor-pointer fs-12">Daily</Dropdown.Toggle>	
-										<Dropdown.Menu alignRight={true} className="dropdown-menu-right">
-											<Dropdown.Item >Daily</Dropdown.Item>
-											<Dropdown.Item >Weekly</Dropdown.Item>		
-											<Dropdown.Item >Monthly</Dropdown.Item>		
-										</Dropdown.Menu>	
-									</Dropdown>
-								</div>
-								<div className="card-body p-0">
-									 <IncreaseChart /> 
-								</div>
-							</div>
-						</div>*/}
 						<div className="col-sm-12">
 							<div className="card overflow-hidden">
 								<div className="card-header align-items-start pb-0 border-0">	
 									<div>
 										<h4 className="mb-0 fs-20">Incident Risks</h4>
 									</div>
-									{/* <Dropdown className="ms-auto">
-										<Dropdown.Toggle variant="" as="div" className="cursor-pointer fs-12">This Week</Dropdown.Toggle>	
-										<Dropdown.Menu alignRight={true} className="dropdown-menu-right">
-											<Dropdown.Item >Daily</Dropdown.Item>
-											<Dropdown.Item >Weekly</Dropdown.Item>		
-											<Dropdown.Item >Monthly</Dropdown.Item>		
-										</Dropdown.Menu>	
-									</Dropdown> */}
 								</div>
 								<div className="card-body pt-2">
 									<div className="index-chart-point">

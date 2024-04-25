@@ -1,5 +1,5 @@
 import React,{useState, useEffect, useContext} from 'react';
-import {Link, useParams} from 'react-router-dom';
+import {Link, useNavigate, useParams} from 'react-router-dom';
 import {Modal, Nav, Tab} from 'react-bootstrap';
 import LightGallery from 'lightgallery/react';
 // import styles
@@ -12,10 +12,15 @@ import { baseURL_ } from '../../../config'
 import axios from 'axios';
 import { ThemeContext } from '../../../context/ThemeContext';
 import AssessmentsTable from '../../components/table/AssessmentsTable';
+import { Logout } from '../../../store/actions/AuthActions';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const Mine = () => {
 
     const { id } = useParams()
+    const navigate = useNavigate()
+	const dispatch = useDispatch()
     const { changeTitle } = useContext(ThemeContext)
     const [mine, setmine] = useState()
     const [videos, setvideos] = useState([])
@@ -25,7 +30,6 @@ const Mine = () => {
     const [picture, setpicture] = useState()
     const [location, setlocation] = useState()
     const [assessments, setassessments] = useState([])
-	const user = JSON.parse(localStorage.getItem(`_authUsr`))
     const [gallery, setgallery] = useState([])
     const apiHeaders = {
         'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
@@ -37,19 +41,49 @@ const Mine = () => {
         // mine images
         axios.get(`${baseURL_}mines/images/${id}`, { headers: apiHeaders }).then(response=>{
             setgallery(response.data.images)
-        }).catch(()=>{})
+        }).catch((err)=>{
+            try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+        })
         
         // mine details
         axios.get(`${baseURL_}mines/${id}`, { headers: apiHeaders }).then(response=>{
             changeTitle(response.data.mine.name + ` | Minexx`)
             setpicture(`https://lh3.googleusercontent.com/d/${response.data.mine.image}=w2160?authuser=0`)
             setmine(response.data.mine)
-        }).catch(()=>{})
+        }).catch((err)=>{
+            try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+        })
 
         // mine videos
         axios.get(`${baseURL_}mines/videos/${id}`, { headers: apiHeaders }).then(response=>{
             setvideos(response.data.videos)
-        }).catch(err=>{})
+        }).catch(err=>{
+            try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+        })
 
         // mine assessments
         axios.get(`${baseURL_}assessments/mine/${id}`, { headers: apiHeaders }).then(response=>{
@@ -58,12 +92,32 @@ const Mine = () => {
             if(response.data.assessments.length>0){
                 setlocation(response.data.assessments[0].general[4])
             }
-        }).catch(err=>{})
+        }).catch(err=>{
+            try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+        })
 
         // incidents assessments
         axios.get(`${baseURL_}incidents/mine/${id}`, { headers: apiHeaders }).then(response=>{
             setincidents(response.data.incidents)
-        }).catch(err=>{})
+        }).catch(err=>{
+            try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+        })
     }
     
     useEffect(() => {

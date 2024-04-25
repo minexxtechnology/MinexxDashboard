@@ -1,6 +1,6 @@
 import React, { Fragment, useReducer, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 // import styles
 import 'lightgallery/css/lightgallery.css';
 import 'lightgallery/css/lg-zoom.css';
@@ -12,7 +12,7 @@ import PageTitle from "../../../layouts/PageTitle";
 import {baseURL_} from "../../../../config"
 import axios from "axios";
 import { toast } from "react-toastify";
-
+import { Logout } from '../../../../store/actions/AuthActions';
 
 const initialState = false;
 const reducer = (state, action) =>{
@@ -36,6 +36,7 @@ const AppProfile = () => {
 	const onInit = () => {
 		//console.log('lightGallery has been initialized');
 	};
+	const navigate = useNavigate();
 	const [password, setpassword] = useState()
 	const [cpassword, setcpassword] = useState()
 	const [loading, setloading] = useState(false)
@@ -93,6 +94,9 @@ const AppProfile = () => {
 		}).catch(err=>{
 			setloading(false)
 			try{
+				if(err.response.code === 403){
+					return dispatch(Logout(navigate));
+				}
 				toast.error(err.response.data.message, {style: {
 					fontFamily: 'Poppins',
 					fontWeight: 200,

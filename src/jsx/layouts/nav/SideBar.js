@@ -188,7 +188,7 @@ const SideBar = () => {
           </ul>	
           { user.type === 'minexx' ? 
           <div className="plus-box">
-            <p className="fs-15 font-w500 mb-1">Get summary report now</p>
+            <p className="fs-15 font-w500 mb-1">Get System Report Now</p>
             <Link to={"summary-report"} className="text-white fs-26"><i className="las la-long-arrow-alt-right"></i></Link>
           </div> : <></> }
           <div className="copyright mt-4">

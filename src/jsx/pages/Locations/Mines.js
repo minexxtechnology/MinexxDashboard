@@ -1,38 +1,26 @@
-import React,{useState, useEffect, useRef, useContext} from 'react'
-import {Link} from 'react-router-dom'
+import React,{useState, useEffect, useContext} from 'react'
+import {Link, useNavigate} from 'react-router-dom'
 import {Accordion} from 'react-bootstrap'
 import { ThemeContext } from '../../../context/ThemeContext'
 import PerfectScrollbar from "react-perfect-scrollbar"
 import { baseURL_ } from '../../../config'
 import axios from 'axios'
 import { toast } from 'react-toastify';
+import { Logout } from '../../../store/actions/AuthActions';
+import { useDispatch } from 'react-redux'
 
 const Mines = () => {
-    const [data, setData] = useState(
-		document.querySelectorAll("#ticket_wrapper tbody tr")
-	)
+    const navigate = useNavigate()
+	const dispatch = useDispatch()
 	const { changeTitle } = useContext(ThemeContext);
     const [suppliers, setsuppliers] = useState([])
     const [mines, setmines] = useState([])
-	const sort = 10;
     const [init, setinit] = useState()
-	const activePag = useRef(0);
     const [filtered, setfiltered] = useState([])
     const apiHeaders = {
         'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
         'x-refresh': localStorage.getItem(`_authRfrsh`)
     }
-
-	// Active data
-	const chageData = (frist, sec) => {
-		for (var i = 0; i < data.length; ++i) {
-			if (i >= frist && i < sec) {
-				data[i].classList.remove("d-none");
-			} else {
-				data[i].classList.add("d-none");
-			}
-		}
-	};
 
     const fetch = async()=>{
         try{
@@ -44,35 +32,21 @@ const Mines = () => {
             setmines(response_.data.mines)
         }catch(err){
             try{
-                toast.warn(err.response.data.message)
-            }catch(e){
-                toast.warn(err.message)
-            }
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
         }
     }
 
-    // use effect
     useEffect(() => {
         fetch()
-        setData(document.querySelectorAll("#ticket_wrapper tbody tr"));
 		changeTitle(`Mines | Minexx`)
-        //chackboxFun();
     }, []);
-
-  
-   // Active pagginarion
-   activePag.current === 0 && chageData(0, sort);
-   // paggination
-   let paggination = Array(Math.ceil(data.length / sort))
-      .fill()
-      .map((_, i) => i + 1);
-
-   // Active paggination & chage data
-	const onClick = (i) => {
-		activePag.current = i;
-		chageData(activePag.current * sort, (activePag.current + 1) * sort);
-		//settest(i);
-	};
 
     const filter = e => {
         let input = e.currentTarget.value
@@ -81,28 +55,6 @@ const Mines = () => {
         }))
     }
    
-	const chackbox = document.querySelectorAll(".sorting_1 input");
-	const motherChackBox = document.querySelector(".sorting_asc input");
-   // console.log(document.querySelectorAll(".sorting_1 input")[0].checked);
-	const chackboxFun = (type) => {
-      for (let i = 0; i < chackbox.length; i++) {
-         const element = chackbox[i];
-         if (type === "all") {
-            if (motherChackBox.checked) {
-               element.checked = true;
-            } else {
-               element.checked = false;
-            }
-         } else {
-            if (!element.checked) {
-               motherChackBox.checked = false;
-               break;
-            } else {
-               motherChackBox.checked = true;
-            }
-         }
-      }
-    };
     return (
         <>
             <div className="row page-titles">
@@ -114,53 +66,32 @@ const Mines = () => {
             <div className="row">
                 <div className="col-xl-12 col-xxl-12">
                     <div className="card">
-                        <PerfectScrollbar className="card-body dz-scroll" style={{ overflow: 'hidden' }}>
-                            <Accordion className="accordion accordion-rounded-stylish accordion-bordered mt-2" defaultActiveKey={init}>
-                                { filtered.map((supplier, index) =>{
-                                    return (<Accordion.Item className="accordion-item" key={supplier?.id} eventKey={supplier?.id}>
-                                        <Accordion.Header className="accordion-header rounded-lg">
-                                            <span className='text-primary'>{supplier?.name}</span>
-                                            &emsp;<span className='badge badge-primary'>{mines.filter(single=>single.company === supplier.id).length}</span>
-                                        </Accordion.Header>
-                                        <Accordion.Collapse id={supplier?.id} eventKey={supplier?.id}>
-                                            <div className="accordion-body">
-                                                { mines.filter(single=>single.company === supplier.id).length === 0 ? <div className='pa-5 text-center'>There are no mine sites associted with {supplier.name}</div>
-                                                : mines.filter(single=>single.company === supplier.id).map(mine=><p className='mt-2 mb-2' key={mine.id}><Link className='text-warning' to={`/mine/${mine.id}`}>{mine.name}</Link><br/></p>)}
-                                            </div>
-                                        </Accordion.Collapse>
-                                    </Accordion.Item>) }
-                                )}
-                            </Accordion>
-                            {/* { filtered.length === 0 ?
-                            <div className='text-center pa-10'>No suppliers to display at the moment</div>
-                            : filtered.map((supplier, index)=>(
-                                <div className="media d-md-flex d-block pb-3 border-bottom mb-3" key={index}>
-                                    <div className="image">	
-                                        <img src={`https://storage.googleapis.com/proudcity/mebanenc/uploads/2021/03/placeholder-image.png`} alt="" />
-                                    </div>
-                                    <div className="media-body">
-                                        <h4 className="fs-18 mb-sm-0 mb-4"><Link to={"#"}> {supplier.name}</Link></h4>
-                                        
-                                        <p className="fs-12">{supplier?.note}</p>
-                                    </div>
-                                    <div className="media-footer">
-                                        <div className="text-center">
-                                            <i className="fas fa-gem"></i>
-                                            <div className="fs-12 text-white">{supplier.mineral}</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <FontAwesomeIcon icon={icon({name: 'scale-unbalanced'})} />
-                                            <div className="fs-12 text-white">1M tons</div>
-                                        </div>
-                                        <div className="text-center" style={{ maxWidth: 100 }}>
-                                            <i className="far fa-map"></i>
-                                            <div className="fs-12 text-white">{supplier.location ? supplier.location : '--'}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))} */}
-                            
-                        </PerfectScrollbar>
+                        <div className='card-header'>
+                            <h4 className='card-title'>Mines</h4>
+                            <div className='col-md-3'>
+                                <input className='form-control' placeholder='Search' onChange={filter}/>
+                            </div>
+                        </div>
+                        <div className='card-body'>
+                            <PerfectScrollbar className="card-body dz-scroll" style={{ overflow: 'hidden' }}>
+                                <Accordion className="accordion accordion-rounded-stylish accordion-bordered mt-2" defaultActiveKey={init}>
+                                    { filtered.map((supplier, index) =>{
+                                        return (<Accordion.Item className="accordion-item" key={supplier?.id} eventKey={supplier?.id}>
+                                            <Accordion.Header className="accordion-header rounded-lg">
+                                                <span className='text-primary'>{supplier?.name}</span>
+                                                &emsp;<span className='badge badge-primary'>{mines.filter(single=>single.company === supplier.id).length}</span>
+                                            </Accordion.Header>
+                                            <Accordion.Collapse id={supplier?.id} eventKey={supplier?.id}>
+                                                <div className="accordion-body">
+                                                    { mines.filter(single=>single.company === supplier.id).length === 0 ? <div className='pa-5 text-center'>There are no mine sites associted with {supplier.name}</div>
+                                                    : mines.filter(single=>single.company === supplier.id).map(mine=><p className='mt-2 mb-2' key={mine.id}><Link className='text-warning' to={`/mine/${mine.id}`}>{mine.name}</Link><br/></p>)}
+                                                </div>
+                                            </Accordion.Collapse>
+                                        </Accordion.Item>) }
+                                    )}
+                                </Accordion>                            
+                            </PerfectScrollbar>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,36 +1,26 @@
-import React,{useState, useEffect, useRef, Fragment, useContext} from 'react';
-import {Link, useParams} from 'react-router-dom';
-import {Dropdown, ListGroup, Modal, Nav, Tab} from 'react-bootstrap';
-import GoogleMapReact from 'google-map-react';
+import React,{useState, useEffect, useContext} from 'react';
+import {Link, useNavigate, useParams} from 'react-router-dom';
+import {Modal, Nav, Tab} from 'react-bootstrap';
 import { baseURL_ } from '../../config'
 import ComplianceTable from '../components/table/ComplianceTable';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ThemeContext } from '../../context/ThemeContext';
+import { Logout } from '../../store/actions/AuthActions';
+import { useDispatch } from 'react-redux';
 
-const ticketData = [
-    {title:'Glee Smiley', gender:'Male', type:'Customer', Rgdate:'10 Jan, 2023', Expdate:'12 Jan, 2023' },
-    {title:'Louis Jovanny', gender:'Male',type:'Guest', Rgdate:'13 Jan, 2023', Expdate:'15 Jan, 2023'   },
-    {title:'Cindy Hawkins', gender:'Female',type:'Customer', Rgdate:'14 Jan, 2023', Expdate:'16 Jan, 2023'},
-    {title:'Glee Smiley', gender:'Male',type:'Guest', Rgdate:'17 Jan, 2023', Expdate:'19 Jan, 2023'},
-    {title:'Timothy L. Brodbeck', gender:'Male',type:'Customer', Rgdate:'18 Jan, 2023', Expdate:'20 Jan, 2023'},
-    {title:'Louis Jovanny', gender:'Male', type:'Guest', Rgdate:'21 Jan, 2023', Expdate:'23 Jan, 2023'},
-    {title:'Timothy L. Brodbeck', gender:'Female',type:'Customer', Rgdate:'22 Jan, 2023', Expdate:'24 Jan, 2023'},
-    {title:'Cindy Hawkins', gender:'Male',type:'Customer', Rgdate:'25 Jan, 2023', Expdate:'27 Jan, 2023'},
-    {title:'Louis Jovanny', gender:'Male',type:'Guest', Rgdate:'26 Jan, 2023', Expdate:'28 Jan, 2023'},
-    {title:'Cindy Hawkins', gender:'Female',type:'Customer', Rgdate:'29 Jan, 2023', Expdate:'30 Jan, 2023'},
-];
 
 const Company = () => {
 
     const { id } = useParams()
+    const navigate = useNavigate()
+	const dispatch = useDispatch()
     const { changeTitle } = useContext(ThemeContext)
     const [company, setcompany] = useState()
     const [documents, setdocuments] = useState([])
     const [shareholders, setshareholders] = useState([])
     const [beneficialOwners, setbeneficialOwners] = useState([])
     const [sharehodlerID, setsharehodlerID] = useState()
-	const user = JSON.parse(localStorage.getItem(`_authUsr`))
     const apiHeaders = {
         'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
         'x-refresh': localStorage.getItem(`_authRfrsh`)
@@ -44,28 +34,62 @@ const Company = () => {
             changeTitle(response.data.company.name)
         }).catch(err=>{
             try{
-				toast.warn(err.response.data.message)
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
 			}catch(e){
-				toast.warn(err.message)
+				toast.error(err.message)
 			}
         })
         axios.get(`${baseURL_}documents/${id}`, {
             headers: apiHeaders
         }).then(response=>{
             setdocuments(response.data.documents)
-        }).catch(err=>{})
+        }).catch(err=>{
+            try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+        })
 
         axios.get(`${baseURL_}shareholders/${id}`, {
             headers: apiHeaders
         }).then(response=>{
             setshareholders(response.data.shareholders)
-        }).catch(err=>{console.log("shareholders error:", err.message)})
+        }).catch(err=>{
+            try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+        })
 
         axios.get(`${baseURL_}owners/${id}`, {
             headers: apiHeaders
         }).then(response=>{
             setbeneficialOwners(response.data.beneficial_owners)
-        }).catch(err=>{console.log("owners error:", err.message)})
+        }).catch(err=>{
+            try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+        })
     }
     
     useEffect(() => {

@@ -1,15 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { baseURL_ } from "../../../config";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { ThemeContext } from "../../../context/ThemeContext";
+import { Logout } from '../../../store/actions/AuthActions';
+import { useDispatch } from "react-redux";
 
 const Exports = () => {	
+    const navigate = useNavigate()
+	const dispatch = useDispatch()
 	const { changeTitle } = useContext(ThemeContext);
-	const auth = localStorage.getItem('_authTkn');
-    const refresh = localStorage.getItem('_authRfrsh')
-	const user = JSON.parse(localStorage.getItem(`_authUsr`))
 	const [exports, setexports] = useState([])
 	const [filtered, setfiltered] = useState([])
 	const apiHeaders = {
@@ -26,12 +27,21 @@ const Exports = () => {
 			setfiltered(response.data.exports.reverse())
 		}catch(err){
 			try{
-				toast.warn(err.response.data.message)
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
 			}catch(e){
-				toast.warn(err.message)
+				toast.error(err.message)
 			}
 		}
 
+	}
+
+	const filter = (e)=>{
+		const input = e.currentTarget.value
+		setfiltered(exports.filter(exp=>exp.exportationID.toLowerCase().includes(input.toLowerCase()) || exp.company.name.toLowerCase().includes(input.toLowerCase())))
 	}
 
 	useEffect(() => {
@@ -53,6 +63,9 @@ const Exports = () => {
 					<div className="card">
 						<div className="card-header">
 							<h4 className="card-title">Exports</h4>
+							<div>
+								<input className="form-control" placeholder="Search for export" onChange={filter}/>
+							</div>
 						</div>
 						<div className="card-body">
 						<div className="w-100 table-responsive">

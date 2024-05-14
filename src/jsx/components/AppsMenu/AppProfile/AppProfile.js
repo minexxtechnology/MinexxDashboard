@@ -33,9 +33,6 @@ const reducer = (state, action) =>{
 }
 
 const AppProfile = () => {
-	const onInit = () => {
-		//console.log('lightGallery has been initialized');
-	};
 	const navigate = useNavigate();
 	const [password, setpassword] = useState()
 	const [cpassword, setcpassword] = useState()

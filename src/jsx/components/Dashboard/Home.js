@@ -26,8 +26,13 @@ function Home() {
 	const { changeBackground, changeTitle } = useContext(ThemeContext);
 	const navigate = useNavigate()
 	const dispatch = useDispatch()
-	const dropdown = ['Production', 'Blending', 'Processing', 'Purchases']
+	const dropdown = ['Production', 'Blending', 'Processing']
 	const [incidents, setincidents] = useState([])
+	const [rates, setrates] = useState({
+		"LME-TIN": "",
+		"TIN": "",
+		"TIN3M": ""
+	})
 	const [exportweight, setexportweight] = useState(0)
 	const months = [
 		subMonths(new Date(), 6).toString().substring(4, 7),
@@ -43,6 +48,10 @@ function Home() {
 	const [total1, settotal1] = useState(0)
 	const [total2, settotal2] = useState(0)
 	const [total3, settotal3] = useState(0)
+	const [apex, setapex] = useState({
+		keys: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+		values: [0, 0, 0, 0, 0, 0, 0]
+	})
 	const dropdown_ = ['Purchase Tracker', 'Blending', 'Exports']
 	const [filter, setfilter] = useState(0)
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
@@ -51,7 +60,30 @@ function Home() {
         'x-refresh': localStorage.getItem(`_authRfrsh`)
     }
 
+	const loadCard = async(selection) => {
+		axios.get(`${baseURL_}/admin/${selection}`, { headers: apiHeaders}).then(response=>{
+			setapex({
+				keys: Object.keys(response.data).slice(1).reverse(),
+				values: Object.values(response.data).slice(1).reverse()
+			})
+		}).catch(err=>{
+			try{
+				if(err.response.code === 403){
+					dispatch(Logout(navigate))
+				}else{
+					toast.warn(err.response.message)
+				}
+			}catch(e){
+				toast.error(err.message)
+			}
+		})
+	}
+
 	const loadOverview = async()=>{
+
+		axios.get(`${baseURL_}metals-api`, { headers: apiHeaders}).then(response=>{
+			setrates(response.data.rates)
+		})
 
 		axios.get(`${baseURL_}overview/risks`, { headers: apiHeaders}).then(response=>{
 			setincidents(response.data.risks)
@@ -117,6 +149,7 @@ function Home() {
 
 	useEffect(() => {
 		loadOverview()
+		loadCard(dropdown[filter].toLowerCase())
 		changeBackground({ value: "dark", label: "Dark" });
 		changeTitle(`Overview | Minexx`)
 	}, [ ]);
@@ -124,7 +157,7 @@ function Home() {
 	return(
 		<Fragment>
 			<div className="row">
-				<div className="col-xl-4 col-xxl-5 col-lg-4">
+				<div className="col-md-4">
 					<div className="card ticket-bx">
 						<div className="card-body">
 							<div className="d-sm-flex d-block pb-sm-3 align-items-end">
@@ -154,8 +187,8 @@ function Home() {
 							<Link to={"/exports"} className="text-white">View detail<i className="las la-long-arrow-alt-right scale5 ms-3"></i></Link>
 						</div>
 					</div>
-				</div>	
-				<div className="col-xl-8 col-xxl-7 col-lg-8">
+				</div>
+				<div className="col-md-8">
 					<div className="row">
 						<div className="col-sm-12">
 							<div className="card overflow-hidden">
@@ -184,7 +217,7 @@ function Home() {
 						</div>
 					</div>
 				</div>
-				<div className={`${ user.type !== 'minexx' ? 'col-xl-12'  : 'col-xl-9 col-xxl-8'}`}>	
+				<div className='col-md-9'>	
 					<div className="card" id="sales_revenue">
 						<div className="card-header border-0 pb-0 d-sm-flex d-block">
 							<div>
@@ -232,26 +265,52 @@ function Home() {
 					</div>
 				</div>
 				{user.type === 'minexx' ?
-				<div className={`col-xl-3 col-xxl-4 col-md-6`}>
+				<div className={`col-md-3`}>
 					<div className="card">
 						<div className="card-header border-0 pb-0">
 							<h4 className="fs-20">{user.type === 'minexx' ? dropdown[filter] : dropdown_[filter]}</h4>
 							<Dropdown>
 								<Dropdown.Toggle variant="" as="div" className="cursor-pointer fs-12">{user.type === 'minexx' ? dropdown[filter] : dropdown_[filter]}</Dropdown.Toggle>	
 								<Dropdown.Menu alignRight={true} className="dropdown-menu-right">
-									{ (user.type === 'minexx' ? dropdown : dropdown_).map((option, index)=><Dropdown.Item key={index} onClick={()=>setfilter(index)} >{option}</Dropdown.Item>)}
+									{ (user.type === 'minexx' ? dropdown : dropdown_).map((option, index)=><Dropdown.Item key={index} onClick={()=>{
+										setfilter(index);
+										loadCard(option.toLowerCase())
+									}} >{option}</Dropdown.Item>)}
 								</Dropdown.Menu>	
 							</Dropdown>
 						</div>
 						<div className="card-body">
 							<div className="d-flex justify-content-between align-items-center selling p-3 rounded">	
 								<span className="fs-14">{new Date().toString().substring(0, 16)}</span>
-								<span className="fs-14">215,523 TONS</span>
+								<span className="fs-14">{apex.values[apex.values.length-1]} TONS</span>
 							</div>
-							<SellingApexChart /> 
+							<SellingApexChart chart={apex} /> 
 						</div>
 					</div>
-				</div>	: <></> }						
+				</div>	: 
+				
+				<div className="col-md-3">
+					<div className="row">
+						<div className="col-sm-12">
+							<div className="card overflow-hidden">
+								<div className="card-header align-items-start border-primary">	
+									<div>
+										<h4 className="mb-0 fs-20">Metals Rates Today</h4>
+									</div>
+								</div>
+								<div className="card-body">
+									{ Object.keys(rates).slice(0,3).map((rate, i)=>{
+										return <div className="d-flex justify-content-between align-items-center selling p-3 mt-3 rounded">	
+										<span className="fs-14">{rate}</span>
+										<span className="fs-14">$ {(Number(Object.values(rates)[i])).toFixed(2)}</span>
+									</div>}) }
+								</div>
+								<div className="card-footer"><small>Source: Metals-API</small></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			}						
 			</div>	
 		</Fragment>
 	)

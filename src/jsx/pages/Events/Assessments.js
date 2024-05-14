@@ -57,7 +57,6 @@ const Assessments = () => {
    
 	const chackbox = document.querySelectorAll(".sorting_1 input");
 	const motherChackBox = document.querySelector(".sorting_asc input");
-   // console.log(document.querySelectorAll(".sorting_1 input")[0].checked);
 	const chackboxFun = (type) => {
       for (let i = 0; i < chackbox.length; i++) {
          const element = chackbox[i];

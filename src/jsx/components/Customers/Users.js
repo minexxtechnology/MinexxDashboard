@@ -127,8 +127,8 @@ const Users = () => {
             surname,
             email,
             type,
-            companies: [company],
-            minerals: [mineral]
+            companies: type === 'buyer' || type === 'investor' ? [company] : [],
+            minerals: type === 'buyer' || type === 'investor' ? [mineral] : []
         }).then(response=>{
             setloading(false)
             setadd(false)
@@ -149,7 +149,6 @@ const Users = () => {
    
 	const chackbox = document.querySelectorAll(".sorting_1 input");
 	const motherChackBox = document.querySelector(".sorting_asc input");
-   // console.log(document.querySelectorAll(".sorting_1 input")[0].checked);
 	const chackboxFun = (type) => {
       for (let i = 0; i < chackbox.length; i++) {
          const element = chackbox[i];
@@ -223,7 +222,7 @@ const Users = () => {
                                 <label className="mb-2 ">
                                     <strong>User Type</strong>
                                 </label>
-                                <select onSelect={(e) => settype(e.target.value)} className='form-control'>
+                                <select onChange={(e) => settype(e.target.value)} className='form-control'>
                                     <option value='buyer'>Buyer</option>
                                     <option value='minexx'>Admin</option>
                                     <option value='investor'>Investor</option>
@@ -232,11 +231,13 @@ const Users = () => {
                                     <option value='government'>Government</option>
                                 </select>
                             </div>
+                            { type === 'buyer' || type === 'investor' ?
+                            <>
                             <div className="form-group">
                                 <label className="mb-2 ">
                                     <strong>Default Company</strong>
                                 </label>
-                                <select onSelect={(e) => setcompany(e.target.value)}  className='form-control'>
+                                <select onChange={(e) => setcompany(e.target.value)}  className='form-control'>
                                     {companies.map(company=><option value={company.id}>{company.name}</option>)}
                                 </select>
                             </div>
@@ -244,11 +245,14 @@ const Users = () => {
                                 <label className="mb-2 ">
                                     <strong>Default Mineral</strong>
                                 </label>
-                                <select onSelect={(e) => setmineral(e.target.value)} className='form-control'>
+                                <select onChange={(e) => setmineral(e.target.value)} className='form-control'>
                                     <option>Tin</option>
                                     <option>Tantalum</option>
+                                    <option>Wolframite</option>
                                 </select>
                             </div>
+                            </>
+                            : <></> }
                             <div className='text-center'>
                                 <small>An auto-generated password will be sent to the user's email shortly. Please ensure a smooth onboarding experience by monitoring the process. Contact support if you have any questions or concerns.</small>
                             </div>
@@ -284,7 +288,7 @@ const Users = () => {
                                             </Dropdown>
                                             <label className="ms-2">entries</label>
                                         </div>
-                                        <div className="col-2 d-flex align-items-center">
+                                        <div className="col-3 d-flex align-items-center">
                                             <label className="me-2">Search:</label>
                                             <input type="search" placeholder="" onInput={filter} className="form-control" />
                                         </div>

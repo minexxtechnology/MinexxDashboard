@@ -4,9 +4,9 @@ import {Accordion} from 'react-bootstrap'
 import { ThemeContext } from '../../../context/ThemeContext'
 import PerfectScrollbar from "react-perfect-scrollbar"
 import { baseURL_ } from '../../../config'
-import axios from 'axios'
 import { toast } from 'react-toastify';
 import { Logout } from '../../../store/actions/AuthActions';
+import axiosInstance from '../../../services/AxiosInstance';
 import { useDispatch } from 'react-redux'
 
 const Mines = () => {
@@ -24,8 +24,8 @@ const Mines = () => {
 
     const fetch = async()=>{
         try{
-            let response = await axios.get(`${baseURL_}companies`, { headers: apiHeaders })
-            let response_ = await axios.get(`${baseURL_}mines`, { headers: apiHeaders })
+            let response = await axiosInstance.get(`${baseURL_}companies`, { headers: apiHeaders })
+            let response_ = await axiosInstance.get(`${baseURL_}mines`, { headers: apiHeaders })
             setinit(response.data.companies[0].id)
             setsuppliers(response.data.companies)
             setfiltered(response.data.companies)

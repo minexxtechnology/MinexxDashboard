@@ -60,7 +60,7 @@ const SummaryReport = () => {
 
     const filterlogs = (e)=>{
         const input = e.currentTarget.value
-        setfiltered(logs.filter(log=>log.type.toLowerCase().includes(input.toLowerCase()) || log.user.toLowerCase().includes(input.toLowerCase()) || log.message.toLowerCase().includes(input.toLowerCase()) || log.endpoint.toLowerCase().includes(input.toLowerCase()) || log.time.toLowerCase().includes(input.toLowerCase())))
+        setfiltered(logs.filter(log=>log.type.toLowerCase().includes(input.toLowerCase()) || log.user.toLowerCase().includes(input.toLowerCase()) || log.message.toLowerCase().includes(input.toLowerCase()) || (log?.endpoint.toLowerCase().includes(input.toLowerCase())) || log.time.toLowerCase().includes(input.toLowerCase())))
     }
 
     const filterSessions = (e)=>{
@@ -116,10 +116,10 @@ const SummaryReport = () => {
                             </div>
                         </div>
                         <div className="card-body" style={{ height: '70vh', overflow: 'scroll'}}>
-                        { filtered.filter(l=>l.endpoint !== '/logs').map(log=>{
+                        { filtered.filter(l=>l.endpoint && l?.endpoint !== '/logs').map(log=>{
                             return <div><div key={log.id} className={`row ${log.type === 'warn' ? 'text-warning' : log.type === 'success' ? 'text-success' : 'text-danger' }`}>
                             <div className='col-md-3'><small>{log.time.substring(0, 10)} [{log.time.substring(11, 16)}]</small></div>
-                            <div className='col-md-3'><small>{log.endpoint.toString()}</small></div>
+                            <div className='col-md-3'><small>{log?.endpoint ? log?.endpoint.toString() : 'CRON JOB'}</small></div>
                             <div className='col-md-6'><small>[User ID: {log.user}] {log.message}</small></div>
                         </div>
                         <hr/>

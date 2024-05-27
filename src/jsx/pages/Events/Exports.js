@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import {Link, useNavigate} from 'react-router-dom';
 import { baseURL_ } from "../../../config";
-import axios from "axios";
+import axiosInstance from '../../../services/AxiosInstance';
 import { toast } from "react-toastify";
 import { ThemeContext } from "../../../context/ThemeContext";
 import { Logout } from '../../../store/actions/AuthActions';
@@ -20,7 +20,7 @@ const Exports = () => {
 
 	const fetchExports = async()=>{
 		try{
-			let response = await axios.get(`${baseURL_}exports`, {
+			let response = await axiosInstance.get(`${baseURL_}exports`, {
 				headers: apiHeaders
 			})
 			setexports(response.data.exports.reverse())

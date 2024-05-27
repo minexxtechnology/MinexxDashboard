@@ -11,9 +11,11 @@ const Users = () => {
 	const sort = 10;
     const { platform } = useParams()
 	const activePag = useRef(0);
-    const [tab, settab] = useState(0)
+    const [edit, setedit] = useState(0)
+    const [userstatus, setuserstatus] = useState()
     const [user, setuser] = useState(JSON.parse(localStorage.getItem(`_authUsr`)))
     const [users, setusers] = useState([])
+    const [remove, setremove] = useState()
     const [filtered, setfiltered] = useState([])
     const [companies, setcompanies] = useState([])
     const [add, setadd] = useState()
@@ -42,12 +44,6 @@ const Users = () => {
         axiosInstance.get(`/users/${platform}`).then(response=>{
             setusers(response.data.users)
             setfiltered(response.data.users)
-            // toast.info(`Users fetched successfully!`, {
-            //     style: {
-            //         fontFamily: 'Poppins',
-            //         fontSize: 12
-            //     }
-            // })
         }).catch(err=>{
             toast.error(err.message, {
                 style: {
@@ -73,16 +69,8 @@ const Users = () => {
 
    // use effect
    useEffect(() => {
-        // if(platform === 'dashboard'){
-            getUsers()
-            getCompanies()
-        // }else if(platform === 'app'){
-        //     setusers([])
-        //     setfiltered([])
-        // }else{
-        //     setusers([])
-        //     setfiltered([])
-        // }
+        getUsers()
+        getCompanies()
         setData(document.querySelectorAll("#ticket_wrapper tbody tr"));
         //chackboxFun();
 	}, [ platform ]);
@@ -135,9 +123,89 @@ const Users = () => {
             setname('')
             setsurname('')
             setemail('')
+            getUsers()
             toast.success("The user has been successfully added.")
         }).catch(err=>{
             setloading(false)
+            toast.error(err.message, {
+                style: {
+                    fontFamily: 'Poppins',
+                    fontSize: 12
+                }
+            })
+        })
+    }
+
+    const updateUser = ()=>{
+        if(name.length < 3){
+            return toast.error("Please provide a valid first name")
+        }
+        if(surname.length < 3){
+            return toast.error("Please provide a valid last name")
+        }
+        if(email.length < 10){
+            return toast.error("Please provide a valid email address")
+        }
+
+        setloading(true)
+        axiosInstance.put(`/users/${edit.uid}`, {
+            name,
+            surname,
+            email,
+            uid: edit.uid,
+        }).then(response=>{
+            setloading(false)
+            setadd(false)
+            setname('')
+            setsurname('')
+            setemail('')
+            getUsers()
+            setedit(null)
+            toast.success("The user has been successfully updated.")
+        }).catch(err=>{
+            setloading(false)
+            toast.error(err.message, {
+                style: {
+                    fontFamily: 'Poppins',
+                    fontSize: 12
+                }
+            })
+        })
+    }
+
+    const removeUser = ()=>{
+        const selected = remove
+        setremove(null)
+        axiosInstance.delete(`/users/${selected.uid}`).then(response=>{
+            toast.success(`${selected.name} has been successfully deleted from dashboard users.`, {
+                style: {
+                    fontFamily: 'Poppins',
+                    fontSize: 12
+                }
+            })
+            getUsers()
+        }).catch(err=>{
+            toast.error(err.message, {
+                style: {
+                    fontFamily: 'Poppins',
+                    fontSize: 12
+                }
+            })
+        })
+    }
+
+    const changeStatus = ()=>{
+        const selected = userstatus
+        setuserstatus(null)
+        axiosInstance.put(`/users/status/${userstatus.uid}`).then(response=>{
+            toast.success(`${selected.name} has been successfully ${selected.status === "suspended" ? "activated" : "suspended"} from dashboard users.`, {
+                style: {
+                    fontFamily: 'Poppins',
+                    fontSize: 12
+                }
+            })
+            getUsers()
+        }).catch(err=>{
             toast.error(err.message, {
                 style: {
                     fontFamily: 'Poppins',
@@ -264,6 +332,101 @@ const Users = () => {
                     </div>
 				</div>
 			</Modal>
+            <Modal show={edit} className="modal fade" id="edit" onHide={() => setedit(false)}>
+				<div className="modal-content">
+					<div className="modal-header">
+						<h3 className="modal-title">Update User Details</h3>
+						<Button variant="" type="button" disabled={loading} className="close" data-dismiss="modal" onClick={() => setedit(null)} >
+							<span>×</span>
+						</Button>
+						
+					</div>
+					<div className="modal-body">
+                        <form onSubmit={updateUser}>
+                            <div className="form-group">
+                                <label className="mb-2 ">
+                                    <strong>First Name</strong>
+                                </label>
+                                <input type="text" className="form-control"
+                                    value={name}
+                                    disabled={loading}
+                                    placeholder='Name'
+                                    onChange={(e) => setname(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="mb-2 ">
+                                    <strong>Last Name</strong>
+                                </label>
+                                <input type="text" className="form-control"
+                                    value={surname}
+                                    placeholder='Surname'
+                                    onChange={(e) => setsurname(e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="mb-2 ">
+                                    <strong>Email</strong>
+                                </label>
+                                <input type="email" className="form-control"
+                                    value={email}
+                                    placeholder='Email Address'
+                                    onChange={(e) => setemail(e.target.value)}
+                                />
+                            </div>
+                        </form>
+					</div>
+                    <div className='modal-footer'>
+                        <button type='cancel' disabled={loading} className='btn btn-outline-danger' data-dismiss="modal" onClick={() => setedit(null)}>Dismiss</button>
+                        <button type='submit' disabled={loading} onClick={()=>updateUser()} className='btn btn-primary'>{loading ? 'Pleaase wait...' : 'Update User'}</button>
+                    </div>
+				</div>
+			</Modal>
+            <Modal show={remove} className="modal fade" id="postModal" onHide={() => setremove(null)}>
+				<div className="modal-content">
+					<div className="modal-header">
+						<h5 className="modal-title">Are you sure you want to delete this user?</h5>
+						<Button variant=""  type="button" className="close" data-dismiss="modal" onClick={() => setremove(null)} >
+							<span>×</span>
+						</Button>
+						
+					</div>
+					<div className="modal-body">
+						<p>Deleting this user will remove all their data and access permanently. This action cannot be undone.</p>
+                        <p className='rounded border' style={{color: "white", padding: 15, fontSize: 14}}>
+                        Name: {remove?.name} {remove?.surname}<br/>
+                        Email: {remove?.email}<br/>
+                        Role: {remove?.type}
+                        </p>
+					</div>
+                    <div className='modal-footer'>
+                        <button type='submit' className='btn btn-sm btn-outline-danger' onClick={()=>removeUser()}>Yes, delete user</button>
+                        <button type='cancel' className='btn btn-sm btn-primary' data-dismiss="modal" onClick={() => setremove(null)}>No, dismiss</button>
+                    </div>
+				</div>
+			</Modal>
+            <Modal show={userstatus} className="modal fade" id="postModal" onHide={() => setuserstatus(null)}>
+				<div className="modal-content">
+					<div className="modal-header">
+						<h5 className="modal-title">Are you sure you want to {userstatus?.status === 'suspended' ? 'activate' : 'suspend'} this user?</h5>
+						<Button variant=""  type="button" className="close" data-dismiss="modal" onClick={() => setuserstatus(null)} >
+							<span>×</span>
+						</Button>
+						
+					</div>
+					<div className="modal-body">
+                        <p className='rounded border' style={{color: "white", padding: 15, fontSize: 14}}>
+                        Name: {userstatus?.name} {userstatus?.surname}<br/>
+                        Email: {userstatus?.email}<br/>
+                        Current Status: {userstatus?.status}
+                        </p>
+					</div>
+                    <div className='modal-footer'>
+                        <button type='cancel' className='btn btn-sm btn-outline-warning' data-dismiss="modal" onClick={() => setuserstatus(null)}>No, dismiss</button>
+                        <button type='submit' className='btn btn-sm btn-primary' onClick={()=>changeStatus()}>Yes, {userstatus?.status === 'suspended' ? 'activate' : 'suspend'}</button>
+                    </div>
+				</div>
+			</Modal>
             <div className="row">
                 <div className="col-lg-12">
                     <div className="card">
@@ -295,13 +458,7 @@ const Users = () => {
                                     </div>
                                     <table id="example" className="display dataTablesCard table-responsive-xl dataTable no-footer w-100">
                                         <thead>
-                                            <tr>
-                                                { platform === 'dashboard' ? <th className="sorting_asc">
-                                                    <div className="form-check custom-checkbox ms-2">
-                                                        <input type="checkbox" className="form-check-input" id="checkAll" required="" onClick={() => chackboxFun("all")}/>
-                                                        <label className="form-check-label" htmlFor="checkAll"></label>
-                                                    </div>
-                                                </th> : <></> }                                           
+                                            <tr>                                         
                                                 <th>Name</th>
                                                 <th>Phone</th>
                                                 <th>User Type</th>
@@ -313,17 +470,10 @@ const Users = () => {
                                         </thead>
                                         <tbody>
                                             {filtered.map((item, index)=>(
-                                                <tr key={index}>
-                                                    { platform === 'dashboard' ? <td className='sorting_1'>
-                                                        <div className="form-check custom-checkbox ms-2">
-                                                            <input type="checkbox" className="form-check-input" id={`customCheck${index + 1}`} required="" />
-                                                            <label className="form-check-label" htmlFor={`customCheck${index + 1}`}></label>
-                                                        </div>
-                                                    </td> : <></> }
-                                                    
+                                                <tr key={item?.uid}>                                                    
                                                     <td>						
                                                         <div>
-                                                            <Link to={"#"} className="h5">{item.name}</Link>
+                                                            <Link to={"#"} className="h5">{item.name} {item?.surname}</Link>
                                                         </div>
                                                         <small className="fs-12 text-muted"> <span className="font-weight-normal1">{item.email}</span></small>
                                                         
@@ -345,8 +495,9 @@ const Users = () => {
                                                     </td> : <></> }
                                                     { platform === 'dashboard' ? <td>
                                                         <div className="d-flex">
-                                                            <Link to={"#"} className="btn btn-primary shadow btn-xs sharp me-1"><i className="fas fa-pencil-alt"></i></Link>
-                                                            { item.uid  !== user.uid ? <Link to={"#"} className="btn btn-danger shadow btn-xs sharp"><i className="fa fa-trash"></i></Link> : null }
+                                                            <Link to={"#"} className="btn btn-primary shadow btn-xs sharp me-2" onClick={()=>{setname(item?.name); setsurname(item?.surname); setemail(item?.email); setedit(item)}}><i className="fas fa-pencil-alt"></i></Link>
+                                                            { item.uid  !== user.uid ? <Link to={"#"} className="btn btn-warning shadow btn-xs sharp me-2" onClick={()=>{setuserstatus(item)}}><i className="fas fa-user-edit"></i></Link> : null }
+                                                            { item.uid  !== user.uid ? <Link to={"#"} className="btn btn-danger shadow btn-xs sharp" onClick={()=>{setremove(item)}}><i className="fa fa-trash"></i></Link> : null }
                                                         </div>
                                                     </td> : <></> }
                                                 </tr>

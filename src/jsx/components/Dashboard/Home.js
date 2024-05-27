@@ -7,7 +7,7 @@ import  { baseURL_ } from '../../../config'
 import { subMonths } from 'date-fns'
 import { ThemeContext } from '../../../context/ThemeContext';
 import { Logout } from '../../../store/actions/AuthActions';
-import axios from 'axios';
+import axiosInstance from '../../../services/AxiosInstance';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 
@@ -61,7 +61,10 @@ function Home() {
     }
 
 	const loadCard = async(selection) => {
-		axios.get(`${baseURL_}/admin/${selection}`, { headers: apiHeaders}).then(response=>{
+		if(user?.type !== 'minexx'){
+			return
+		}
+		axiosInstance.get(`${baseURL_}/admin/${selection}`, { headers: apiHeaders}).then(response=>{
 			setapex({
 				keys: Object.keys(response.data).slice(1).reverse(),
 				values: Object.values(response.data).slice(1).reverse()
@@ -81,11 +84,13 @@ function Home() {
 
 	const loadOverview = async()=>{
 
-		axios.get(`${baseURL_}metals-api`, { headers: apiHeaders}).then(response=>{
-			setrates(response.data.rates)
-		})
+		if(user?.type !== 'minexx'){
+			axiosInstance.get(`${baseURL_}metals-api`, { headers: apiHeaders}).then(response=>{
+				setrates(response.data.rates)
+			})
+		}
 
-		axios.get(`${baseURL_}overview/risks`, { headers: apiHeaders}).then(response=>{
+		axiosInstance.get(`${baseURL_}overview/risks`, { headers: apiHeaders}).then(response=>{
 			setincidents(response.data.risks)
 		}).catch(err=>{
 			try{
@@ -99,7 +104,7 @@ function Home() {
 			}
 		})
 
-		axios.get(`${baseURL_}overview/incidents`, { headers: apiHeaders}).then(response=>{
+		axiosInstance.get(`${baseURL_}overview/incidents`, { headers: apiHeaders}).then(response=>{
 			setseries1(response.data.incidents)
 			settotal1(response.data.count)
 		}).catch(err=>{
@@ -114,7 +119,7 @@ function Home() {
 			}
 		})
 
-		axios.get(`${baseURL_}overview/exports`, { headers: apiHeaders}).then(response=>{
+		axiosInstance.get(`${baseURL_}overview/exports`, { headers: apiHeaders}).then(response=>{
 			setseries2(response.data.exports)
 			settotal2(response.data.count)
 			setexportweight((response.data.volume/1000).toFixed(1))
@@ -130,7 +135,7 @@ function Home() {
 			}
 		})
 
-		axios.get(`${baseURL_}overview/assessments`, { headers: apiHeaders}).then(response=>{
+		axiosInstance.get(`${baseURL_}overview/assessments`, { headers: apiHeaders}).then(response=>{
 			setseries3(response.data.assessments)
 			settotal3(response.data.count)
 		}).catch(err=>{ 

@@ -103,21 +103,8 @@ export const RegulatorMenu = [
                 title: 'Trace Report',
                 to: '/reports/trace',
             },
-            {
-                title: 'Total Stock Delivery',
-                to: '/reports/daily',
-            },
-            {
-                title: 'In-Stock Country Balance',
-                to: '/reports/mtd',
-            },
-            {
-                title: 'Total Purchase',
-                to: '/reports/deliveries',
-            },
         ]
-
-    },
+    }
 ]
 
 export const BMenu = [
@@ -144,33 +131,7 @@ export const BMenu = [
         title: 'Knowledge Base',
         iconStyle: <i className="flaticon-monitor"></i>,
         to: 'knowledge' 
-    },
-
-    {
-        title:'Reporting',
-        to: 'reports',
-        update:"New",
-        iconStyle : <i className="flaticon-business-report" />,
-        content: [
-            {
-                title: 'Trace Report',
-                to: '/reports/trace',
-            },
-            {
-                title: 'Total Stock Delivery',
-                to: '/reports/daily',
-            },
-            {
-                title: 'In-Stock Country Balance',
-                to: '/reports/mtd',
-            },
-            {
-                title: 'Total Purchase',
-                to: '/reports/deliveries',
-            },
-        ]
-
-    },
+    }
 ]
 
 export const IMenu = [

@@ -30,8 +30,8 @@ const Header = ({ onNote, toggle, onProfile, onNotification, onClick }) => {
 	const changeDashboard = ()=>{
 		if(view){
 			if(view === 'gold'){
-				setview('3Ts')
-				localStorage.setItem(`_dash`, '3Ts')
+				setview('3ts')
+				localStorage.setItem(`_dash`, '3ts')
 			}else{
 				setview('gold')
 				localStorage.setItem(`_dash`, 'gold')
@@ -40,6 +40,7 @@ const Header = ({ onNote, toggle, onProfile, onNotification, onClick }) => {
 			setview('gold')
 			localStorage.setItem('_dash', 'gold')
 		}
+		navigate(0)
 	}
 
 	return (

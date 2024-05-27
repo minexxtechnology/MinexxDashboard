@@ -34,6 +34,7 @@ const SideBar = () => {
 	} = useContext(ThemeContext);
   let menu = []
   const user = JSON.parse(localStorage.getItem(`_authUsr`))
+  const dash = localStorage.getItem(`_dash`)
 
   if(user){
     if(user.type === 'minexx'){
@@ -45,6 +46,14 @@ const SideBar = () => {
     }else if(user.type === 'investor'){
       menu = IMenu
     }
+
+    // if(dash){
+    //   if(dash === 'gold'){
+    //     menu = menu.filter(item=>{
+    //       return item.title !== "Exports"
+    //     })
+    //   }
+    // }
   }
 
   const [state, setState] = useReducer(reducer, initialState);	

@@ -9,7 +9,7 @@ import 'lightgallery/css/lg-thumbnail.css';
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
 import lgZoom from 'lightgallery/plugins/zoom';
 import { baseURL_ } from '../../../config'
-import axios from 'axios';
+import axiosInstance from '../../../services/AxiosInstance';
 import { ThemeContext } from '../../../context/ThemeContext';
 import AssessmentsTable from '../../components/table/AssessmentsTable';
 import { Logout } from '../../../store/actions/AuthActions';
@@ -39,7 +39,7 @@ const Mine = () => {
     const getMine = async()=>{
         
         // mine images
-        axios.get(`${baseURL_}mines/images/${id}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}mines/images/${id}`, { headers: apiHeaders }).then(response=>{
             setgallery(response.data.images)
         }).catch((err)=>{
             try{
@@ -54,7 +54,7 @@ const Mine = () => {
         })
         
         // mine details
-        axios.get(`${baseURL_}mines/${id}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}mines/${id}`, { headers: apiHeaders }).then(response=>{
             changeTitle(response.data.mine.name + ` | Minexx`)
             setpicture(`https://lh3.googleusercontent.com/d/${response.data.mine.image}=w2160?authuser=0`)
             setmine(response.data.mine)
@@ -71,7 +71,7 @@ const Mine = () => {
         })
 
         // mine videos
-        axios.get(`${baseURL_}mines/videos/${id}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}mines/videos/${id}`, { headers: apiHeaders }).then(response=>{
             setvideos(response.data.videos)
         }).catch(err=>{
             try{
@@ -86,7 +86,7 @@ const Mine = () => {
         })
 
         // mine assessments
-        axios.get(`${baseURL_}assessments/mine/${id}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}assessments/mine/${id}`, { headers: apiHeaders }).then(response=>{
             setassessments(response.data.assessments)
             setheaders(response.data.header)
             if(response.data.assessments.length>0){
@@ -105,7 +105,7 @@ const Mine = () => {
         })
 
         // incidents assessments
-        axios.get(`${baseURL_}incidents/mine/${id}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}incidents/mine/${id}`, { headers: apiHeaders }).then(response=>{
             setincidents(response.data.incidents)
         }).catch(err=>{
             try{
@@ -217,6 +217,11 @@ const Mine = () => {
                                                     Map
                                                 </Nav.Link>
                                             </Nav.Item> : <></> }
+                                            <Nav.Item as="li" className="nav-item">
+                                                <Nav.Link className="nav-link px-2 px-lg-3" to="#miners" role="tab" eventKey="miners">
+                                                    Miners
+                                                </Nav.Link>
+                                            </Nav.Item>
                                         </Nav>
                                     </div>
                                 </div>
@@ -320,6 +325,7 @@ const Mine = () => {
                                         </div>
                                         
                                         <div className="card-body pb-1">
+                                            <div className='row'>
                                             { videos.length === 0 ?
                                                 <div>
                                                     <h5 className="mt-0 mb-0">No Videos</h5>
@@ -331,7 +337,7 @@ const Mine = () => {
                                                 </div>
                                                 ))
                                             }
-                                                
+                                            </div>  
                                         </div>
                                     </div>
                                 </div>

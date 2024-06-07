@@ -10,10 +10,9 @@ const Header = ({ onNote, toggle, onProfile, onNotification, onClick }) => {
 
 	const { title } = useContext(ThemeContext);
 	const [user, setuser] = useState(JSON.parse(localStorage.getItem(`_authUsr`)))
+	const [access, setaccess] = useState(JSON.parse(localStorage.getItem(`_authUsr`)).access || '3ts')
 	const [view, setview] = useState(localStorage.getItem(`_dash`))
 	const [lang, setlang] = useState(localStorage.getItem(`_lang`) || `en`)
-	var path = window.location.pathname.split("/");
-	var finalName = path[path.length - 1].split("-");
 
 	const navigate = useNavigate()
 
@@ -93,7 +92,7 @@ const Header = ({ onNote, toggle, onProfile, onNotification, onClick }) => {
 									
 								</Dropdown.Toggle>
 								<Dropdown.Menu align="right" className="mt-2">
-									{ user?.type === `minexx` ? <Link to="/" onClick={changeDashboard} className="dropdown-item ai-icon">
+									{ access === 'both' ? <Link to="/" onClick={changeDashboard} className="dropdown-item ai-icon">
 										<FontAwesomeIcon icon={icon({name: 'arrow-right-arrow-left'})} />
 										<span className="ms-2">Switch to {view === 'gold' ? '3Ts' : 'Gold'}</span>
 									</Link> : <></> }

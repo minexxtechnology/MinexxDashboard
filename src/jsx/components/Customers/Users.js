@@ -21,6 +21,7 @@ const Users = () => {
     const [add, setadd] = useState()
     const [loading, setloading] = useState(false)
     const [type, settype] = useState('buyer')
+    const [access, setaccess] = useState('3ts')
     const [name, setname] = useState('')
     const [surname, setsurname] = useState('')
     const [email, setemail] = useState('')
@@ -115,6 +116,7 @@ const Users = () => {
             surname,
             email,
             type,
+            access,
             companies: type === 'buyer' || type === 'investor' ? [company] : [],
             minerals: type === 'buyer' || type === 'investor' ? [mineral] : []
         }).then(response=>{
@@ -123,6 +125,7 @@ const Users = () => {
             setname('')
             setsurname('')
             setemail('')
+            setaccess('3ts')
             getUsers()
             toast.success("The user has been successfully added.")
         }).catch(err=>{
@@ -152,6 +155,7 @@ const Users = () => {
             name,
             surname,
             email,
+            access,
             uid: edit.uid,
         }).then(response=>{
             setloading(false)
@@ -159,6 +163,7 @@ const Users = () => {
             setname('')
             setsurname('')
             setemail('')
+            setaccess('3ts')
             getUsers()
             setedit(null)
             toast.success("The user has been successfully updated.")
@@ -288,6 +293,16 @@ const Users = () => {
                             </div>
                             <div className="form-group">
                                 <label className="mb-2 ">
+                                    <strong>Dashboard Access</strong>
+                                </label>
+                                <select onChange={(e) => setaccess(e.target.value)} className='form-control'>
+                                    <option value='3ts'>3Ts</option>
+                                    <option value='gold'>Gold</option>
+                                    <option value='both'>Both</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="mb-2 ">
                                     <strong>User Type</strong>
                                 </label>
                                 <select onChange={(e) => settype(e.target.value)} className='form-control'>
@@ -373,6 +388,16 @@ const Users = () => {
                                     placeholder='Email Address'
                                     onChange={(e) => setemail(e.target.value)}
                                 />
+                            </div>
+                            <div className="form-group">
+                                <label className="mb-2 ">
+                                    <strong>Dashboard Access</strong>
+                                </label>
+                                <select onChange={(e) => setaccess(e.target.value)} className='form-control'>
+                                    <option value='3ts'>3Ts</option>
+                                    <option value='gold'>Gold</option>
+                                    <option value='both'>Both</option>
+                                </select>
                             </div>
                         </form>
 					</div>
@@ -460,7 +485,7 @@ const Users = () => {
                                         <thead>
                                             <tr>                                         
                                                 <th>Name</th>
-                                                <th>Phone</th>
+                                                <th>Access</th>
                                                 <th>User Type</th>
                                                 {platform === 'dashboard' ? <th>Creation Date</th> : <></> }
                                                 {platform === 'dashboard' ? <th>Last Login</th> : <></> }
@@ -478,7 +503,7 @@ const Users = () => {
                                                         <small className="fs-12 text-muted"> <span className="font-weight-normal1">{item.email}</span></small>
                                                         
                                                     </td>
-                                                    <td>{item.phone ? item.phone : `Not Provided`}</td>
+                                                    <td className={'align-items-center capitalize'}>{item.access ? item.access : `Not Set`}</td>
                                                     <td>{item.type || item.role}</td>
                                                     {item.created ? <td>
                                                         <span className="badge light badge-success">{new Date(item.created).toLocaleString()}</span>

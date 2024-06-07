@@ -34,7 +34,6 @@ const SideBar = () => {
 	} = useContext(ThemeContext);
   let menu = []
   const user = JSON.parse(localStorage.getItem(`_authUsr`))
-  const dash = localStorage.getItem(`_dash`)
 
   if(user){
     if(user.type === 'minexx'){

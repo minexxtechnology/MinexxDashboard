@@ -23,6 +23,7 @@ const Mine = () => {
 	const dispatch = useDispatch()
     const { changeTitle } = useContext(ThemeContext)
     const [mine, setmine] = useState()
+    const [attachment, setattachment] = useState()
     const [videos, setvideos] = useState([])
     const [incidentview, setincidentview] = useState()
     const [headers, setheaders] = useState([])
@@ -31,6 +32,8 @@ const Mine = () => {
     const [location, setlocation] = useState()
     const [assessments, setassessments] = useState([])
     const [gallery, setgallery] = useState([])
+    const [miners, setminers] = useState([])
+    const [minersHeader, setminersHeader] = useState([])
     const apiHeaders = {
         'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
         'x-refresh': localStorage.getItem(`_authRfrsh`)
@@ -56,6 +59,9 @@ const Mine = () => {
         // mine details
         axiosInstance.get(`${baseURL_}mines/${id}`, { headers: apiHeaders }).then(response=>{
             changeTitle(response.data.mine.name + ` | Minexx`)
+            if(localStorage.getItem(`_dash`) === `gold`){
+                getMiners(response.data.mine.name)
+            }
             setpicture(`https://lh3.googleusercontent.com/d/${response.data.mine.image}=w2160?authuser=0`)
             setmine(response.data.mine)
         }).catch((err)=>{
@@ -119,6 +125,41 @@ const Mine = () => {
 			}
         })
     }
+
+    const showAttachment  = (file, field)=>{
+        axiosInstance.post(`${baseURL_}image`, { headers: apiHeaders, data: {
+            image: file
+        } }).then(response=>{
+            setattachment({image: response.data.image, field})
+        }).catch(err=>{
+            try{
+                if(err.response.code === 403){
+                    dispatch(Logout(navigate))
+                }else{
+                    toast.warn(err.response.message)
+                }
+            }catch(e){
+                toast.error(err.message)
+            }
+        })
+    }
+
+    const getMiners = (name) => {
+        axiosInstance.get(`${baseURL_}miners/${name}`, { headers: apiHeaders }).then(response=>{
+            setminers(response.data.miners)
+            setminersHeader(response.data.header)
+        }).catch(err=>{
+            try{
+                if(err.response.code === 403){
+                    dispatch(Logout(navigate))
+                }else{
+                    toast.warn(err.response.message)
+                }
+            }catch(e){
+                toast.error(err.message)
+            }
+        })
+    }
     
     useEffect(() => {
         getMine()
@@ -126,6 +167,15 @@ const Mine = () => {
 
     return (
         <>
+            { attachment ? <Modal size='lg' show={attachment} onBackdropClick={()=>setattachment(null)}>
+                <Modal.Header>
+                    <h3 className='modal-title'>{attachment.field}</h3>
+                    <Link className='modal-dismiss' data-toggle="data-dismiss" onClick={()=>setattachment(null)}>x</Link>
+                </Modal.Header>
+                <Modal.Body>
+                    <img src={attachment.image} alt={attachment.field}/>
+                </Modal.Body>
+            </Modal> : null }
             { incidentview ?
             <Modal size='lg' show={incidentview} onBackdropClick={()=>setincidentview(null)}>
                 <Modal.Header>
@@ -347,6 +397,42 @@ const Mine = () => {
                                     <iframe src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDEabEXDTK0hQXB3l7WIXM2Cg4PJJo3x_o&q=${location.split(',')[0]},${location.split(',')[1]}`} width="100%" height="100%" title={mine?.name} style={{border:0}} allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                                 </div>
                             </Tab.Pane> : <></> }
+                            <Tab.Pane id="miners" eventKey="miners">
+                                <div className="col-md-12">
+                                    <div className="card">
+                                        <div className="w-100 table-responsive">
+                                            <div id="patientTable_basic_table" className="dataTables_wrapper">
+                                                <table
+                                                    id="example5"
+                                                    className="display dataTable w-100 no-footer"
+                                                    role="grid"
+                                                    aria-describedby="example5_info"
+                                                >
+                                                    <thead>
+                                                    <tr role="row">
+                                                        { minersHeader.filter(h=>h!=='ID' && h!=='Mine/Concession Name').map(header=><th
+                                                            className="sorting"
+                                                            tabIndex={0}
+                                                            aria-controls="example5"
+                                                            rowSpan={1}
+                                                            colSpan={1}
+                                                            style={{ width: 73 }}
+                                                            >
+                                                            {header}
+                                                        </th>) }
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <tr role="row" className="odd">
+                                                        { miners.map(miner=>miner.map((field, i)=><td>{field.includes(`Miners_Images`) ? <button className="btn btn-sm btn-primary" onClick={()=>showAttachment(field, minersHeader.filter(h=>h!=='ID' && h!=='Mine/Concession Name')[i])}>View</button> : field }</td>))}
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Tab.Pane>
                         </Tab.Content>
                     </div>
                 </Tab.Container>

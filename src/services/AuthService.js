@@ -38,6 +38,7 @@ export function saveTokenInLocalStorage(data) {
     localStorage.setItem('_authTkn', data.accessToken);
     localStorage.setItem('_authRfrsh', data.refreshToken);
     localStorage.setItem('_authUsr', JSON.stringify(data.user));
+    localStorage.setItem('_dash', data.user.access === 'both' ? '3ts' : data.user.access);
 }
 
 export function runLogoutTimer(dispatch, timer, navigate) {

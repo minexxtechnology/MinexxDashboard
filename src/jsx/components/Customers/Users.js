@@ -295,7 +295,7 @@ const Users = () => {
                                 <label className="mb-2 ">
                                     <strong>Dashboard Access</strong>
                                 </label>
-                                <select onChange={(e) => setaccess(e.target.value)} className='form-control'>
+                                <select onChange={(e) => setaccess(e.target.value)} value={access} className='form-control'>
                                     <option value='3ts'>3Ts</option>
                                     <option value='gold'>Gold</option>
                                     <option value='both'>Both</option>
@@ -393,7 +393,7 @@ const Users = () => {
                                 <label className="mb-2 ">
                                     <strong>Dashboard Access</strong>
                                 </label>
-                                <select onChange={(e) => setaccess(e.target.value)} className='form-control'>
+                                <select onChange={(e) => setaccess(e.target.value)} value={access} className='form-control'>
                                     <option value='3ts'>3Ts</option>
                                     <option value='gold'>Gold</option>
                                     <option value='both'>Both</option>
@@ -520,7 +520,7 @@ const Users = () => {
                                                     </td> : <></> }
                                                     { platform === 'dashboard' ? <td>
                                                         <div className="d-flex">
-                                                            <Link to={"#"} className="btn btn-primary shadow btn-xs sharp me-2" onClick={()=>{setname(item?.name); setsurname(item?.surname); setemail(item?.email); setedit(item)}}><i className="fas fa-pencil-alt"></i></Link>
+                                                            <Link to={"#"} className="btn btn-primary shadow btn-xs sharp me-2" onClick={()=>{setname(item?.name); setsurname(item?.surname); setaccess(item?.access); setemail(item?.email); setedit(item)}}><i className="fas fa-pencil-alt"></i></Link>
                                                             { item.uid  !== user.uid ? <Link to={"#"} className="btn btn-warning shadow btn-xs sharp me-2" onClick={()=>{setuserstatus(item)}}><i className="fas fa-user-edit"></i></Link> : null }
                                                             { item.uid  !== user.uid ? <Link to={"#"} className="btn btn-danger shadow btn-xs sharp" onClick={()=>{setremove(item)}}><i className="fa fa-trash"></i></Link> : null }
                                                         </div>

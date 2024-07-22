@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { ThemeContext } from "../../../context/ThemeContext";
 import { Logout } from '../../../store/actions/AuthActions';
 import { useDispatch } from "react-redux";
+import { Modal, Table } from "react-bootstrap";
 
 const Exports = () => {	
     const navigate = useNavigate()
@@ -13,6 +14,9 @@ const Exports = () => {
 	const { changeTitle } = useContext(ThemeContext);
 	const [exports, setexports] = useState([])
 	const [filtered, setfiltered] = useState([])
+	const [tablehead, settablehead] = useState([])
+	const [attachment, setattachment] = useState()
+    const access = localStorage.getItem(`_dash`) || '3ts'
 	const apiHeaders = {
         'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
         'x-refresh': localStorage.getItem(`_authRfrsh`)
@@ -20,11 +24,15 @@ const Exports = () => {
 
 	const fetchExports = async()=>{
 		try{
-			let response = await axiosInstance.get(`${baseURL_}exports`, {
-				headers: apiHeaders
-			})
-			setexports(response.data.exports.reverse())
-			setfiltered(response.data.exports.reverse())
+			let response = await axiosInstance.get(`${baseURL_}exports`)
+			if(access === "3ts"){
+				setexports(response.data.exports.reverse())
+				setfiltered(response.data.exports.reverse())
+			}else{
+				settablehead(response.data.exports.header || [])
+				setexports(response.data.exports.rows.reverse())
+				setfiltered(response.data.exports.rows.reverse())
+			}
 		}catch(err){
 			try{
 				if(err.response.code === 403){
@@ -39,6 +47,24 @@ const Exports = () => {
 
 	}
 
+	const showAttachment  = (file, field)=>{
+        axiosInstance.post(`${baseURL_}image`, {
+            file
+        }).then(response=>{
+            setattachment({image: response.data.image, field})
+        }).catch(err=>{
+            try{
+                if(err.response.code === 403){
+                    dispatch(Logout(navigate))
+                }else{
+                    toast.warn(err.response.message)
+                }
+            }catch(e){
+                toast.error(err.message)
+            }
+        })
+    }
+
 	const filter = (e)=>{
 		const input = e.currentTarget.value
 		setfiltered(exports.filter(exp=>exp.exportationID.toLowerCase().includes(input.toLowerCase()) || exp.company.name.toLowerCase().includes(input.toLowerCase())))
@@ -52,6 +78,15 @@ const Exports = () => {
 
 	return(
 		<>
+			{ attachment ? <Modal size='lg' show={attachment} onBackDropClick={()=>setattachment(null)}>
+				<Modal.Header>
+					<h3 className='modal-title'>{attachment.field}</h3>
+					<Link className='modal-dismiss' data-toggle="data-dismiss" onClick={()=>setattachment(null)}>x</Link>
+				</Modal.Header>
+				<Modal.Body>
+					<img alt='' className='rounded mt-4' width={'100%'} src={`https://lh3.googleusercontent.com/d/${attachment.image}=w2160?authuser=0`}/>
+				</Modal.Body>
+			</Modal> : null }
 			<div className="page-titles">
 				<ol className="breadcrumb">
 					<li className="breadcrumb-item active"><Link to={"/overview"}>Dashboard</Link></li>
@@ -70,7 +105,7 @@ const Exports = () => {
 						<div className="card-body">
 						<div className="w-100 table-responsive">
 							<div id="patientTable_basic_table" className="dataTables_wrapper">
-							<table
+							{ access === '3ts' ? <table
 								id="example5"
 								className="display dataTable w-100 no-footer"
 								role="grid"
@@ -213,7 +248,29 @@ const Exports = () => {
 									</tr>)
 								}) }
 								</tbody>
-							</table>
+							</table> :
+							<Table bordered striped hover responsive size='sm'>
+								<thead>
+									<tr>
+										{ tablehead.map(h=><th className="text-center text-dark">
+											{h}
+										</th> )}
+									</tr>
+								</thead>
+								<tbody>
+										{
+											filtered.map((exp, i)=><tr key={`exp${i}`}>
+												{ exp.map((column, x)=><td>{column.includes('Gold_Images') ? <Link onClick={()=>showAttachment(column, tablehead[x])} className="text-primary">View</Link> : column}</td>) }
+											</tr>)
+										}
+										{
+											exports.length === 0 ? <tr>
+												<td colSpan={24}>There are no exports to display.</td>
+											</tr> : <tr></tr>
+										}
+								</tbody>
+							</Table>
+						}
 
 							{/* <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
 								<div className="dataTables_info">

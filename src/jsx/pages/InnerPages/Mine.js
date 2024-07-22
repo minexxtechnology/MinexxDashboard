@@ -19,6 +19,7 @@ import { toast } from 'react-toastify';
 const Mine = () => {
 
     const { id } = useParams()
+	const access = localStorage.getItem(`_dash`) || '3ts'
     const navigate = useNavigate()
 	const dispatch = useDispatch()
     const { changeTitle } = useContext(ThemeContext)
@@ -127,9 +128,9 @@ const Mine = () => {
     }
 
     const showAttachment  = (file, field)=>{
-        axiosInstance.post(`${baseURL_}image`, { headers: apiHeaders, data: {
-            image: file
-        } }).then(response=>{
+        axiosInstance.post(`${baseURL_}image`, {
+            file
+        }).then(response=>{
             setattachment({image: response.data.image, field})
         }).catch(err=>{
             try{
@@ -145,7 +146,7 @@ const Mine = () => {
     }
 
     const getMiners = (name) => {
-        axiosInstance.get(`${baseURL_}miners/${name}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}miners/${name}`).then(response=>{
             setminers(response.data.miners)
             setminersHeader(response.data.header)
         }).catch(err=>{
@@ -163,21 +164,21 @@ const Mine = () => {
     
     useEffect(() => {
         getMine()
-    }, [])
+    }, [access])
 
     return (
-        <>
-            { attachment ? <Modal size='lg' show={attachment} onBackdropClick={()=>setattachment(null)}>
+        <div>
+            { attachment ? <Modal size='lg' show={attachment} onBackDropClick={()=>setattachment(null)}>
                 <Modal.Header>
                     <h3 className='modal-title'>{attachment.field}</h3>
                     <Link className='modal-dismiss' data-toggle="data-dismiss" onClick={()=>setattachment(null)}>x</Link>
                 </Modal.Header>
                 <Modal.Body>
-                    <img src={attachment.image} alt={attachment.field}/>
+                    <img alt='' className='rounded mt-4' width={'100%'} src={`https://lh3.googleusercontent.com/d/${attachment.image}=w2160?authuser=0`}/>
                 </Modal.Body>
             </Modal> : null }
             { incidentview ?
-            <Modal size='lg' show={incidentview} onBackdropClick={()=>setincidentview(null)}>
+            <Modal size='lg' show={incidentview} onBackDropClick={()=>setincidentview(null)}>
                 <Modal.Header>
                     <h3 className='modal-title'>Incident: {incidentview.id}</h3>
                     <Link className='modal-dismiss' data-toggle="data-dismiss" onClick={()=>setincidentview(null)}>x</Link>
@@ -266,12 +267,12 @@ const Mine = () => {
                                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#map" role="tab" eventKey="map">
                                                     Map
                                                 </Nav.Link>
-                                            </Nav.Item> : <></> }
-                                            <Nav.Item as="li" className="nav-item">
+                                            </Nav.Item> : <div></div> }
+                                            { access === 'gold' ? <Nav.Item as="li" className="nav-item">
                                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#miners" role="tab" eventKey="miners">
                                                     Miners
                                                 </Nav.Link>
-                                            </Nav.Item>
+                                            </Nav.Item> : <div></div> }
                                         </Nav>
                                     </div>
                                 </div>
@@ -317,7 +318,6 @@ const Mine = () => {
                                             </div>
                                         </div>
                                     : incidents.map(incident=>(<div onClick={()=>setincidentview(incident)} className="media align-items-center border-bottom p-md-4 p-3" key={incident.id}>
-                                    {/* <span className="number  col-1 px-0 align-self-center d-none d-sm-inline-block">{incident.id}</span> */}
                                     <div className="media-body col-sm-6 col-6 col-xxl-5 px-0 me-4">
                                         <h5 className="mt-0 mb-0"><Link to={""} className=" fs-18 font-w400 text-ov">{incident.description ? incident.description : `No incident description specified.`}</Link></h5>
                                         <p to={""} className=" fs-12 font-w200">{incident.detailedDescription}</p>
@@ -396,7 +396,7 @@ const Mine = () => {
                                 <div className="card event-bx" style={{ height: '80vh', width: '100%' }}>
                                     <iframe src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDEabEXDTK0hQXB3l7WIXM2Cg4PJJo3x_o&q=${location.split(',')[0]},${location.split(',')[1]}`} width="100%" height="100%" title={mine?.name} style={{border:0}} allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                                 </div>
-                            </Tab.Pane> : <></> }
+                            </Tab.Pane> : <div></div> }
                             <Tab.Pane id="miners" eventKey="miners">
                                 <div className="col-md-12">
                                     <div className="card">
@@ -423,9 +423,17 @@ const Mine = () => {
                                                     </tr>
                                                     </thead>
                                                     <tbody>
-                                                    <tr role="row" className="odd">
-                                                        { miners.map(miner=>miner.map((field, i)=><td>{field.includes(`Miners_Images`) ? <button className="btn btn-sm btn-primary" onClick={()=>showAttachment(field, minersHeader.filter(h=>h!=='ID' && h!=='Mine/Concession Name')[i])}>View</button> : field }</td>))}
-                                                    </tr>
+                                                        { miners.length === 0 ? <tr>
+                                                            <td colSpan={minersHeader.length}>Mine does not have any miners on record.</td> 
+                                                        </tr> :
+                                                        miners.map(miner=><tr key={`miner-${miner[0]}`}>{
+                                                            miner.filter((x,y)=>y!==minersHeader.indexOf('ID')&&y!==minersHeader.indexOf('Mine/Concession Name')).map((field, i)=><td>
+                                                            {field.includes(`Miners_Images`) ? 
+                                                            <button className="btn btn-sm btn-primary" onClick={()=>showAttachment(field, minersHeader.filter(h=>h!=='ID' && h!=='Mine/Concession Name')[i])}>View</button> : 
+                                                            field }
+                                                            </td>)
+                                                        }</tr>)
+                                                        }
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -437,7 +445,7 @@ const Mine = () => {
                     </div>
                 </Tab.Container>
             </div>
-        </>
+        </div>
     );
 };
 

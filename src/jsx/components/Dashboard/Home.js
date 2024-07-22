@@ -300,7 +300,7 @@ function Home() {
 							<div className="card overflow-hidden">
 								<div className="card-header align-items-start border-primary">	
 									<div>
-										<h4 className="mb-0 fs-20">Metals Rates Today</h4>
+										<h4 className="mb-0 fs-20">Metals Rates Today Per Ton</h4>
 									</div>
 								</div>
 								<div className="card-body">

@@ -1,14 +1,14 @@
 import React,{useState, useEffect, useContext, useRef} from 'react';
-import { Button, Dropdown, Nav, Tab, Table } from 'react-bootstrap';
+import { Button, Modal, Dropdown, Nav, Tab, Table } from 'react-bootstrap';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import { ThemeContext } from '../../context/ThemeContext';
 import { baseURL_ } from '../../config'
-import axios from 'axios';
 import moment from 'moment';
 import {startOfMonth, isWeekend, isBefore} from 'date-fns'
 import { Logout } from '../../store/actions/AuthActions';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
+import axiosInstance from '../../services/AxiosInstance';
 
 const ticketData = [
     {number:"01", emplid:"Emp-0852", count:'3'},
@@ -25,16 +25,24 @@ const Reports = () => {
     const {type} = useParams()
     const navigate = useNavigate()
 	const dispatch = useDispatch()
+    const access = localStorage.getItem(`_dash`) || '3ts'
+    const [attachment, setattachment] = useState()
     const [companies, setcompanies] = useState([])
     const [company, setcompany] = useState()
     const [trace, settrace] = useState({
         production: [],
         bags: [],
-        blending: [],
+        blending: {
+            header: [],
+            rows: []
+        },
         drums: [],
         bags_proc: [],
         processing: [],
-        exports: []
+        exports: access === '3ts' ? [] : {
+            header: [],
+            rows: []
+        }
     })
     const [exportsPage, setexportsPage] = useState(1)
     const [drumsPage, setdrumsPage] = useState(1)
@@ -134,6 +142,28 @@ const Reports = () => {
 		}
 	};
 
+    const showAttachment  = (file, field)=>{
+        axiosInstance.post(`${baseURL_}image`, {
+            file
+        }).then(response=>{
+            setattachment({image: response.data.image, field})
+            //this is incase the view permission was not granted before
+            setTimeout(()=>{
+                setattachment({image: response.data.image, field})
+            }, 5000)
+        }).catch(err=>{
+            try{
+                if(err.response.code === 403){
+                    dispatch(Logout(navigate))
+                }else{
+                    toast.warn(err.response.message)
+                }
+            }catch(e){
+                toast.error(err.message)
+            }
+        })
+    }
+
     const changeCompany = (e)=>{
         const input = e.currentTarget.value
         if(input === 'Select Company'){
@@ -149,9 +179,7 @@ const Reports = () => {
     }
     
     const loadCompanies =  ()=>{
-        axios.get(`${baseURL_}companies`, {
-            headers: apiHeaders
-        }).then(response=>{
+        axiosInstance.get(`/companies`).then(response=>{
             setcompanies(response.data.companies)
         })
     }
@@ -161,16 +189,27 @@ const Reports = () => {
             settrace({
                 production: [],
                 bags: [],
-                blending: [],
+                blending: {
+                    header: [],
+                    rows: []
+                },
+                purchases: {
+                    header: [],
+                    rows: []
+                },
                 drums: [],
                 bags_proc: [],
                 processing: [],
-                exports: []
+                exports: access === '3ts' ? [] : {
+                    header: [],
+                    rows: []
+                }
             })
         }
-        axios.get(`${baseURL_}report/${type !== 'trace' ? type : type+'/'+company?.id}`, {
-            headers: apiHeaders
-        }).then(response=>{
+        if(type === `trace` && !company){
+            return
+        }
+        axiosInstance.get(`/report/${type !== 'trace' ? type : type+'/'+company?.id}`).then(response=>{
             if(type === `daily`){
                 setdaily({ cassiterite: response.data.cassiterite, coltan: response.data.coltan, wolframite: response.data.wolframite })
             }
@@ -201,7 +240,7 @@ const Reports = () => {
 
     function paginate(array, page_number, page_size) {
         // human-readable page numbers usually start with 1, so we reduce 1 in the first argument
-        return array.slice((page_number - 1) * page_size, page_number * page_size);
+        return array ? array.slice((page_number - 1) * page_size, page_number * page_size) : []
     }
 
     useEffect(() => {
@@ -229,6 +268,15 @@ const Reports = () => {
 	};
     return (
         <>
+            { attachment ? <Modal size='lg' show={attachment} onBackDropClick={()=>setattachment(null)}>
+                <Modal.Header>
+                    <h3 className='modal-title'>{attachment.field}</h3>
+                    <Link className='modal-dismiss' data-toggle="data-dismiss" onClick={()=>setattachment(null)}>x</Link>
+                </Modal.Header>
+                <Modal.Body>
+                    <img alt='' className='rounded mt-4' width={'100%'} src={`https://lh3.googleusercontent.com/d/${attachment.image}=w2160?authuser=0`}/>
+                </Modal.Body>
+            </Modal> : null }
             <div className="page-titles">
 				<ol className="breadcrumb">
 					<li className="breadcrumb-item active"><Link to={"#"}>Dashboard</Link></li>
@@ -333,7 +381,7 @@ const Reports = () => {
                                                 to="/reports"
                                                 onClick={() =>  {
                                                     console.log("next")
-                                                        bagsPage < paggination(trace.bags).length &&
+                                                        bagsPage < paggination(trace?.bags || []).length &&
                                                         onClick(()=>setbagsPage(bagsPage+1))
                                                     }
                                                 }
@@ -909,10 +957,10 @@ const Reports = () => {
                         <div className='col-md-3'>
                             <select onChange={changeCompany} className='form-control'>
                                 <option>Select Company</option>
-                                { companies.map(company=><option value={JSON.stringify(company)}>{company.name}</option>) }
+                                { companies.map(company=><option key={company.id} value={JSON.stringify(company)}>{company.name}</option>) }
                             </select>
                         </div>
-                    </div>    
+                    </div>
                     <Tab.Container defaultActiveKey="production">
                         <Nav as="ul" className="nav nav-pills review-tab" role="tablist">
                             <Nav.Item as="li" className="nav-item">
@@ -920,6 +968,8 @@ const Reports = () => {
                                     Production
                                 </Nav.Link>
                             </Nav.Item>
+                            { access === `3ts` ?
+                            <>
                             <Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#bags" role="tab" eventKey="bags">
                                     Bags Produced
@@ -945,6 +995,12 @@ const Reports = () => {
                                     Drums
                                 </Nav.Link>
                             </Nav.Item>
+                            </> :
+                            <Nav.Item as="li" className="nav-item">
+                                <Nav.Link className="nav-link px-2 px-lg-3" to="#purchase" role="tab" eventKey="purchase">
+                                    Purchase
+                                </Nav.Link>
+                            </Nav.Item> }
                             <Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#exports" role="tab" eventKey="exports">
                                     Exports
@@ -959,7 +1015,7 @@ const Reports = () => {
                                     </div>
                                     <div className='card-body'>
                                         <div id="soldre-view" className="dataTables_wrapper no-footer">
-                                            <Table bordered striped hover responsive size='sm'>
+                                            { access === `3ts` ? <Table bordered striped hover responsive size='sm'>
                                                 <thead>
                                                     <tr>
                                                         <th></th>
@@ -1009,42 +1065,33 @@ const Reports = () => {
                                                         </tr> : <tr></tr>
                                                     }
                                                 </tbody>
-                                            </Table>
-                                            <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
-                                                <div className="dataTables_info">
-                                                Showing {(prodPage-1) * sort + 1} to{" "}
-                                                {trace.production.length > prodPage * sort
-                                                    ? prodPage*sort
-                                                    : trace.production.length}{" "}
-                                                of {trace.production.length} entries
-                                                </div>
-                                                <div
-                                                    className="dataTables_paginate paging_simple_numbers"
-                                                    id="example2_paginate"
-                                                >
-                                                <Link
-                                                    className="paginate_button previous disabled"
-                                                    onClick={() =>
-                                                        prodPage > 1 && setprodPage(prodPage - 1)
+                                            </Table> : <Table bordered striped hover responsive size='sm'>
+                                                <thead>
+                                                    <tr>
+                                                        { trace.production?.header?.map(h=><th className="text-center text-dark">
+                                                            {h}
+                                                        </th>) }
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {
+                                                        trace.production?.production?.map((prod, i)=><tr key={`prod${i}`}>
+                                                            {   prod.map(p=><td>{p.includes('Images') ? <button onClick={()=>showAttachment(p, `Transaction: ${prod[0]}`)} className='btn btn-sm btn-primary'>View</button> : p}</td>) }
+                                                        </tr>)
                                                     }
-                                                >
-                                                    Previous
-                                                </Link>
-                                                <Link
-                                                    className="paginate_button next mx-4"
-                                                    onClick={() =>
-                                                        prodPage < paggination(trace.production).length &&
-                                                        setprodPage(prodPage + 1)
+                                                    {
+                                                        trace.production?.production?.length === 0 ? <tr>
+                                                            <td colSpan={9}>The selected company does not have any production to show.</td>
+                                                        </tr> : <tr></tr>
                                                     }
-                                                >
-                                                    Next
-                                                </Link>
-                                                </div>
-                                            </div>
+                                                </tbody>
+                                            </Table>}
                                         </div>
                                     </div>
                                 </div>
                             </Tab.Pane>
+                            { access === `3ts` ?
+                            <>
                             <Tab.Pane eventKey="bags" id='bags'>
                                 <div className='card'>
                                     <div className='card-header'>
@@ -1099,7 +1146,7 @@ const Reports = () => {
                                                 </thead>
                                                 <tbody>
                                                     {
-                                                        paginate(trace.bags, bagsPage, 20).map((bag, i)=><tr key={`bag${i}`}>
+                                                        paginate(trace?.bags || [], bagsPage, 20).map((bag, i)=><tr key={`bag${i}`}>
                                                             <td>{bag.tag}</td>
                                                             <td>{bag.weight}</td>
                                                             <td>{bag.tunnel}</td>
@@ -1117,7 +1164,7 @@ const Reports = () => {
                                                         </tr>)
                                                     }
                                                     {
-                                                        trace.bags.length === 0 ? <tr>
+                                                        trace?.bags.length === 0 ? <tr>
                                                             <td colSpan={14}>The selected company does not have any produced bags to show.</td>
                                                         </tr> : <tr></tr>
                                                     }
@@ -1126,10 +1173,10 @@ const Reports = () => {
                                             <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
                                                 <div className="dataTables_info">
                                                 Showing {(bagsPage-1) * sort + 1} to{" "}
-                                                {trace.bags.length > bagsPage * sort
+                                                {trace?.bags.length > bagsPage * sort
                                                     ? bagsPage*sort
-                                                    : trace.bags.length}{" "}
-                                                of {trace.bags.length} entries
+                                                    : trace?.bags.length}{" "}
+                                                of {trace?.bags.length} entries
                                                 </div>
                                                 <div
                                                     className="dataTables_paginate paging_simple_numbers"
@@ -1147,7 +1194,7 @@ const Reports = () => {
                                                 <Link
                                                     className="paginate_button next mx-4"
                                                     onClick={() =>
-                                                        bagsPage < paggination(trace.bags).length &&
+                                                        bagsPage < paggination(trace?.bags || []).length &&
                                                         setbagsPage(bagsPage + 1)
                                                     }
                                                 >
@@ -1378,7 +1425,7 @@ const Reports = () => {
                                                 </thead>
                                                 <tbody>
                                                     {
-                                                        paginate(trace.bags_proc, bagsProcPage, 20).map((bag, i)=><tr key={`bag${i}`}>
+                                                        paginate(trace?.bags_proc, bagsProcPage, 20).map((bag, i)=><tr key={`bag${i}`}>
                                                             <td>{bag.tag}</td>
                                                             <td>{bag.weight}</td>
                                                             <td>{bag.processing}</td>
@@ -1392,7 +1439,7 @@ const Reports = () => {
                                                             <td>{bag.grade}</td>
                                                         </tr>)
                                                     }{
-                                                        trace.bags_proc.length === 0 ? <tr>
+                                                        trace?.bags_proc.length === 0 ? <tr>
                                                             <td colSpan={24}>The selected company does not have any processed bags to show.</td>
                                                         </tr> : <tr></tr>
                                                     }
@@ -1401,10 +1448,10 @@ const Reports = () => {
                                             <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
                                                 <div className="dataTables_info">
                                                 Showing {(bagsProcPage-1) * sort + 1} to{" "}
-                                                {trace.bags_proc.length > bagsProcPage * sort
+                                                {trace?.bags_proc.length > bagsProcPage * sort
                                                     ? bagsProcPage*sort
-                                                    : trace.bags_proc.length}{" "}
-                                                of {trace.bags_proc.length} entries
+                                                    : trace?.bags_proc.length}{" "}
+                                                of {trace?.bags_proc.length} entries
                                                 </div>
                                                 <div
                                                     className="dataTables_paginate paging_simple_numbers"
@@ -1422,7 +1469,7 @@ const Reports = () => {
                                                 <Link
                                                     className="paginate_button next mx-4"
                                                     onClick={() =>
-                                                        bagsProcPage < paggination(trace.bags_proc).length &&
+                                                        bagsProcPage < paggination(trace?.bags_proc).length &&
                                                         setbagsProcPage(bagsProcPage + 1)
                                                     }
                                                 >
@@ -1440,6 +1487,46 @@ const Reports = () => {
                                         <h4 className='card-title'>Blending</h4>
                                     </div>
                                     <div className='card-body'>
+                                    {
+                                        <div className="w-100 table-responsive">
+                                            <div id="patientTable_basic_table" className="dataTables_wrapper">
+                                                <table
+                                                    id="example5"
+                                                    className="display dataTable w-100 no-footer"
+                                                    role="grid"
+                                                    aria-describedby="example5_info"
+                                                >
+                                                    <thead>
+                                                    <tr role="row">
+                                                        { trace.blending['header'].map(header=><th
+                                                            className="sorting"
+                                                            tabIndex={0}
+                                                            aria-controls="example5"
+                                                            rowSpan={1}
+                                                            colSpan={1}
+                                                            style={{ width: 73 }}
+                                                            >
+                                                            {header}
+                                                        </th>) }
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        { trace.blending['rows'].length === 0 ? <tr>
+                                                            <td colSpan={trace.blending['header'].length}>Company does not have any blending records to report on.</td> 
+                                                        </tr> :
+                                                        trace.blending['rows'].map(row=><tr key={`blending-${row[0]}`}>{
+                                                            row.map((field, i)=><td>
+                                                            {field.includes(`Miners_Images`) ? 
+                                                                <button className="btn btn-sm btn-primary" onClick={()=>showAttachment(field, trace.blending['header'][i])}>View</button> : 
+                                                            field }
+                                                            </td>)
+                                                        }</tr>)
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
                                     </div>
                                 </div>
                             </Tab.Pane>
@@ -1532,6 +1619,51 @@ const Reports = () => {
                                     </div>
                                 </div>
                             </Tab.Pane>
+                            </> : 
+                            <Tab.Pane eventKey="purchase" id='purchase'>
+                                <div className='card'>
+                                    <div className='card-header'>
+                                        <h4 className='card-title'>Purchase</h4>
+                                    </div>
+                                    <div className='card-body'>
+                                    {
+                                        <div className="w-100 table-responsive">
+                                            <div id="patientTable_basic_table" className="dataTables_wrapper">
+                                                <Table bordered striped hover responsive size='sm'>
+                                                    <thead>
+                                                    <tr role="row">
+                                                        { trace.purchases['header'].map(header=><th
+                                                            className="sorting"
+                                                            tabIndex={0}
+                                                            aria-controls="example5"
+                                                            rowSpan={1}
+                                                            colSpan={1}
+                                                            style={{ width: 73 }}
+                                                            >
+                                                            {header}
+                                                        </th>) }
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        { trace.purchases['rows'].length === 0 ? <tr>
+                                                            <td colSpan={trace.purchases['header'].length}>Company does not have any purchase records to report on.</td> 
+                                                        </tr> :
+                                                        trace.purchases['rows'].map(row=><tr key={`purchase-${row[0]}`}>{
+                                                            row.map((field, i)=><td>
+                                                            {field.includes(`Sell_Images`) ? 
+                                                                <button className="btn btn-sm btn-primary" onClick={()=>showAttachment(field, trace.purchases['header'][i])}>View</button> : 
+                                                            field }
+                                                            </td>)
+                                                        }</tr>)
+                                                        }
+                                                    </tbody>
+                                                </Table>
+                                            </div>
+                                        </div>
+                                    }
+                                    </div>
+                                </div>
+                            </Tab.Pane> }
                             <Tab.Pane eventKey="exports" id='exports'>
                                 <div className='card'>
                                     <div className='card-header'>
@@ -1539,7 +1671,7 @@ const Reports = () => {
                                     </div>
                                     <div className='card-body'>
                                         <div id="soldre-view" className="dataTables_wrapper no-footer">
-                                            <Table bordered striped hover responsive size='sm'>
+                                            { access === '3ts' ? <Table bordered striped hover responsive size='sm'>
                                                 <thead>
                                                     <tr>
                                                         <th className="text-center text-dark">
@@ -1648,13 +1780,35 @@ const Reports = () => {
                                                         }
                                                 </tbody>
                                             </Table>
+                                            : 
+                                            <Table bordered striped hover responsive size='sm'>
+                                                <thead>
+                                                    <tr>
+                                                        { trace.exports?.header.map(header=><th className="text-center text-dark">
+                                                            {header}
+                                                        </th> )}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                        {
+                                                            paginate(trace.exports?.rows, exportsPage, sort).map((exp, i)=><tr key={`export${i}`}>
+                                                                { exp.map(column=><td>{column}</td>) }
+                                                            </tr>)
+                                                        }
+                                                        {
+                                                            trace.exports.length === 0 ? <tr>
+                                                                <td colSpan={24}>The selected company does not have any exports to show.</td>
+                                                            </tr> : <tr></tr>
+                                                        }
+                                                </tbody>
+                                            </Table> }
                                             <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
                                                 <div className="dataTables_info">
                                                 Showing {(exportsPage-1) * sort + 1} to{" "}
-                                                {trace.exports.length > exportsPage * sort
+                                                {(access === '3ts' ? trace.exports.length : trace.exports.rows.length) > exportsPage * sort
                                                     ? exportsPage*sort
-                                                    : trace.exports.length}{" "}
-                                                of {trace.exports.length} entries
+                                                    : (access === '3ts' ? trace.exports.length : trace.exports.rows.length)}{" "}
+                                                of {(access === '3ts' ? trace.exports.length : trace.exports.rows.length)} entries
                                                 </div>
                                                 <div
                                                     className="dataTables_paginate paging_simple_numbers"

@@ -98,7 +98,7 @@ const Company = () => {
 
     return (
         <>
-            <Modal show={sharehodlerID} onBackdropClick={()=>setsharehodlerID(null)}>
+            <Modal show={sharehodlerID} onBackDropClick={()=>setsharehodlerID(null)}>
                 <Modal.Header>
                     <h3>{sharehodlerID ? sharehodlerID.name : `--`}</h3>
                     <Link onClick={()=>setsharehodlerID(null)}>x</Link>

@@ -34,6 +34,7 @@ const SideBar = () => {
 	} = useContext(ThemeContext);
   let menu = []
   const user = JSON.parse(localStorage.getItem(`_authUsr`))
+	const access = localStorage.getItem(`_dash`) || '3ts'
 
   if(user){
     if(user.type === 'minexx'){
@@ -151,7 +152,7 @@ const SideBar = () => {
                         }
                         <Collapse in={state.active === data.title ? true :false}>
                           <ul className={`${menuClass === "mm-collapse" ? "mm-show" : ""}`}>
-                            {data.content && data.content.map((data,index) => {									
+                            {data.content && data.content.filter(c=>access === `gold` ? !["/reports/daily", "/reports/mtd", "/reports/deliveries"].includes(c.to) : c!== null).map((data,index) => {									
                               return(	
                                   <li key={index}
                                     className={`${ path === data.to ? "mm-active" : ""}`}                                    
@@ -165,7 +166,7 @@ const SideBar = () => {
                                           </Link>
                                           <Collapse in={state.activeSubmenu === data.title ? true :false}>
                                               <ul className={`${menuClass === "mm-collapse" ? "mm-show" : ""}`}>
-                                                {data.content && data.content.map((data,index) => {
+                                                {data.content && data.content.filter(c=>c.to!== "/reports/daily").map((data,index) => {
                                                   return(	
                                                     <>
                                                       <li key={index}>

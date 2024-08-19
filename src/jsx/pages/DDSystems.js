@@ -166,7 +166,7 @@ const DDSystems = () => {
 							<a target="_blank" rel="noreferrer" className="btn btn-sm btn-primary justify-right" href={systems[content]?.url}>Download</a>
 						</div>
 						<div className="card-body">
-							<Viewer style={{ minHeight: '500px' }} theme={{ theme: 'dark'}} fileUrl={systems[content]?.url} />
+							<iframe style={{ minHeight: 750, width: '100%' }} title={systems[content]?.title} theme={{ theme: 'dark'}} src={systems[content]?.url} />
 						</div>
 					</div>
 				</div>

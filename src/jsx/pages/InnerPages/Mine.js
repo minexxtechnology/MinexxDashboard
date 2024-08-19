@@ -35,15 +35,29 @@ const Mine = () => {
     const [gallery, setgallery] = useState([])
     const [miners, setminers] = useState([])
     const [minersHeader, setminersHeader] = useState([])
-    const apiHeaders = {
-        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
-        'x-refresh': localStorage.getItem(`_authRfrsh`)
-    }
 
+    const ignoreHeaders = [
+        `I certify on my honor that I am free of any commitment to any employer and I commit myself to respect the legal and
+legal and regulatory provisions governing gold panning activities, in particular the possession, circulation and sale of gold.`,
+        "Signature",
+        "Company ID",
+        "Last Modification",
+        "Expiry Date",
+        "User ID",
+        "testQR"
+    ]
+
+    let mid = null
     const getMine = async()=>{
+
+        if(mid == null){
+            toast.info("Getting Mine details...")
+        }
+
+        mid = id
         
         // mine images
-        axiosInstance.get(`${baseURL_}mines/images/${id}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}mines/images/${id}`).then(response=>{
             setgallery(response.data.images)
         }).catch((err)=>{
             try{
@@ -58,7 +72,7 @@ const Mine = () => {
         })
         
         // mine details
-        axiosInstance.get(`${baseURL_}mines/${id}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}mines/${id}`).then(response=>{
             changeTitle(response.data.mine.name + ` | Minexx`)
             if(localStorage.getItem(`_dash`) === `gold`){
                 getMiners(response.data.mine.name)
@@ -78,7 +92,7 @@ const Mine = () => {
         })
 
         // mine videos
-        axiosInstance.get(`${baseURL_}mines/videos/${id}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}mines/videos/${id}`).then(response=>{
             setvideos(response.data.videos)
         }).catch(err=>{
             try{
@@ -93,7 +107,7 @@ const Mine = () => {
         })
 
         // mine assessments
-        axiosInstance.get(`${baseURL_}assessments/mine/${id}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}assessments/mine/${id}`).then(response=>{
             setassessments(response.data.assessments)
             setheaders(response.data.header)
             if(response.data.assessments.length>0){
@@ -112,7 +126,7 @@ const Mine = () => {
         })
 
         // incidents assessments
-        axiosInstance.get(`${baseURL_}incidents/mine/${id}`, { headers: apiHeaders }).then(response=>{
+        axiosInstance.get(`${baseURL_}incidents/mine/${id}`).then(response=>{
             setincidents(response.data.incidents)
         }).catch(err=>{
             try{
@@ -383,7 +397,7 @@ const Mine = () => {
                                                 </div>
                                             :
                                                 videos.map((item,index)=>(<div data-src={`https://lh3.googleusercontent.com/d/${item}=w2160?authuser=0`} className="col-lg-3 col-md-6 mb-4" key={index}>
-                                                        <iframe className='rounded' title={mine?.name} src={`https://drive.google.com/file/d/${item}/preview`} width="100%" height={300} allow="autoplay"></iframe>
+                                                        <iframe className='rounded' title={mine?.name} src={`https://drive.google.com/file/d/${item}/preview`} width="100%" height={300} allow="autoplay, fullscreen"></iframe>
                                                 </div>
                                                 ))
                                             }
@@ -410,7 +424,7 @@ const Mine = () => {
                                                 >
                                                     <thead>
                                                     <tr role="row">
-                                                        { minersHeader.filter(h=>h!=='ID' && h!=='Mine/Concession Name').map(header=><th
+                                                        { minersHeader.filter(h=>h!=='ID' && h!=='Mine/Concession Name' && !ignoreHeaders.includes(h)).map(header=><th
                                                             className="sorting"
                                                             tabIndex={0}
                                                             aria-controls="example5"
@@ -427,9 +441,17 @@ const Mine = () => {
                                                             <td colSpan={minersHeader.length}>Mine does not have any miners on record.</td> 
                                                         </tr> :
                                                         miners.map(miner=><tr key={`miner-${miner[0]}`}>{
-                                                            miner.filter((x,y)=>y!==minersHeader.indexOf('ID')&&y!==minersHeader.indexOf('Mine/Concession Name')).map((field, i)=><td>
+                                                            miner.filter((x,y)=>y!==minersHeader.indexOf('ID') && y!==minersHeader.indexOf('Mine/Concession Name') && 
+                                                            y!== minersHeader.indexOf(ignoreHeaders[0]) && 
+                                                            y!== minersHeader.indexOf(ignoreHeaders[1]) && 
+                                                            y!== minersHeader.indexOf(ignoreHeaders[2]) && 
+                                                            y!== minersHeader.indexOf(ignoreHeaders[3]) && 
+                                                            y!== minersHeader.indexOf(ignoreHeaders[4]) && 
+                                                            y!== minersHeader.indexOf(ignoreHeaders[5]) && 
+                                                            y!== minersHeader.indexOf(ignoreHeaders[6])
+                                                            ).map((field, i)=><td>
                                                             {field.includes(`Miners_Images`) ? 
-                                                            <button className="btn btn-sm btn-primary" onClick={()=>showAttachment(field, minersHeader.filter(h=>h!=='ID' && h!=='Mine/Concession Name')[i])}>View</button> : 
+                                                            <button className="btn btn-sm btn-primary" onClick={()=>showAttachment(field, minersHeader.filter(h=>h!=='ID' && h!=='Mine/Concession Name' && !ignoreHeaders.includes(h))[i])}>View</button> : 
                                                             field }
                                                             </td>)
                                                         }</tr>)

@@ -32,19 +32,19 @@ export const RootMenu = [
         content: [
             {
                 title: 'Trace Report',
-                to: '/reports/trace',
+                to: 'reports/trace',
             },
             {
                 title: 'Total Stock Delivery',
-                to: '/reports/daily',
+                to: 'reports/daily',
             },
             {
                 title: 'In-Stock Country Balance',
-                to: '/reports/mtd',
+                to: 'reports/mtd',
             },
             {
                 title: 'Total Purchase',
-                to: '/reports/deliveries',
+                to: 'reports/deliveries',
             },
         ]
 
@@ -101,7 +101,7 @@ export const RegulatorMenu = [
         content: [
             {
                 title: 'Trace Report',
-                to: '/reports/trace',
+                to: 'reports/trace',
             },
         ]
     }
@@ -166,21 +166,17 @@ export const IMenu = [
         update:"New",
         iconStyle : <i className="flaticon-business-report" />,
         content: [
-            // {
-            //     title: 'Today\'s Report',
-            //     to: '/reports/today',
-            // },
             {
                 title: 'Total Stock Delivery',
-                to: '/reports/daily',
+                to: 'reports/daily',
             },
             {
                 title: 'In-Stock Country Balance',
-                to: '/reports/mtd',
+                to: 'reports/mtd',
             },
             {
                 title: 'Total Purchase',
-                to: '/reports/deliveries',
+                to: 'reports/deliveries',
             },
         ]
 

@@ -56,7 +56,7 @@
     .logo-abbr {
         max-width: 100px;
 		@include respond('phone') {
-			max-width: 75px;
+			max-width: 50px;
 		}
 		
     }
@@ -275,7 +275,7 @@
             display: none;
         }
         .logo-compact {
-            max-width: 75px;
+            max-width: 50px;
         }
     }
 }

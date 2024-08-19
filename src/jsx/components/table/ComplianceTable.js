@@ -108,7 +108,7 @@ const ComplianceTable = ({ documents }) => {
 						className="d-none d-lg-table-cell sorting" tabIndex="0" aria-controls="example5"
 						rowSpan="1" colSpan="1" aria-label="Event NAME: activate to sort column ascending"
 					>
-						Document
+						Document/Attachment
 					</th>
 					{/* <th
 						className="sorting" tabIndex="0" aria-controls="example5" rowSpan="1"
@@ -148,7 +148,7 @@ const ComplianceTable = ({ documents }) => {
               </td>*/}
                 <td>
                   <div className="media align-items-center pointer" onClick={()=>setdocu(doc)}>
-                    <img className="img-fluid rounded me-3 d-none d-xl-inline-block" width="70" src={'https://cdn-icons-png.flaticon.com/128/337/337946.png'} alt="Minexx"/>
+                    {/* <img className="img-fluid rounded me-3 d-none d-xl-inline-block" width="70" src={'https://cdn-icons-png.flaticon.com/128/337/337946.png'} alt="Minexx"/> */}
                     <div className="media-body">
                       <h4 className="font-w600 mb-1 wspace-no">{doc.type}</h4>
                       <span>{ doc.date }</span>

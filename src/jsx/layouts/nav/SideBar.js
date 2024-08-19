@@ -1,4 +1,4 @@
-import React, { useContext, useReducer, useState } from "react";
+import React, { useContext, useEffect, useReducer, useState } from "react";
 
 import PerfectScrollbar from "react-perfect-scrollbar";
 import {Collapse} from 'react-bootstrap';
@@ -57,8 +57,7 @@ const SideBar = () => {
   }
 
   const [state, setState] = useReducer(reducer, initialState);	
-	//useEffect(() => {			
-	//}, []);
+
  //For scroll
  
  
@@ -112,19 +111,19 @@ const SideBar = () => {
     >
       <PerfectScrollbar className="deznav-scroll">         
           <ul className="metismenu" id="menu">
-              { menu.map((data, index)=>{
-                let menuClass = data.classsChange;
+              { menu.filter(item=>user.type === "minexx" || user.type === "regulator" ? item : item.to !== "reports").map((data, index)=>{
+                let menuClass = data.classChange;
                   if(menuClass === "menu-title"){
                     return(
                         <li className={menuClass}  key={index} >{data.title}</li>
                     )
                   }else{
                     return(				
-                      <li className={` ${ path === data.to || state.active === data.title ? 'mm-active' : ''}`}
+                      <li className={` ${ path === data.to || window.location.pathname.includes(data.to) || state.active === data.title ? 'mm-active' : ''}`}
                         key={index} 
                       >
                         
-                        {data.content && data.content.length > 0 ?
+                        {data.content ?
                             <Link to={"#"} 
                               className={`has-arrow`}
                               onClick={() => {handleMenuActive(data.title)}}
@@ -139,7 +138,7 @@ const SideBar = () => {
                                 </span>
                             </Link>
                         :
-                          <Link className={data.to === path ? 'mm-active' : ''} to={data.to} >
+                          <Link className={data.to === path || window.location.pathname.includes(data.to) ? 'mm-active' : ''} to={data.to} >
                               {data.iconStyle}
                               {" "}<span className="nav-text">{data.title}
                                   {data.update && data.update.length > 0 ?
@@ -150,16 +149,16 @@ const SideBar = () => {
                               </span>
                           </Link>
                         }
-                        <Collapse in={state.active === data.title ? true :false}>
-                          <ul className={`${menuClass === "mm-collapse" ? "mm-show" : ""}`}>
-                            {data.content && data.content.filter(c=>access === `gold` ? !["/reports/daily", "/reports/mtd", "/reports/deliveries"].includes(c.to) : c!== null).map((data,index) => {									
+                        {data.content ? <Collapse in={state.active === data.title ? true :false}>
+                          <ul className={`${menuClass === "mm-collapse" && data.content ? "mm-show" : ""}`}>
+                            {data.content && data.content.filter(c=>access === `gold` ? !["reports/daily", "reports/mtd", "reports/deliveries"].includes(c.to) : c!== null).map((data,index) => {									
                               return(	
                                   <li key={index}
-                                    className={`${ path === data.to ? "mm-active" : ""}`}                                    
+                                    className={`${ path === data.to || window.location.pathname.includes(data.to) ? "mm-active" : ""}`}                                    
                                   >
-                                    {data.content && data.content.length > 0 ?
+                                    {data.content ?
                                         <>
-                                          <Link to={data.to} className={data.hasMenu ? 'has-arrow' : ''}
+                                          <Link to={data.to} className={data.content ? 'has-arrow' : ''}
                                             onClick={() => { handleSubmenuActive(data.title)}}
                                           >
                                             {data.title}
@@ -169,8 +168,8 @@ const SideBar = () => {
                                                 {data.content && data.content.filter(c=>c.to!== "/reports/daily").map((data,index) => {
                                                   return(	
                                                     <>
-                                                      <li key={index}>
-                                                        <Link className={`${path === data.to ? "mm-active" : ""}`} to={data.to}>{data.title}</Link>
+                                                      <li className={`${path === data.to || window.location.pathname.includes(data.to) ? "mm-active" : ""}`} key={index}>
+                                                        <Link className={`${path === data.to || window.location.pathname.includes(data.to) ? "mm-active" : ""}`} to={data.to}>{data.title}123</Link>
                                                       </li>
                                                     </>
                                                   )
@@ -179,7 +178,7 @@ const SideBar = () => {
                                           </Collapse>
                                         </>
                                       :
-                                      <Link to={data.to}>
+                                      <Link className={`${path === data.to || window.location.pathname.includes(data.to) ? "mm-active" : ""}`} to={data.to}>
                                         {data.title}
                                       </Link>
                                     }
@@ -189,7 +188,7 @@ const SideBar = () => {
                               )
                             })}
                           </ul>
-                        </Collapse>
+                        </Collapse> : null }
                       </li>	
                     )
                 }

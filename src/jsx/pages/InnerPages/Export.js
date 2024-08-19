@@ -2,11 +2,11 @@ import React,{useState, useEffect, useContext} from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import {Accordion, ListGroup, Nav, Tab} from 'react-bootstrap';
 import {baseURL_ } from '../../../config'
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ThemeContext } from '../../../context/ThemeContext';
 import { Logout } from '../../../store/actions/AuthActions';
 import { useDispatch } from 'react-redux';
+import axiosInstance from '../../../services/AxiosInstance';
 
 const Export = () => {
 
@@ -14,9 +14,10 @@ const Export = () => {
     const navigate = useNavigate()
 	const dispatch = useDispatch()
     const { changeTitle } = useContext(ThemeContext)
+    const access = localStorage.getItem(`_dash`) || '3ts'
     const [ export_ , setexport_] = useState()
     const [document, setdocument] = useState(0)
-    const [uploads, setuploads] = useState([
+    const [uploads, setuploads] = useState(access === "3ts" ?[
         null,
         null,
         null,
@@ -36,13 +37,17 @@ const Export = () => {
         null,
         null,
         null
+    ] : [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
     ])
-    const apiHeaders = {
-        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
-        'x-refresh': localStorage.getItem(`_authRfrsh`)
-    }
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
-    const documents = [
+    const documents = access === "3ts" ? [
         `Provisional Invoice`,
         `Freight Forwarder's Cargo Receipt`,
         `Exporter Sheet`,
@@ -62,14 +67,25 @@ const Export = () => {
         `Other Scanned Exporter Documents`,
         `Other Exporter Documents`,
         `Other Transporter Document`,
+    ] : [
+        "Exporter Invoice",
+        "Packing List",
+        "Non-narcotics Note",
+        "Essay Report",
+        "Proof of Payment of Essay and Witholding Tax",
+        "Copy of Customs Declaration",
+        "Export Approval"
     ]
 
+    let eid = null
     const getExport = async()=>{
-        axios.get(`${baseURL_}exports/${id}`, {
-            headers: apiHeaders
-        }).then(response=>{
+        if(eid == null){
+            toast.info("Getting Export details...")
+        }
+        eid = id
+        axiosInstance.get(`exports/${id}`).then(response=>{
             setexport_(response.data.export)
-            setuploads([
+            setuploads(access === "3ts" ? [
                 response.data.export.provisionalInvoice,
                 response.data.export.cargoReceipt,
                 response.data.export.itsciForms,
@@ -89,8 +105,16 @@ const Export = () => {
                 response.data.export.scannedExportDocuments,
                 response.data.export.exporterApplicationDocument,
                 response.data.export.transporterDocument
+            ] : [
+                response.data.export.provisionalInvoice,
+                response.data.export.packingReport,
+                response.data.export.note,
+                response.data.export.scannedExportDocuments,
+                response.data.export.otherDocument,
+                response.data.export.customsDeclaration,
+                response.data.export.exporterApplicationDocument,
             ])
-            changeTitle(`Shipment: ${response.data.export.exportationID}`)
+            changeTitle(`Shipment: ${response.data.export?.exportationID || "--"}`)
         }).catch(err=>{
             try{
 				if(err.response.code === 403){
@@ -106,15 +130,15 @@ const Export = () => {
     
     useEffect(() => {
         getExport()
-    }, [])
+    }, [id])
 
     return (
         <div>
             <div className="row page-titles">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item active"><Link to={"#"}> Dashboard</Link></li>
-                    <li className="breadcrumb-item"><Link to={user.type === `minexx` ? "/companies" : `/exports`}> {user.type === `minexx` ? `Companies` : `Exports`}</Link></li>
-                    <li className="breadcrumb-item"><Link to={""}> Shipment: {export_?.shipmentNumber}</Link></li>
+                    <li className="breadcrumb-item"><Link to={`/exports`}> Exports</Link></li>
+                    <li className="breadcrumb-item"><Link to={""}> Shipment: {export_?.shipmentNumber || 'Export ID MISSING'}</Link></li>
                 </ol>
             </div>
             <div className="row">
@@ -135,11 +159,6 @@ const Export = () => {
                                                     Documents
                                                 </Nav.Link>
                                             </Nav.Item>
-                                            { export_?.link ? <Nav.Item as="li" className="nav-item">
-                                                <Nav.Link className="nav-link px-2 px-lg-3" to="#track" role="tab" eventKey="track">
-                                                    Track Shipment
-                                                </Nav.Link>
-                                            </Nav.Item> : <></> }
                                         </Nav>
                                     </div>
                                 </div>
@@ -160,7 +179,7 @@ const Export = () => {
                                                     <div className="accordion-body">
                                                         <div className='row'>
                                                             <div className='col-lg-6'>
-                                                                <img src={export_?.picture ? `https://lh3.googleusercontent.com/d/${export_?.picture}=w2160?authuser=0` : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQx4xrkRCeiKCPwkflbkXd11W_2fzx34RemdWXmv8TXYWLT2SGtLfkqFCyBb_CBoNcNVBc&usqp=CAU'} alt='' width={'100%'} height={'100%'} style={{ objectFit: 'cover' }} className='rounded'/>
+                                                                <img src={export_?.picture ? `https://lh3.googleusercontent.com/d/${export_?.picture}=w2160?authuser=0` : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQx4xrkRCeiKCPwkflbkXd11W_2fzx34RemdWXmv8TXYWLT2SGtLfkqFCyBb_CBoNcNVBc&usqp=CAU'} alt='' width={'100%'} height={600} style={{ objectFit: 'cover' }} className='rounded'/>
                                                             </div>
                                                             <div className='col-lg-6'>
                                                                 { export_?.exportationID ?
@@ -194,7 +213,7 @@ const Export = () => {
                                                                 { export_?.netWeight ?
                                                                     <>
                                                                         <h4 className="text-primary mb-2 mt-4">Net Weight</h4>
-                                                                        <Link className="text-black">{export_?.netWeight || `--`} kg</Link>
+                                                                        <Link className="text-black">{access === '3ts' ? export_?.netWeight : (export_?.netWeight/1000).toFixed(2) || `--`} kg</Link>
                                                                     </>
                                                                 : <></> }
                                                                 
@@ -216,6 +235,15 @@ const Export = () => {
                                                     </div>
                                                 </Accordion.Collapse>
                                             </Accordion.Item>
+                                            { export_?.link ? <Accordion.Item className="accordion-item" key="transport" eventKey="shipment">
+                                                <Accordion.Header className="accordion-header rounded-lg">
+                                                    Shipment Tracking
+                                                </Accordion.Header>
+                                                <Accordion.Collapse eventKey={`shipment`}>
+                                                    <div className="accordion-body"><a target="_blank" href={`${export_?.link}`} className='text-primary' rel="noreferrer">Click here to Track the Shipment</a></div>
+                                                </Accordion.Collapse>
+                                            </Accordion.Item> : null }
+                                            
                                             <Accordion.Item className="accordion-item" key="transport" eventKey="transport">
                                                 <Accordion.Header className="accordion-header rounded-lg">
                                                     Transport Details

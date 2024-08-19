@@ -26,13 +26,18 @@ function Home() {
 	const { changeBackground, changeTitle } = useContext(ThemeContext);
 	const navigate = useNavigate()
 	const dispatch = useDispatch()
-	const dropdown = ['Production', 'Blending', 'Processing']
+    const access = localStorage.getItem(`_dash`) || '3ts'
+	const dropdown = access === "3ts" ? ['Production', 'Blending', 'Processing'] : ["Production", "Purchase"]
+	const [showexports, setshowexports] = useState(true)
+	const [showassessments, setshowassessments] = useState(true)
+	const [showincidents, setshowincidents] = useState(true)
 	const [incidents, setincidents] = useState([])
 	const [rates, setrates] = useState({
 		"LME-TIN": "",
 		"TIN": "",
 		"TIN3M": ""
 	})
+	const [loading, setloading] = useState(true)
 	const [exportweight, setexportweight] = useState(0)
 	const months = [
 		subMonths(new Date(), 6).toString().substring(4, 7),
@@ -55,16 +60,13 @@ function Home() {
 	const dropdown_ = ['Purchase Tracker', 'Blending', 'Exports']
 	const [filter, setfilter] = useState(0)
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
-	const apiHeaders = {
-        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
-        'x-refresh': localStorage.getItem(`_authRfrsh`)
-    }
+
 
 	const loadCard = async(selection) => {
 		if(user?.type !== 'minexx'){
 			return
 		}
-		axiosInstance.get(`${baseURL_}/admin/${selection}`, { headers: apiHeaders}).then(response=>{
+		axiosInstance.get(`${baseURL_}/admin/${selection}`).then(response=>{
 			setapex({
 				keys: Object.keys(response.data).slice(1).reverse(),
 				values: Object.values(response.data).slice(1).reverse()
@@ -85,12 +87,12 @@ function Home() {
 	const loadOverview = async()=>{
 
 		if(user?.type !== 'minexx'){
-			axiosInstance.get(`${baseURL_}metals-api`, { headers: apiHeaders}).then(response=>{
+			axiosInstance.get(`${baseURL_}metals-api`).then(response=>{
 				setrates(response.data.rates)
 			})
 		}
 
-		axiosInstance.get(`${baseURL_}overview/risks`, { headers: apiHeaders}).then(response=>{
+		axiosInstance.get(`${baseURL_}overview/risks`).then(response=>{
 			setincidents(response.data.risks)
 		}).catch(err=>{
 			try{
@@ -104,7 +106,7 @@ function Home() {
 			}
 		})
 
-		axiosInstance.get(`${baseURL_}overview/incidents`, { headers: apiHeaders}).then(response=>{
+		axiosInstance.get(`${baseURL_}overview/incidents`).then(response=>{
 			setseries1(response.data.incidents)
 			settotal1(response.data.count)
 		}).catch(err=>{
@@ -119,11 +121,13 @@ function Home() {
 			}
 		})
 
-		axiosInstance.get(`${baseURL_}overview/exports`, { headers: apiHeaders}).then(response=>{
+		axiosInstance.get(`${baseURL_}overview/exports`).then(response=>{
 			setseries2(response.data.exports)
 			settotal2(response.data.count)
 			setexportweight((response.data.volume/1000).toFixed(1))
+			setloading(false)
 		}).catch(err=>{
+			setloading(false)
 			try{
 				if(err.response.code === 403){
 					dispatch(Logout(navigate))
@@ -135,7 +139,7 @@ function Home() {
 			}
 		})
 
-		axiosInstance.get(`${baseURL_}overview/assessments`, { headers: apiHeaders}).then(response=>{
+		axiosInstance.get(`${baseURL_}overview/assessments`).then(response=>{
 			setseries3(response.data.assessments)
 			settotal3(response.data.count)
 		}).catch(err=>{ 
@@ -183,11 +187,11 @@ function Home() {
 									</svg>
 								</div>
 							</div>
-							<div className="progress mt-3 mb-4" style={{height:"15px"}}>
+							{ loading ? <div className="progress mt-3 mb-4" style={{height:"15px"}}>
 								<div className="progress-bar-striped progress-bar-animated" style={{width: "100%", height:"15px"}} role="progressbar">
 									<span className="sr-only">100% Complete</span>
 								</div>
-							</div>
+							</div> : null }
 							<p className="fs-12">Cummulative export volume from all mines.</p>
 							<Link to={"/exports"} className="text-white">View detail<i className="las la-long-arrow-alt-right scale5 ms-3"></i></Link>
 						</div>
@@ -233,7 +237,7 @@ function Home() {
 
 								<div className="round weekly" id="dzOldSeries">
 									<div>
-										<input type="checkbox" id="checkbox1" name="radio" value="weekly" />
+										<input type="checkbox" id="checkbox1" name="radio" value={showincidents} onChange={e=>setshowincidents(e.currentTarget.checked)} />
 										<label htmlFor="checkbox1" className="checkmark"></label>
 									</div>
 									<div>
@@ -243,7 +247,7 @@ function Home() {
 								</div>
 								<div className="round " id="dzNewSeries">
 									<div>
-										<input type="checkbox" id="checkbox" name="radio" value="monthly" />
+										<input type="checkbox" id="checkbox" name="radio" value={showincidents} onChange={e=>setshowexports(e.currentTarget.checked)} />
 										<label htmlFor="checkbox" className="checkmark"></label>
 									</div>
 									<div>
@@ -254,8 +258,8 @@ function Home() {
 								
 								<div className="round last" id="dzOtherSeries">
 									<div>
-										<input type="checkbox" id="checkbox" name="radio" value="monthly" />
-										<label htmlFor="checkbox" className="checkmark"></label>
+										<input type="checkbox" id="checkbox2" name="radio" value={showincidents} onChange={e=>setshowassessments(e.currentTarget.checked)} />
+										<label htmlFor="checkbox2" className="checkmark"></label>
 									</div>
 									<div>
 										<span className="fs-14">Assessments</span>
@@ -265,7 +269,7 @@ function Home() {
 							</div>
 						</div>
 						<div style={{ height: 'auto' }} className="card-body custome-tooltip">
-							<HomeSalesRevenueChart series1={series1} series2={series2} series3={series3} days={months}/>
+							<HomeSalesRevenueChart series1={showincidents ? series1 : []} series2={showexports?series2:[]} series3={showassessments?series3:[]} days={months}/>
 						</div>
 					</div>
 				</div>

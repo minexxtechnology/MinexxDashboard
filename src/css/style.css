@@ -8969,10 +8969,10 @@ a {
   z-index: 5; }
   .nav-header .logo-abbr {
     /* margin: 15px; */
-    max-width: 125px; }
+    max-width: 75px; }
     @media only screen and (max-width: 575px) {
       .nav-header .logo-abbr {
-        max-width: 75px; } }
+        max-width: 50px; } }
   .nav-header .logo-compact {
     display: none; }
   @media only screen and (max-width: 1400px) {
@@ -9113,7 +9113,7 @@ a {
   display: none; }
 
 [data-sidebar-style="compact"][data-layout="vertical"] .nav-header .logo-compact {
-  max-width: 75px; }
+  max-width: 50px; }
 
 [data-sidebar-style="compact"][data-layout="horizontal"] .nav-header .brand-logo {
   padding-left: 30px;
@@ -26412,6 +26412,12 @@ label.col-form-label a {
   [data-theme-version="dark"] .round.weekly input:checked ~ .checkmark {
     background-color: #24292d; }
 
+.round.last input:checked ~ .checkmark {
+  background-color: #fff;
+  border: 2px solid var(--bs-danger); }
+  [data-theme-version="dark"] .round.last input:checked ~ .checkmark {
+    background-color: 'red'; }
+
 .checkmark:after {
   content: "";
   position: absolute;
@@ -26423,6 +26429,10 @@ label.col-form-label a {
 .round.weekly input:checked ~ .checkmark:after {
   display: block;
   background-color: var(--secondary); }
+
+.round.last input:checked ~ .checkmark:after {
+  display: block;
+  background-color: var(--bs-danger); }
 
 .round .checkmark:after {
   width: 100%;

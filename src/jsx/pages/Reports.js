@@ -39,10 +39,7 @@ const Reports = () => {
         drums: [],
         bags_proc: [],
         processing: [],
-        exports: access === '3ts' ? [] : {
-            header: [],
-            rows: []
-        }
+        exports: []
     })
     const [exportsPage, setexportsPage] = useState(1)
     const [drumsPage, setdrumsPage] = useState(1)
@@ -127,10 +124,6 @@ const Reports = () => {
 	const sort = 20;
 	const activePag = useRef(0);
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
-    const apiHeaders = {
-        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
-        'x-refresh': localStorage.getItem(`_authRfrsh`)
-    }
 
 	const chageData = (frist, sec) => {
 		for (var i = 0; i < data.length; ++i) {
@@ -200,10 +193,7 @@ const Reports = () => {
                 drums: [],
                 bags_proc: [],
                 processing: [],
-                exports: access === '3ts' ? [] : {
-                    header: [],
-                    rows: []
-                }
+                exports: []
             })
         }
         if(type === `trace` && !company){
@@ -1671,7 +1661,7 @@ const Reports = () => {
                                     </div>
                                     <div className='card-body'>
                                         <div id="soldre-view" className="dataTables_wrapper no-footer">
-                                            { access === '3ts' ? <Table bordered striped hover responsive size='sm'>
+                                            <Table bordered striped hover responsive size='sm'>
                                                 <thead>
                                                     <tr>
                                                         <th className="text-center text-dark">
@@ -1751,8 +1741,8 @@ const Reports = () => {
                                                                 <td>{exp.date}</td>
                                                                 <td>{exp.mineral}</td>
                                                                 <td>{exp.grade}</td>
-                                                                <td>{exp.netWeight}</td>
-                                                                <td>{exp.grossWeight}</td>
+                                                                <td>{access === '3ts' ? exp.netWeight : (exp.netWeight/1000).toFixed(2)}</td>
+                                                                <td>{access === '3ts' ? exp.grossWeight : (exp.grossWeight/1000).toFixed(2)}</td>
                                                                 <td>{exp.exportationID}</td>
                                                                 <td>{exp.rmbRep}</td>
                                                                 <td>{exp.exportRep}</td>
@@ -1770,7 +1760,7 @@ const Reports = () => {
                                                                 <td>{exp.tags}</td>
                                                                 <td>{exp.totalGrossWeight}</td>
                                                                 <td>{exp.totalNetWeight}</td>
-                                                                <td><Link to={`/export/${exp.id}`}>View Attachments</Link></td>
+                                                                <td><Link to={`/exports/${exp.id}`}>View Attachments</Link></td>
                                                             </tr>)
                                                         }
                                                         {
@@ -1780,35 +1770,13 @@ const Reports = () => {
                                                         }
                                                 </tbody>
                                             </Table>
-                                            : 
-                                            <Table bordered striped hover responsive size='sm'>
-                                                <thead>
-                                                    <tr>
-                                                        { trace.exports?.header.map(header=><th className="text-center text-dark">
-                                                            {header}
-                                                        </th> )}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                        {
-                                                            paginate(trace.exports?.rows, exportsPage, sort).map((exp, i)=><tr key={`export${i}`}>
-                                                                { exp.map(column=><td>{column}</td>) }
-                                                            </tr>)
-                                                        }
-                                                        {
-                                                            trace.exports.length === 0 ? <tr>
-                                                                <td colSpan={24}>The selected company does not have any exports to show.</td>
-                                                            </tr> : <tr></tr>
-                                                        }
-                                                </tbody>
-                                            </Table> }
                                             <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
                                                 <div className="dataTables_info">
                                                 Showing {(exportsPage-1) * sort + 1} to{" "}
-                                                {(access === '3ts' ? trace.exports.length : trace.exports.rows.length) > exportsPage * sort
+                                                {(trace.exports.length > exportsPage * sort
                                                     ? exportsPage*sort
-                                                    : (access === '3ts' ? trace.exports.length : trace.exports.rows.length)}{" "}
-                                                of {(access === '3ts' ? trace.exports.length : trace.exports.rows.length)} entries
+                                                    : trace.exports.length)}{" "}
+                                                of {trace.exports.length} entries
                                                 </div>
                                                 <div
                                                     className="dataTables_paginate paging_simple_numbers"

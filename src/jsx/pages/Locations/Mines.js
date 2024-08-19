@@ -1,6 +1,6 @@
 import React,{useState, useEffect, useContext} from 'react'
 import {Link, useNavigate} from 'react-router-dom'
-import {Accordion} from 'react-bootstrap'
+import {Accordion, Spinner} from 'react-bootstrap'
 import { ThemeContext } from '../../../context/ThemeContext'
 import PerfectScrollbar from "react-perfect-scrollbar"
 import { baseURL_ } from '../../../config'
@@ -14,6 +14,7 @@ const Mines = () => {
 	const dispatch = useDispatch()
 	const { changeTitle } = useContext(ThemeContext);
     const [suppliers, setsuppliers] = useState([])
+    const [loading, setloading] = useState(true)
     const [mines, setmines] = useState([])
     const [init, setinit] = useState()
     const [filtered, setfiltered] = useState([])
@@ -30,7 +31,9 @@ const Mines = () => {
             setsuppliers(response.data.companies)
             setfiltered(response.data.companies)
             setmines(response_.data.mines)
+            setloading(false)
         }catch(err){
+            setloading(false)
             try{
 				if(err.response.code === 403){
 					dispatch(Logout(navigate))
@@ -73,6 +76,7 @@ const Mines = () => {
                             </div>
                         </div>
                         <div className='card-body'>
+                            { loading ? <center><Spinner size="md" style={{ margin: 25 }} role="status" variant="primary"><span className="visually-hidden">Loading...</span></Spinner></center> :
                             <PerfectScrollbar className="card-body dz-scroll" style={{ overflow: 'hidden' }}>
                                 <Accordion className="accordion accordion-rounded-stylish accordion-bordered mt-2" defaultActiveKey={init}>
                                     { filtered.map((supplier, index) =>{
@@ -84,13 +88,14 @@ const Mines = () => {
                                             <Accordion.Collapse id={supplier?.id} eventKey={supplier?.id}>
                                                 <div className="accordion-body">
                                                     { mines.filter(single=>single.company === supplier.id).length === 0 ? <div className='pa-5 text-center'>There are no mine sites associted with {supplier.name}</div>
-                                                    : mines.filter(single=>single.company === supplier.id).map(mine=><p className='mt-2 mb-2' key={mine.id}><Link className='text-warning' to={`/mine/${mine.id}`}>{mine.name}</Link><br/></p>)}
+                                                    : mines.filter(single=>single.company === supplier.id).map(mine=><p className='mt-2 mb-2' key={mine.id}><Link className='text-warning' to={`/mines/${mine.id}`}>{mine.name}</Link><br/></p>)}
                                                 </div>
                                             </Accordion.Collapse>
                                         </Accordion.Item>) }
                                     )}
                                 </Accordion>                            
                             </PerfectScrollbar>
+                            }
                         </div>
                     </div>
                 </div>

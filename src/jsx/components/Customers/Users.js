@@ -1,6 +1,6 @@
 import React,{useState, useEffect, useRef} from 'react';
 import {Link, useParams} from 'react-router-dom';
-import {Dropdown, Tab, Nav, Modal, Button} from 'react-bootstrap';
+import {Dropdown, Tab, Nav, Modal, Button, Spinner} from 'react-bootstrap';
 import axiosInstance from '../../../services/AxiosInstance';
 import { toast } from 'react-toastify';
 
@@ -8,25 +8,29 @@ const Users = () => {
     const [data, setData] = useState(
 		document.querySelectorAll("#ticket_wrapper tbody tr")
 	);
-	const sort = 10;
+	const [sort, setsort] = useState(10)
     const { platform } = useParams()
 	const activePag = useRef(0);
     const [edit, setedit] = useState(0)
     const [userstatus, setuserstatus] = useState()
+    const dash = localStorage.getItem(`_dash`) || '3ts'
     const [user, setuser] = useState(JSON.parse(localStorage.getItem(`_authUsr`)))
     const [users, setusers] = useState([])
     const [remove, setremove] = useState()
     const [filtered, setfiltered] = useState([])
-    const [companies, setcompanies] = useState([])
+    const [companies, setcompanies] = useState({
+        threets: [],
+        gold: []
+    })
     const [add, setadd] = useState()
-    const [loading, setloading] = useState(false)
+    const [loading, setloading] = useState(true)
     const [type, settype] = useState('buyer')
-    const [access, setaccess] = useState('3ts')
+    const [access, setaccess] = useState(dash === "3ts" ? '3ts' : 'gold')
     const [name, setname] = useState('')
     const [surname, setsurname] = useState('')
     const [email, setemail] = useState('')
     const [company, setcompany] = useState('ce62eb6o')
-    const [mineral, setmineral] = useState('Tin')
+    const [mineral, setmineral] = useState(dash === "3ts" ? 'Tin' : 'Gold')
 
 	// Active data
 	const chageData = (frist, sec) => {
@@ -38,14 +42,18 @@ const Users = () => {
 			}
 		}
 	};
-
+    
     const getUsers = ()=>{
         setusers([])
         setfiltered([])
+        setloading(true)
+        onClick(0)
         axiosInstance.get(`/users/${platform}`).then(response=>{
             setusers(response.data.users)
             setfiltered(response.data.users)
+            setloading(false)
         }).catch(err=>{
+            setloading(false)
             toast.error(err.message, {
                 style: {
                     fontFamily: 'Poppins',
@@ -56,7 +64,7 @@ const Users = () => {
     }
 
     const getCompanies = ()=>{
-        axiosInstance.get(`/companies`).then(response=>{
+        axiosInstance.get(`/companies/all`).then(response=>{
             setcompanies(response.data.companies)
         }).catch(err=>{
             toast.error(err.message, {
@@ -80,9 +88,17 @@ const Users = () => {
    // Active pagginarion
    activePag.current === 0 && chageData(0, sort);
    // paggination
-   let paggination = Array(Math.ceil(data.length / sort))
-      .fill()
-      .map((_, i) => i + 1);
+//    let paggination = Array(Math.ceil(data.length / sort))
+//       .fill()
+//       .map((_, i) => i + 1);
+
+    const paggination = arr => {
+        const pages = []
+        for(let x= 1; x <= Math.ceil(arr.length / sort); x++){
+            pages.push(x)
+        }
+        return pages
+    }
 
    // Active paggination & chage data
 	const onClick = (i) => {
@@ -219,6 +235,8 @@ const Users = () => {
             })
         })
     }
+
+    const paginate = arr => arr.slice(activePag.current * sort, activePag.current * sort + sort)
    
 	const chackbox = document.querySelectorAll(".sorting_1 input");
 	const motherChackBox = document.querySelector(".sorting_asc input");
@@ -321,7 +339,9 @@ const Users = () => {
                                     <strong>Default Company</strong>
                                 </label>
                                 <select onChange={(e) => setcompany(e.target.value)}  className='form-control'>
-                                    {companies.map(company=><option value={company.id}>{company.name}</option>)}
+                                    <optgroup label={access === "3ts" ? "3Ts Companies" : access === "gold" ? "Gold Companies" : "All Companies"}>{access === "3ts" ? "3Ts Companies" : access === "gold" ? "Gold Companies" : "All Companies"}</optgroup>
+                                    { access === "3ts" ? companies.threets.map(company=><option value={company.id}>{company.name}</option>) : access === "gold" ? companies.gold.map(company=><option value={company.id}>{company.name}</option>) : companies.threets.map(company=><option value={company.id}>{company.name} [3Ts]</option>) }
+                                    { access === "both" ? companies.gold.map(company=><option value={company.id}>{company.name} [Gold]</option>) : null }
                                 </select>
                             </div>
                             <div className="form-group">
@@ -329,9 +349,11 @@ const Users = () => {
                                     <strong>Default Mineral</strong>
                                 </label>
                                 <select onChange={(e) => setmineral(e.target.value)} className='form-control'>
+                                { access === "3ts" ? <optgroup>
                                     <option>Tin</option>
                                     <option>Tantalum</option>
                                     <option>Wolframite</option>
+                                </optgroup> : <option>Gold</option> }
                                 </select>
                             </div>
                             </>
@@ -466,12 +488,13 @@ const Users = () => {
                                         <div className='d-flex align-items-center'>
                                             <label className="me-2">Show</label>
                                             <Dropdown className="search-drop">
-                                                <Dropdown.Toggle className="">10</Dropdown.Toggle>
+                                                <Dropdown.Toggle className="">{sort}</Dropdown.Toggle>
                                                 <Dropdown.Menu>
-                                                    <Dropdown.Item>25</Dropdown.Item>
-                                                    <Dropdown.Item>50</Dropdown.Item>
-                                                    <Dropdown.Item>75</Dropdown.Item>
-                                                    <Dropdown.Item>100</Dropdown.Item>
+                                                    <Dropdown.Item onClick={()=>{ onClick(0); setsort(10) }}>10</Dropdown.Item>
+                                                    <Dropdown.Item onClick={()=>{ onClick(0);setsort(25) }}>25</Dropdown.Item>
+                                                    <Dropdown.Item onClick={()=>{ onClick(0);setsort(50) }}>50</Dropdown.Item>
+                                                    <Dropdown.Item onClick={()=>{ onClick(0);setsort(75) }}>75</Dropdown.Item>
+                                                    <Dropdown.Item onClick={()=>{ onClick(0);setsort(100) }}>100</Dropdown.Item>
                                                 </Dropdown.Menu>
                                             </Dropdown>
                                             <label className="ms-2">entries</label>
@@ -493,8 +516,8 @@ const Users = () => {
                                                 {platform === 'dashboard' ? <th>Actions</th> : <></> }                                   
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            {filtered.map((item, index)=>(
+                                        { loading ? <tr><td colSpan={7}><center><Spinner size="lg" style={{ margin: 15 }} role="status" variant="primary"><span className="visually-hidden">Loading...</span></Spinner></center></td></tr> : <tbody>
+                                            {paginate(filtered).map((item, index)=>(
                                                 <tr key={item?.uid}>                                                    
                                                     <td>						
                                                         <div>
@@ -529,15 +552,15 @@ const Users = () => {
                                             ))}
                                             
                                         </tbody>
-                                        
+                                        }
                                     </table>
                                     <div className="d-sm-flex text-center justify-content-between align-items-center mt-3 mb-3">
                                         <div className="dataTables_info">
                                             Showing {activePag.current * sort + 1} to{" "}
-                                            {data.length > (activePag.current + 1) * sort
+                                            {filtered.length > (activePag.current + 1) * sort
                                                 ? (activePag.current + 1) * sort
-                                                : data.length}{" "}
-                                            of {data.length} entries
+                                                : filtered.length}{" "}
+                                            of {filtered.length} entries
                                         </div>
                                         <div
                                             className="dataTables_paginate paging_simple_numbers mb-0"
@@ -545,37 +568,37 @@ const Users = () => {
                                         >
                                             <Link
                                                 className="paginate_button previous disabled"
-                                                to="/users"
-                                                onClick={() =>
-                                                    activePag.current > 0 &&
-                                                    onClick(activePag.current - 1)
-                                                }
+                                                onClick={() =>{
+                                                    if(activePag.current > 0){
+                                                        onClick(activePag.current - 1)
+                                                    }
+                                                }}
                                             >
                                                 {/* <i className="fa-solid fa-angle-left"></i> */}
                                                 Previous
                                             </Link>
                                             <span>
-                                                {paggination.map((number, i) => (
-                                                    <Link
+                                                { paggination(users).map((page, i)=>{
+                                                    return <Link
                                                         key={i}
-                                                        to="/users"
                                                         className={`paginate_button  ${
                                                             activePag.current === i ? "current" : ""
                                                         } `}
                                                         onClick={() => onClick(i)}
                                                     >
-                                                        {number}
+                                                        {page}
                                                     </Link>
-                                                ))}
+                                                }) }
                                             </span>
 
                                             <Link
                                                 className="paginate_button next"
-                                                to="/users"
-                                                onClick={() =>
-                                                    activePag.current + 1 < paggination.length &&
-                                                    onClick(activePag.current + 1)
-                                                }
+                                                to={`/users/${platform}`}
+                                                onClick={() => {
+                                                    if(activePag.current + 1 < paggination(users).length){
+                                                        onClick(activePag.current + 1)
+                                                    }
+                                                }}
                                             >
                                                 {/* <i className="fa-solid fa-angle-right"></i> */}
                                                 Next

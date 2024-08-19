@@ -9708,7 +9708,7 @@ a {
 [data-sidebar-style="compact"][data-layout="vertical"] .nav-header .brand-title {
   display: none; }
 [data-sidebar-style="compact"][data-layout="vertical"] .nav-header .logo-compact {
-  max-width: 75px; }
+  max-width: 50px; }
 
 [data-sidebar-style="compact"][data-layout="horizontal"] .nav-header .brand-logo {
   padding-left: 30px;

@@ -6,7 +6,8 @@ import { toast } from "react-toastify";
 import { ThemeContext } from "../../../context/ThemeContext";
 import { Logout } from '../../../store/actions/AuthActions';
 import { useDispatch } from "react-redux";
-import { Modal, Table } from "react-bootstrap";
+import { Modal, Table, Spinner } from "react-bootstrap";
+import { Loader, Image, Segment } from 'semantic-ui-react'
 
 const Exports = () => {	
     const navigate = useNavigate()
@@ -16,24 +17,18 @@ const Exports = () => {
 	const [filtered, setfiltered] = useState([])
 	const [tablehead, settablehead] = useState([])
 	const [attachment, setattachment] = useState()
+	const [loading, setloading] = useState(true)
     const access = localStorage.getItem(`_dash`) || '3ts'
-	const apiHeaders = {
-        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
-        'x-refresh': localStorage.getItem(`_authRfrsh`)
-    }
 
 	const fetchExports = async()=>{
 		try{
-			let response = await axiosInstance.get(`${baseURL_}exports`)
-			if(access === "3ts"){
-				setexports(response.data.exports.reverse())
-				setfiltered(response.data.exports.reverse())
-			}else{
-				settablehead(response.data.exports.header || [])
-				setexports(response.data.exports.rows.reverse())
-				setfiltered(response.data.exports.rows.reverse())
-			}
+			setloading(true)
+			let response = await axiosInstance.get(`exports`)
+			setloading(false)
+			setexports(response.data.exports.reverse())
+			setfiltered(response.data.exports.reverse())
 		}catch(err){
+			setloading(false)
 			try{
 				if(err.response.code === 403){
 					dispatch(Logout(navigate))
@@ -67,7 +62,12 @@ const Exports = () => {
 
 	const filter = (e)=>{
 		const input = e.currentTarget.value
-		setfiltered(exports.filter(exp=>exp.exportationID.toLowerCase().includes(input.toLowerCase()) || exp.company.name.toLowerCase().includes(input.toLowerCase())))
+		if(access === '3ts'){
+			setfiltered(exports.filter(exp=>exp.exportationID.toLowerCase().includes(input.toLowerCase()) || exp.company.name.toLowerCase().includes(input.toLowerCase())))
+		}else{
+			setfiltered(exports.filter(exp=>exp[tablehead.indexOf('Transaction Unique ID')]?.toLowerCase()?.includes(input.toLowerCase()) || exp[tablehead.indexOf('Name of processor/refiner/exporter')]?.toLowerCase()?.includes(input.toLowerCase()) || exp[tablehead.indexOf('Gold Export License Number')]?.toLowerCase()?.includes(input.toLowerCase())
+			|| exp[tablehead.indexOf('Type of minerals exported')]?.toLowerCase()?.includes(input.toLowerCase())))
+		}
 	}
 
 	useEffect(() => {
@@ -77,7 +77,8 @@ const Exports = () => {
 	
 
 	return(
-		<>
+		<Segment>
+			<Loader active={loading} />
 			{ attachment ? <Modal size='lg' show={attachment} onBackDropClick={()=>setattachment(null)}>
 				<Modal.Header>
 					<h3 className='modal-title'>{attachment.field}</h3>
@@ -105,7 +106,7 @@ const Exports = () => {
 						<div className="card-body">
 						<div className="w-100 table-responsive">
 							<div id="patientTable_basic_table" className="dataTables_wrapper">
-							{ access === '3ts' ? <table
+							<table
 								id="example5"
 								className="display dataTable w-100 no-footer"
 								role="grid"
@@ -114,12 +115,12 @@ const Exports = () => {
 								<thead>
 								<tr role="row">
 									<th
-									className="sorting_asc"
-									tabIndex={0}
-									aria-controls="example5"
-									rowSpan={1}
-									colSpan={1}
-									aria-sort="ascending"
+										className="sorting_asc"
+										tabIndex={0}
+										aria-controls="example5"
+										rowSpan={1}
+										colSpan={1}
+										aria-sort="ascending"
 									>
 									<div className="custom-control custom-checkbox">
 										<input
@@ -210,7 +211,7 @@ const Exports = () => {
 									</th>
 								</tr>
 								</thead>
-								<tbody>
+								{ loading ? <tr><td colSpan={7}><center><Spinner size="md" style={{ margin: 15 }} role="status" variant="primary"><span className="visually-hidden">Loading...</span></Spinner></center></td></tr> : <tbody>
 								{ 
 									filtered.length === 0 ?
 										<tr role="row" className="odd">
@@ -233,8 +234,7 @@ const Exports = () => {
 											</div>
 										</td>
 										<td><Link to={`/company/${_export?.company?.id}`}>{_export?.company?.name}</Link></td>
-										{/*<td><Link className="text-primary" to={`/export/${_export?.id}`}>{_export.shipmentNumber}</Link></td>*/}
-										<td><Link className="text-primary" to={`/export/${_export?.id}`}>{_export.exportationID}</Link></td>
+										<td><Link className={_export.exportationID ? "text-primary" : "text-danger"} to={`/exports/${_export?.id}`}>{_export.exportationID ? _export.exportationID : "Exportation ID Missing"}</Link></td>
 										<td>{new Date(_export.date).toString().substring(0, 16)}</td>
 										<td>
 											<span className="badge light badge-warning">
@@ -243,34 +243,13 @@ const Exports = () => {
 											</span>
 										</td>
 										<td>{_export.grade}</td>
-										<td>{_export.netWeight}</td>
+										<td>{access === '3ts' ? _export.netWeight : (_export.netWeight/1000).toFixed(2)}</td>
 										<td>{ _export.link ? <a target="_blank" href={`${_export.link}`} className="text-primary" rel="noreferrer">Track Shipment</a> : <span className="text-warning">Tracking not available</span>}</td>
 									</tr>)
 								}) }
 								</tbody>
-							</table> :
-							<Table bordered striped hover responsive size='sm'>
-								<thead>
-									<tr>
-										{ tablehead.map(h=><th className="text-center text-dark">
-											{h}
-										</th> )}
-									</tr>
-								</thead>
-								<tbody>
-										{
-											filtered.map((exp, i)=><tr key={`exp${i}`}>
-												{ exp.map((column, x)=><td>{column.includes('Gold_Images') ? <Link onClick={()=>showAttachment(column, tablehead[x])} className="text-primary">View</Link> : column}</td>) }
-											</tr>)
-										}
-										{
-											exports.length === 0 ? <tr>
-												<td colSpan={24}>There are no exports to display.</td>
-											</tr> : <tr></tr>
-										}
-								</tbody>
-							</Table>
-						}
+								}
+							</table>
 
 							{/* <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
 								<div className="dataTables_info">
@@ -325,7 +304,7 @@ const Exports = () => {
 					</div>
 				</div>
 			</div>
-		</>
+		</Segment>
 	)
 }	
 export default Exports; 	

@@ -3,11 +3,11 @@ import {Link, useNavigate, useParams} from 'react-router-dom';
 import {Modal, Nav, Tab} from 'react-bootstrap';
 import { baseURL_ } from '../../config'
 import ComplianceTable from '../components/table/ComplianceTable';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { ThemeContext } from '../../context/ThemeContext';
 import { Logout } from '../../store/actions/AuthActions';
 import { useDispatch } from 'react-redux';
+import axiosInstance from '../../services/AxiosInstance';
 
 
 const Company = () => {
@@ -21,15 +21,9 @@ const Company = () => {
     const [shareholders, setshareholders] = useState([])
     const [beneficialOwners, setbeneficialOwners] = useState([])
     const [sharehodlerID, setsharehodlerID] = useState()
-    const apiHeaders = {
-        'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
-        'x-refresh': localStorage.getItem(`_authRfrsh`)
-    }
 
     const getCompany = async()=>{
-        axios.get(`${baseURL_}companies/${id}`, {
-            headers: apiHeaders
-        }).then(response=>{
+        axiosInstance.get(`companies/${id}`).then(response=>{
             setcompany(response.data.company)
             changeTitle(response.data.company.name)
         }).catch(err=>{
@@ -43,9 +37,7 @@ const Company = () => {
 				toast.error(err.message)
 			}
         })
-        axios.get(`${baseURL_}documents/${id}`, {
-            headers: apiHeaders
-        }).then(response=>{
+        axiosInstance.get(`${baseURL_}documents/${id}`).then(response=>{
             setdocuments(response.data.documents)
         }).catch(err=>{
             try{
@@ -59,9 +51,7 @@ const Company = () => {
 			}
         })
 
-        axios.get(`${baseURL_}shareholders/${id}`, {
-            headers: apiHeaders
-        }).then(response=>{
+        axiosInstance.get(`${baseURL_}shareholders/${id}`).then(response=>{
             setshareholders(response.data.shareholders)
         }).catch(err=>{
             try{
@@ -75,9 +65,7 @@ const Company = () => {
 			}
         })
 
-        axios.get(`${baseURL_}owners/${id}`, {
-            headers: apiHeaders
-        }).then(response=>{
+        axiosInstance.get(`${baseURL_}owners/${id}`).then(response=>{
             setbeneficialOwners(response.data.beneficial_owners)
         }).catch(err=>{
             try{

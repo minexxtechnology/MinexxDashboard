@@ -111,7 +111,7 @@ const SideBar = () => {
     >
       <PerfectScrollbar className="deznav-scroll">         
           <ul className="metismenu" id="menu">
-              { menu.filter(item=>user.type === "minexx" || user.type === "regulator" ? item : item.to !== "reports").map((data, index)=>{
+              { menu.filter(item=>user.type === "minexx" || user.type === "regulator" || user.type === "investor" ? item : item.to !== "reports").map((data, index)=>{
                 let menuClass = data.classChange;
                   if(menuClass === "menu-title"){
                     return(

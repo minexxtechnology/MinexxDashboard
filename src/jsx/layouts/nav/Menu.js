@@ -167,6 +167,10 @@ export const IMenu = [
         iconStyle : <i className="flaticon-business-report" />,
         content: [
             {
+                title: 'Trace Report',
+                to: 'reports/trace',
+            },
+            {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
             },

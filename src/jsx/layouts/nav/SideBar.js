@@ -37,14 +37,14 @@ const SideBar = () => {
 	const access = localStorage.getItem(`_dash`) || '3ts'
 
   if(user){
-    if(user.type === 'minexx'){
-      menu = RootMenu
-    }else  if(user.type === 'regulator' || user.type === 'government' || user.type === 'supervisor'){
-      menu = RegulatorMenu
-    }else if(user.type === 'buyer'){
+    if(user.type === 'buyer'){
       menu = BMenu
     }else if(user.type === 'investor'){
       menu = IMenu
+    }else if(user.type === 'minexx'){
+      menu = RootMenu
+    }else{
+      menu = RegulatorMenu
     }
 
     // if(dash){
@@ -111,7 +111,7 @@ const SideBar = () => {
     >
       <PerfectScrollbar className="deznav-scroll">         
           <ul className="metismenu" id="menu">
-              { menu.filter(item=>user.type === "minexx" || user.type === "regulator" || user.type === "investor" ? item : item.to !== "reports").map((data, index)=>{
+              { menu.filter(item=>user.type !== "buyer" ? item : item.to !== "reports").map((data, index)=>{
                 let menuClass = data.classChange;
                   if(menuClass === "menu-title"){
                     return(

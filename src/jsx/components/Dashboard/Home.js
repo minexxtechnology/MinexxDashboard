@@ -124,7 +124,7 @@ function Home() {
 		axiosInstance.get(`${baseURL_}overview/exports`).then(response=>{
 			setseries2(response.data.exports)
 			settotal2(response.data.count)
-			setexportweight((response.data.volume/1000).toFixed(1))
+			setexportweight((response.data.volume/1000).toFixed(5))
 			setloading(false)
 		}).catch(err=>{
 			setloading(false)

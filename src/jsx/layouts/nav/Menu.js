@@ -103,7 +103,20 @@ export const RegulatorMenu = [
                 title: 'Trace Report',
                 to: 'reports/trace',
             },
+            {
+                title: 'Total Stock Delivery',
+                to: 'reports/daily',
+            },
+            {
+                title: 'In-Stock Country Balance',
+                to: 'reports/mtd',
+            },
+            {
+                title: 'Total Purchase',
+                to: 'reports/deliveries',
+            },
         ]
+
     }
 ]
 

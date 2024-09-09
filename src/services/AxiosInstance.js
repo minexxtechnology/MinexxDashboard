@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: `https://minexx-p7n5ing2cq-uc.a.run.app/`,
+    baseURL: `https://minexx-api-main.vercel.app/`,
     headers: {
         'Access-Control-Allow-Origin': '*'
     }

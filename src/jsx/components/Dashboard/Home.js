@@ -79,7 +79,8 @@ function Home() {
 					toast.warn(err.response.message)
 				}
 			}catch(e){
-				toast.error(err.message)
+				//toast.error(err.message)
+				console.log(err.message);
 			}
 		})
 	}

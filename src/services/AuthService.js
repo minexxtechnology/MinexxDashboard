@@ -25,7 +25,7 @@ export function login(email, password) {
         returnSecureToken: true,
     };
     return axios.post(
-        `https://minexx-p7n5ing2cq-uc.a.run.app/login`,
+        `https://minexx-api-main.vercel.app/login`,
         postData,
     );
 }

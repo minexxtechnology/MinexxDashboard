@@ -9,6 +9,8 @@ import { Logout } from '../../store/actions/AuthActions';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import axiosInstance from '../../services/AxiosInstance';
+import ReactApexChart from 'react-apexcharts';
+
 
 const ticketData = [
     {number:"01", emplid:"Emp-0852", count:'3'},
@@ -25,6 +27,7 @@ const Reports = () => {
     const {type} = useParams()
     const navigate = useNavigate()
 	const dispatch = useDispatch()
+    // const [dailyData, setDailyData] = useState({ cassiterite: [], coltan: [], wolframite: [] });
     const access = localStorage.getItem(`_dash`) || '3ts'
     const [attachment, setattachment] = useState()
     const [companies, setcompanies] = useState([])
@@ -76,6 +79,104 @@ const Reports = () => {
             mtdTarget: 4,
             mtdActual: 0,
           }
+    })
+    const[monthly,setMonthly]=useState({
+        cassiterite:
+        {
+            january:0,
+            february:0,
+            march:0,
+            april:0,
+            may:0,
+            june:0,
+            july:0,
+            august:0,
+            september:0,
+            october:0,
+            november:0,
+            december:0,
+        },
+        coltan: {
+            january:0,
+            february:0,
+            march:0,
+            april:0,
+            may:0,
+            june:0,
+            july:0,
+            august:0,
+            september:0,
+            october:0,
+            november:0,
+            december:0,
+
+        },
+        wolframite: {
+            january:0,
+            february:0,
+            march:0,
+            april:0,
+            may:0,
+            june:0,
+            july:0,
+            august:0,
+            september:0,
+            october:0,
+            november:0,
+            december:0,
+
+        }
+
+
+    });
+    const[monthlypurchase,setMonthlyPurchase]=useState({
+        cassiterite:
+        {
+            january:0,
+            february:0,
+            march:0,
+            april:0,
+            may:0,
+            june:0,
+            july:0,
+            august:0,
+            september:0,
+            october:0,
+            november:0,
+            december:0,
+        },
+        coltan: {
+            january:0,
+            february:0,
+            march:0,
+            april:0,
+            may:0,
+            june:0,
+            july:0,
+            august:0,
+            september:0,
+            october:0,
+            november:0,
+            december:0,
+
+        },
+        wolframite: {
+            january:0,
+            february:0,
+            march:0,
+            april:0,
+            may:0,
+            june:0,
+            july:0,
+            august:0,
+            september:0,
+            october:0,
+            november:0,
+            december:0,
+
+        }
+
+
     })
     const [balance, setbalance] = useState({
         cassiterite: {
@@ -237,10 +338,72 @@ const Reports = () => {
         setData(document.querySelectorAll("#report_wrapper tbody tr"));
         changeTitle(`Reports | Minexx`)
         loadReport()
+        loadMonthlyData();
+        loadMonthlyPurchase();
         if(type === 'trace'){
             loadCompanies()
         }
     }, [type, company]);
+    const loadMonthlyData = () => {
+        axiosInstance.get(`/report/Monthly`)
+            .then(response => {
+                const { cassiterite, coltan, wolframite } = response.data;
+
+                setMonthly({  
+                    cassiterite: cassiterite ,
+                    coltan: coltan ,
+                    wolframite: wolframite 
+                });
+    
+                console.log('Monthly data:', {  
+                    cassiterite: cassiterite ,
+                    coltan: coltan ,
+                    wolframite: wolframite
+                });
+    
+            })
+            .catch(err => {
+                try {
+                    if (err.response.code === 403) {
+                        dispatch(Logout(navigate));
+                    } else {
+                        toast.warn(err.response.message);
+                    }
+                } catch (e) {
+                    toast.error(err.message);
+                }
+            });
+    };
+    const loadMonthlyPurchase = () => {
+        axiosInstance.get(`/report/purchaseMonthly`)
+            .then(response => {
+                const { cassiterite, coltan, wolframite } = response.data.purchases;
+
+                setMonthlyPurchase({  
+                    cassiterite: cassiterite ,
+                    coltan: coltan ,
+                    wolframite: wolframite 
+                });
+    
+                console.log('MonthlyPurchase data:', {  
+                    cassiterite: cassiterite ,
+                    coltan: coltan ,
+                    wolframite: wolframite
+                });
+    
+            })
+            .catch(err => {
+                try {
+                    if (err.response.code === 403) {
+                        dispatch(Logout(navigate));
+                    } else {
+                        toast.warn(err.response.message);
+                    }
+                } catch (e) {
+                    toast.error(err.message);
+                }
+            });
+    };
 
   
    // Active pagginarion
@@ -256,6 +419,388 @@ const Reports = () => {
 		chageData(activePag.current * sort, (activePag.current + 1) * sort);
 		//settest(i);
 	};
+   //Chart For the Daily 
+   const chartSeries = [
+    {
+        name: 'Cassiterite',
+        data: [
+            monthly.cassiterite[0]/1000,
+            monthly.cassiterite[1]/1000,
+            monthly.cassiterite[2]/1000,
+            monthly.cassiterite[3]/1000,
+            monthly.cassiterite[4]/1000,
+            monthly.cassiterite[5]/1000,
+            monthly.cassiterite[6]/1000,
+            monthly.cassiterite[7]/1000,
+            monthly.cassiterite[8]/1000,
+            monthly.cassiterite[9]/1000,
+            monthly.cassiterite[10]/1000,
+            monthly.cassiterite[11]/1000,
+        ],
+    },
+    {
+        name: 'Coltan',
+        data: [
+            monthly.coltan[0]/1000,
+            monthly.coltan[1]/1000,
+            monthly.coltan[2]/1000,
+            monthly.coltan[3]/1000,
+            monthly.coltan[4]/1000,
+            monthly.coltan[5]/1000,
+            monthly.coltan[6]/1000,
+            monthly.coltan[7]/1000,
+            monthly.coltan[8]/1000,
+            monthly.coltan[9]/1000,
+            monthly.coltan[10]/1000,
+            monthly.coltan[11]/1000,
+        ],
+    },
+    {
+        name: 'Wolframite',
+        data: [
+            monthly.wolframite[0]/1000,
+            monthly.wolframite[1]/1000,
+            monthly.wolframite[2]/1000,
+            monthly.wolframite[3]/1000,
+            monthly.wolframite[4]/1000,
+            monthly.wolframite[5]/1000,
+            monthly.wolframite[6]/1000,
+            monthly.wolframite[7]/1000,
+            monthly.wolframite[8]/1000,
+            monthly.wolframite[9]/1000,
+            monthly.wolframite[10]/1000,
+            monthly.wolframite[11]/1000,
+        ],
+    },
+];
+
+const chartOptions = {
+    chart: {
+        type: 'bar',
+        height: 500,
+        stacked: false,
+    },
+    plotOptions: {
+        bar: {
+            horizontal: false,
+            columnWidth: '55%',
+            endingShape: 'rounded',
+        },
+    },
+    dataLabels: {
+        enabled: false,
+    },
+    stroke: {
+        show: true,
+        width: 1,
+        colors: ['#fff'],
+    },
+    xaxis: {
+        categories: [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ],
+    },
+    yaxis: {
+        title: {
+            text: 'MTD Actuals (TONS)',
+        },
+        labels: {
+            formatter: function (value) {
+                return value.toFixed(2); // Adjust the number of decimal places as needed
+            },
+        },
+    },
+    tooltip: {
+        y: {
+            formatter: function (val) {
+                return val + ' TONS';
+            },
+        },
+    },
+    fill: {
+        opacity: 1,
+    },
+    legend: {
+        position: 'top',
+        horizontalAlign: 'left',
+        offsetX: 40,
+        labels: {
+            colors: ['#fff','#fff','#fff']
+        }
+    },
+    responsive: [
+        {
+            breakpoint: 1000,
+            options: {
+                plotOptions: {
+                    bar: {
+                        columnWidth: '70%',
+                    },
+                },
+                legend: {
+                    position: 'bottom',
+                    horizontalAlign: 'center',
+                    offsetX: 0,
+                },
+            },
+        },
+    ],
+};
+ //end the Daily Graph
+
+    //chart For Balance in Country
+    const chartSeries_Balance = [
+        {
+            name: 'With RMR (TONS)',
+            data: [
+                (balance.cassiterite.rmr/1000).toFixed(2),
+                (balance.coltan.rmr/1000).toFixed(2),
+                (balance.wolframite.rmr/1000).toFixed(2),
+            ],
+            
+            
+        },
+        {
+            name: 'With Minexx (TONS)',
+            data: [
+                (balance.cassiterite.minexx/1000).toFixed(2),
+                (balance.coltan.minexx/1000).toFixed(2),
+                (balance.wolframite.minexx/1000).toFixed(2),
+            ],
+        },
+        {
+            name: 'Pending Shipment (TONS)',
+            data: [
+                (balance.cassiterite.pending/1000).toFixed(2),
+                (balance.coltan.pending/1000).toFixed(2),
+                (balance.wolframite.pending/1000).toFixed(2),
+            ],
+        },
+        {
+            name: 'Shipped (TONS)',
+            data: [
+                (balance.cassiterite.shipped/1000).toFixed(2),
+                (balance.coltan.shipped/1000).toFixed(2),
+                (balance.wolframite.shipped/1000).toFixed(2),
+            ],
+        },
+        {
+            name: 'With Buyer (SOLD)',
+            data: [
+                (balance.cassiterite.buyer/1000).toFixed(2),
+                (balance.coltan.buyer/1000).toFixed(2),
+                (balance.wolframite.buyer/1000).toFixed(2),
+            ],
+        },
+        
+    ];
+
+    const chartOptions_Balance = {
+        chart: {
+            type: 'bar',
+            height: 500,
+            stacked: false,
+        },
+        plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: '55%',
+                endingShape: 'rounded',
+            },
+        },
+        dataLabels: {
+            enabled: false,
+        },
+        stroke: {
+            show: true,
+            width: 1,
+            colors: ['#fff'],
+        },
+        xaxis: {
+            categories: ['Cassiterite', 'Coltan', 'Wolframite'],
+        },
+        yaxis: {
+            title: {
+                text: 'TONS / Percentage',
+            },
+            labels: {
+                formatter: function (value) {
+                    return value.toFixed(2); // Adjust the number of decimal places as needed
+                },
+            },
+        },
+        tooltip: {
+            y: {
+                formatter: function (val, { series, seriesIndex }) {
+                    const seriesName = series?.[seriesIndex]?.name;
+                    if (seriesName && seriesName.includes('%')) {
+                        return val + ' %';
+                    }
+                    return val + ' TONS';
+                },
+            },
+        },
+        fill: {
+            opacity: 1,
+        },
+        legend: {
+            position: 'top',
+            horizontalAlign: 'left',
+            offsetX: 40,
+            labels: {
+                colors: ['#ffff', '#ffff', '#ffff','#ffff', '#ffff'] // Change these colors as needed
+            }
+        },
+        responsive: [
+            {
+                breakpoint: 1000,
+                options: {
+                    plotOptions: {
+                        bar: {
+                            columnWidth: '70%',
+                        },
+                    },
+                    legend: {
+                        position: 'bottom',
+                        horizontalAlign: 'center',
+                        offsetX: 0,
+                    },
+                },
+            },
+        ],
+    };
+//End for Balance in Country
+
+//Graph for Purchased
+const chartSeries_Purchase = [
+    {
+        name: 'Cassiterite',
+        data: [
+            monthlypurchase.cassiterite[0],
+            monthlypurchase.cassiterite[1],
+            monthlypurchase.cassiterite[2],
+            monthlypurchase.cassiterite[3],
+            monthlypurchase.cassiterite[4],
+            monthlypurchase.cassiterite[5],
+            monthlypurchase.cassiterite[6],
+            monthlypurchase.cassiterite[7],
+            monthlypurchase.cassiterite[8],
+            monthlypurchase.cassiterite[9],
+            monthlypurchase.cassiterite[10],
+            monthlypurchase.cassiterite[11],
+        ],
+    },
+    {
+        name: 'Coltan',
+        data: [
+            monthlypurchase.coltan[0],
+            monthlypurchase.coltan[1],
+            monthlypurchase.coltan[2],
+            monthlypurchase.coltan[3],
+            monthlypurchase.coltan[4],
+            monthlypurchase.coltan[5],
+            monthlypurchase.coltan[6],
+            monthlypurchase.coltan[7],
+            monthlypurchase.coltan[8],
+            monthlypurchase.coltan[9],
+            monthlypurchase.coltan[10],
+            monthlypurchase.coltan[11],
+        ],
+    },
+    {
+        name: 'Wolframite',
+        data: [
+            monthlypurchase.wolframite[0],
+            monthlypurchase.wolframite[1],
+            monthlypurchase.wolframite[2],
+            monthlypurchase.wolframite[3],
+            monthlypurchase.wolframite[4],
+            monthlypurchase.wolframite[5],
+            monthlypurchase.wolframite[6],
+            monthlypurchase.wolframite[7],
+            monthlypurchase.wolframite[8],
+            monthlypurchase.wolframite[9],
+            monthlypurchase.wolframite[10],
+            monthlypurchase.wolframite[11],
+        ],
+    },
+];
+
+const chartOptions_Purchase = {
+    chart: {
+        type: 'bar',
+        height: 500,
+        stacked: false,
+    },
+    plotOptions: {
+        bar: {
+            horizontal: false,
+            columnWidth: '55%',
+            endingShape: 'rounded',
+        },
+    },
+    dataLabels: {
+        enabled: false,
+    },
+    stroke: {
+        show: true,
+        width: 1,
+        colors: ['#fff'],
+    },
+    xaxis: {
+        categories: [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ],
+    },
+    yaxis: {
+        title: {
+            text: 'Total Amount Piad($)',
+        },
+        labels: {
+            formatter: function (value) {
+                return value.toFixed(2); // Adjust the number of decimal places as needed
+            },
+        },
+    },
+    tooltip: {
+        y: {
+            formatter: function (val) {
+                return val + ' Money($)';
+            },
+        },
+    },
+    fill: {
+        opacity: 1,
+    },
+    legend: {
+        position: 'top',
+        horizontalAlign: 'left',
+        offsetX: 40,
+        labels: {
+            colors: ['#fff','#fff','#fff']
+        }
+    },
+    responsive: [
+        {
+            breakpoint: 1000,
+            options: {
+                plotOptions: {
+                    bar: {
+                        columnWidth: '70%',
+                    },
+                },
+                legend: {
+                    position: 'bottom',
+                    horizontalAlign: 'center',
+                    offsetX: 0,
+                },
+            },
+        },
+    ],
+};
+//end Purchase 
     return (
         <>
             { attachment ? <Modal size='lg' show={attachment} onBackDropClick={()=>setattachment(null)}>
@@ -385,12 +930,14 @@ const Reports = () => {
                         </div>
                     </div>
                 </div>
+                
                 :
                 type === `daily` ? 
                 <div className='row'>
-                    <div className="col-md-4">
+                  <div className="col-md-4">
                         <div className="card">
                             <div className="card-header">
+                                {/* Stock Delivery */}
                                 <h4 className="card-title">Cassiterite</h4>
                             </div>
                             <div className="card-body">
@@ -601,14 +1148,31 @@ const Reports = () => {
                             </div>
                         </div>
                     </div>
+                    <div className='col-12 mt-4'>
+                        <div className="card">
+                            <div className="card-header">
+                                <h4 className="card-title">Minerals Performance Overview</h4>
+                            </div>
+                            <div className="card-body">
+                            <ReactApexChart
+                                options={chartOptions}
+                                series={chartSeries}
+                                type="bar"
+                                height={500}
+                            />
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                
                 :
                 type === `mtd` ?
                 <div className='row'>
                     <div className="col-md-4">
                         <div className="card">
                             <div className="card-header">
-                                <h4 className="card-title">Cassiterite</h4>
+                                {/* In Stock Country */}
+                                <h4 className="card-title">Cassiterites</h4>
                             </div>
                             <div className="card-body">
                                 <div className="table-responsive">
@@ -794,6 +1358,21 @@ const Reports = () => {
                             </div>
                         </div>
                     </div>
+                    <div className='col-12 mt-4'>
+                        <div className="card">
+                            <div className="card-header">
+                                <h4 className="card-title">Minerals Performance Overview</h4>
+                            </div>
+                            <div className="card-body">
+                                <ReactApexChart
+                                    options={chartOptions_Balance}
+                                    series={chartSeries_Balance}
+                                    type="bar"
+                                    height={500}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 :
                 type === `deliveries` ?
@@ -801,7 +1380,8 @@ const Reports = () => {
                     <div className="col-md-4">
                         <div className="card">
                             <div className="card-header">
-                                <h4 className="card-title">Cassiterite</h4>
+                                {/* Total Purchase */}
+                                <h4 className="card-title">Cassiterites</h4>
                             </div>
                             <div className="card-body">
                                 <div className="table-responsive">
@@ -936,6 +1516,21 @@ const Reports = () => {
                                         </table>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className='col-12 mt-4'>
+                        <div className="card">
+                            <div className="card-header">
+                                <h4 className="card-title">Minerals Performance Overview</h4>
+                            </div>
+                            <div className="card-body">
+                                <ReactApexChart
+                                    options={chartOptions_Purchase}
+                                    series={chartSeries_Purchase}
+                                    type="bar"
+                                    height={500}
+                                />
                             </div>
                         </div>
                     </div>

@@ -100,7 +100,7 @@ export const RegulatorMenu = [
         iconStyle : <i className="flaticon-business-report" />,
         content: [
             {
-                title: 'Trace Report',
+                title: 'Trace Reports',
                 to: 'reports/trace',
             },
             {

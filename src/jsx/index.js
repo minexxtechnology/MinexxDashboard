@@ -148,32 +148,45 @@ import Companies from "./pages/Companies";
 import Suppliers from "./pages/Suppliers";
 import Mines from "./pages/Locations/Mines";
 import Export from "./pages/InnerPages/Export";
+import ExportA from "./pages/InnerPages/ExportA";
 import Mine from "./pages/InnerPages/Mine";
 import Assessment from "./pages/InnerPages/Assessment";
 
 const Markup = (props) => {
   const { menuToggle } = useContext(ThemeContext);
+  const [language, setLanguage] = useState(localStorage.getItem('_lang') || 'en');
+  const [country, setCountry] = useState(localStorage.getItem('_country') || 'Rwanda');
+
+  const changeLanguage = (newLang) => {
+    setLanguage(newLang);
+    localStorage.setItem('_lang', newLang); 
+  };
+  const changeCountry = (newCountry) => {
+    setCountry(newCountry);
+    localStorage.setItem('_country', newCountry);
+  };
   const allroutes = [
     /// Dashboard
-    { url: "/", component: <Home /> },
-    { url: 'overview', component: <Home/> },
+    { url: "/", component:<Home key={language} language={language}  country={country}/>  },
+    { url: 'overview', component: <Home key={language} language={language}  country={country} /> },
     { url: 'companies', component: <Companies/> },
-    { url: 'company/:id', component: <Company/> },
-    { url: 'mines/:id', component: <Mine/> },
+    { url: 'company/:id', component: <Company key={language} language={language}/> },
+    { url: 'mines/:id', component: <Mine key={language} language={language}/> },
     { url: 'users', component: <Users/> },
 	  { url: 'incidents', component: <Incidents/> },
-	  { url: 'exports', component: <Exports/> },
-	  { url: 'exports/:id', component: <Export/> },
-	  { url: 'mines', component: <Mines/> },
+	  { url: 'exports', component: <Exports key={language} language={language} country={country}/> },
+	  { url: 'exports/:id', component: <Export key={language} language={language} country={country}/> },
+    { url: 'exportsauth/:id', component: <ExportA/> },
+	  { url: 'mines', component: <Mines key={language} language={language} country={country}/> },
 	  { url: 'mine-sites', component: <MineSites/> },
 	  { url: 'compliance', component: <Compliance/> },
 	  { url: 'locations', component: <Locations/> },
-	  { url: 'assessment', component: <Assessment/> },
+	  { url: 'assessment', component: <Assessment key={language} language={language} country={country}/> },
 	  { url: 'assessments', component: <Assessments/> },
 	  { url: 'villages', component: <Villages/> },
 	  { url: 'miners', component: <Miners/> },
 	  { url: 'suppliers', component: <Suppliers/> },
-	  { url: 'knowledge', component: <DDSystems/> },
+	  { url: 'knowledge', component: <DDSystems key={language} language={language}/> },
     { url: 'dashboard-light', component: <DashboardLight/> },
 	  { url: 'event-list', component: <EventList/> },
 	  { url: 'event', component: <EventPage/> },
@@ -205,7 +218,7 @@ const Markup = (props) => {
     {url:'users/:platform', component:<Users/> },
 
     //Reports
-    {url:'reports/:type', component:<Reports/> },
+    {url:'reports/:type', component:<Reports key={language} language={language} country={country}/> },
 
 
     /// Apps
@@ -335,13 +348,16 @@ const Markup = (props) => {
           {/* <Route path='*' element={<Error404/>} /> */}
           {/* <Route path='page-error-500' element={<Error500/>} />
           <Route path='page-error-503' element={<Error503/>} /> */}
-          <Route path="/"  element={<MainLayout />} > 
+          <Route path="/"  element={<MainLayout language={language} onLanguageChange={changeLanguage}   onCountryChange={changeCountry} />} > 
               {allroutes.map((data, i) => (
                 <Route
                   key={i}
                   exact
                   path={`${data.url}`}
-                  element={data.component}
+                  element={React.cloneElement(data.component, { 
+                    language: language,
+                    country: country 
+                  })}
 
                 >
                 </Route>
@@ -354,11 +370,16 @@ const Markup = (props) => {
   );
 };
 
-function MainLayout(){
+function MainLayout({ language, onLanguageChange, country, onCountryChange }){
   const { menuToggle, sidebariconHover } = useContext(ThemeContext);
   return (
     <div id="main-wrapper" className={`show ${sidebariconHover ? "iconhover-toggle": ""} ${ menuToggle ? "menu-toggle" : ""}`}>  
-      <Nav />
+      <Nav 
+        language={language}
+        onLanguageChange={onLanguageChange}
+        country={country}
+        onCountryChange={onCountryChange}
+      />
       <div className="content-body" style={{ minHeight: window.screen.height - 45 }}>
           <div className="container-fluid">
             <Outlet />                
@@ -367,7 +388,6 @@ function MainLayout(){
       <Footer />
     </div>
   )
-
-};
+}
 
 export default Markup;

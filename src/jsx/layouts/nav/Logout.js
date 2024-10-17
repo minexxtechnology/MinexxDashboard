@@ -21,7 +21,7 @@ function withRouter(Component) {
     return ComponentWithRouterProp;
   }
 
-function LogoutPage(){
+function LogoutPage({ logoutText = "Logout" }){
     const dispatch = useDispatch();
     const navigate = useNavigate();
     function onLogout() {
@@ -40,14 +40,15 @@ function LogoutPage(){
                     <polyline points="16 17 21 12 16 7" />
                     <line x1={21} y1={12} x2={9} y2={12} />
                 </svg>
-                <span className="ms-2" >Logout </span>
+                <span className="ms-2">{logoutText}</span>
             </button>
         </>
     )
 } 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state, ownProps) => {
     return {
         isAuthenticated: isAuthenticated(state),
+        logoutText: ownProps.logoutText,
     };
 };
 

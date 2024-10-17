@@ -10,6 +10,7 @@ import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import axiosInstance from '../../services/AxiosInstance';
 import ReactApexChart from 'react-apexcharts';
+import { translations } from './Reportstranslation';
 
 
 const ticketData = [
@@ -22,7 +23,7 @@ const ticketData = [
     {number:"07", emplid:"Emp-3052", count:'4'},
 ];
 
-const Reports = () => {
+const Reports = ({language,country}) => {
 
     const {type} = useParams()
     const navigate = useNavigate()
@@ -60,6 +61,13 @@ const Reports = () => {
             days++
         }
     }
+    const t = (key) => {
+        if (!translations[language]) {
+          console.warn(`Translation for language "${language}" not found`);
+          return key;
+        }
+        return translations[language][key] || key;
+      };
     const [daily, setdaily] = useState({
         cassiterite: {
             dailyTarget: 4.76,
@@ -80,6 +88,13 @@ const Reports = () => {
             mtdActual: 0,
           }
     })
+    // const t = (key) => {
+    //     if (!translations[language]) {
+    //       console.warn(`Translation for language "${language}" not found`);
+    //       return key;
+    //     }
+    //     return translations[language][key] || key;
+    //   };
     const[monthly,setMonthly]=useState({
         cassiterite:
         {
@@ -180,28 +195,34 @@ const Reports = () => {
     })
     const [balance, setbalance] = useState({
         cassiterite: {
+          
             minexx: 0,
             supplier: 0,
             buyer: 0,
             shipped: 0,
             pending: 0,
             rmr: 0,
+            
         },
         coltan: {
+           
             minexx: 0,
             supplier: 0,
             buyer: 0,
             shipped: 0,
             pending: 0,
             rmr: 0,
+            
         },
         wolframite: {
+           
             minexx: 0,
             supplier: 0,
             buyer: 0,
             shipped: 0,
             pending: 0,
             rmr: 0,
+            
         }
     })
 
@@ -273,7 +294,23 @@ const Reports = () => {
     }
     
     const loadCompanies =  ()=>{
-        axiosInstance.get(`/companies`).then(response=>{
+        let normalizedCountry = country.trim();
+            
+        // Special handling for Rwanda
+        if (normalizedCountry.toLowerCase() === 'rwanda') {
+            // Randomly choose one of the three formats
+             normalizedCountry ='.Rwanda';
+            // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+        } else {
+            // For other countries, remove leading/trailing dots and spaces
+            normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+        }
+        axiosInstance.get(`/companies`,
+            {
+                params: {
+                    country: normalizedCountry,
+                }
+            }).then(response=>{
             setcompanies(response.data.companies)
         })
     }
@@ -300,15 +337,76 @@ const Reports = () => {
         if(type === `trace` && !company){
             return
         }
-        axiosInstance.get(`/report/${type !== 'trace' ? type : type+'/'+company?.id}`).then(response=>{
+
+        let normalizedCountry = country.trim();
+            
+        // Special handling for Rwanda
+        if (normalizedCountry.toLowerCase() === 'rwanda') {
+            // Randomly choose one of the three formats
+             normalizedCountry ='.Rwanda';
+            // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+        } else {
+            // For other countries, remove leading/trailing dots and spaces
+            normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+        }
+        axiosInstance.get(`/report/${type !== 'trace' ? type : type+'/'+company?.id}`,
+            {
+                params: {
+                    country: normalizedCountry,
+                }
+            }).then(response=>{
             if(type === `daily`){
-                setdaily({ cassiterite: response.data.cassiterite, coltan: response.data.coltan, wolframite: response.data.wolframite })
+                setdaily(prevDaily => ({
+                    cassiterite: {
+                        ...prevDaily.cassiterite,
+                        ...response.data.cassiterite?.company?.[normalizedCountry]
+                    },
+                    coltan: {
+                        ...prevDaily.coltan,
+                        ...response.data.coltan?.company?.[normalizedCountry]
+                    },
+                    wolframite: {
+                        ...prevDaily.wolframite,
+                        ...response.data.wolframite?.company?.[normalizedCountry]
+                    }
+                }));
             }
-            if(type === `mtd`){
-                setbalance({ cassiterite: response.data.cassiterite, coltan: response.data.coltan, wolframite: response.data.wolframite })
-            }
+            if (type === 'mtd') {
+                setbalance(prevBalance => ({
+                  cassiterite: {
+                    ...prevBalance.cassiterite,
+                    ...response.data.cassiterite.company[normalizedCountry]
+                  },
+                  coltan: {
+                    ...prevBalance.coltan,
+                    ...response.data.coltan.company[normalizedCountry]
+                  },
+                  wolframite: {
+                    ...prevBalance.wolframite,
+                    ...response.data.wolframite.company[normalizedCountry]
+                  }
+                }));
+              }
             if(type === `deliveries`){
-                setdeliveries({ cassiterite: response.data.cassiterite, coltan: response.data.coltan, wolframite: response.data.wolframite })
+
+                setdeliveries(prevDeliveries=>
+                ({
+                    cassiterite: {
+                        ...prevDeliveries.cassiterite,
+                        ...response.data.cassiterite.company[normalizedCountry]
+                      },
+                      coltan: {
+                        ...prevDeliveries.coltan,
+                        ...response.data.coltan.company[normalizedCountry]
+                      },
+                      wolframite: {
+                        ...prevDeliveries.wolframite,
+                        ...response.data.wolframite.company[normalizedCountry]
+                      }
+
+                })
+
+                )
             }
             if(type === `trace`){
                 if(company){
@@ -336,29 +434,45 @@ const Reports = () => {
 
     useEffect(() => {
         setData(document.querySelectorAll("#report_wrapper tbody tr"));
-        changeTitle(`Reports | Minexx`)
+        changeTitle(`${t('Report')} | Minexx`)
         loadReport()
         loadMonthlyData();
         loadMonthlyPurchase();
         if(type === 'trace'){
             loadCompanies()
         }
-    }, [type, company]);
+    }, [type, company,language,country]);
+    
     const loadMonthlyData = () => {
-        axiosInstance.get(`/report/Monthly`)
-            .then(response => {
-                const { cassiterite, coltan, wolframite } = response.data;
 
-                setMonthly({  
-                    cassiterite: cassiterite ,
-                    coltan: coltan ,
-                    wolframite: wolframite 
-                });
+        let normalizedCountry = country.trim();
+            
+        // Special handling for Rwanda
+        if (normalizedCountry.toLowerCase() === 'rwanda') {
+            // Randomly choose one of the three formats
+             normalizedCountry ='.Rwanda';
+            // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+        } else {
+            // For other countries, remove leading/trailing dots and spaces
+            normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+        }
+        axiosInstance.get(`/report/Monthly`,
+            {
+                params: {
+                    country: normalizedCountry,
+                }
+            })
+            .then(response => {
+                
+                setMonthly({
+                    cassiterite: response.data.cassiterite.company[normalizedCountry].monthly,
+                    coltan: response.data.coltan.company[normalizedCountry].monthly,
+                    wolframite: response.data.wolframite.company[normalizedCountry].monthly
+                  });
     
                 console.log('Monthly data:', {  
-                    cassiterite: cassiterite ,
-                    coltan: coltan ,
-                    wolframite: wolframite
+                    cassiterite:response.data.cassiterite.company[normalizedCountry].monthly ,
+                   
                 });
     
             })
@@ -367,29 +481,46 @@ const Reports = () => {
                     if (err.response.code === 403) {
                         dispatch(Logout(navigate));
                     } else {
-                        toast.warn(err.response.message);
+                        console.log(err.response.message);
+                      //  toast.warn(err.response.message);
                     }
                 } catch (e) {
-                    toast.error(err.message);
+                    console.log(err.message);
+                   // toast.error(err.message);
                 }
             });
     };
     const loadMonthlyPurchase = () => {
-        axiosInstance.get(`/report/purchaseMonthly`)
+        let normalizedCountry = country.trim();
+            
+        // Special handling for Rwanda
+        if (normalizedCountry.toLowerCase() === 'rwanda') {
+            // Randomly choose one of the three formats
+             normalizedCountry ='.Rwanda';
+            // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+        } else {
+            // For other countries, remove leading/trailing dots and spaces
+            normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+        }
+        axiosInstance.get(`/report/purchaseMonthly`, 
+            {
+            params: {
+                country: normalizedCountry,
+            }
+        })
             .then(response => {
-                const { cassiterite, coltan, wolframite } = response.data.purchases;
+               
 
-                setMonthlyPurchase({  
-                    cassiterite: cassiterite ,
-                    coltan: coltan ,
-                    wolframite: wolframite 
-                });
-    
+                setMonthlyPurchase({
+                    cassiterite: response.data.purchases.cassiterite.company[normalizedCountry].monthly,
+                    coltan: response.data.purchases.coltan.company[normalizedCountry].monthly,
+                    wolframite: response.data.purchases.wolframite.company[normalizedCountry].monthly
+                  });
                 console.log('MonthlyPurchase data:', {  
-                    cassiterite: cassiterite ,
-                    coltan: coltan ,
-                    wolframite: wolframite
-                });
+                        cassiterite: response.data.purchases.cassiterite.company[normalizedCountry].monthly,
+                        coltan: response.data.purchases.coltan.company[normalizedCountry].monthly,
+                        wolframite: response.data.purchases.wolframite.company[normalizedCountry].monthly
+                    });
     
             })
             .catch(err => {
@@ -397,10 +528,10 @@ const Reports = () => {
                     if (err.response.code === 403) {
                         dispatch(Logout(navigate));
                     } else {
-                        toast.warn(err.response.message);
+                        //toast.warn(err.response.message);
                     }
                 } catch (e) {
-                    toast.error(err.message);
+                  //  toast.error(err.message);
                 }
             });
     };
@@ -420,59 +551,22 @@ const Reports = () => {
 		//settest(i);
 	};
    //Chart For the Daily 
+   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
    const chartSeries = [
-    {
-        name: 'Cassiterite',
-        data: [
-            monthly.cassiterite[0]/1000,
-            monthly.cassiterite[1]/1000,
-            monthly.cassiterite[2]/1000,
-            monthly.cassiterite[3]/1000,
-            monthly.cassiterite[4]/1000,
-            monthly.cassiterite[5]/1000,
-            monthly.cassiterite[6]/1000,
-            monthly.cassiterite[7]/1000,
-            monthly.cassiterite[8]/1000,
-            monthly.cassiterite[9]/1000,
-            monthly.cassiterite[10]/1000,
-            monthly.cassiterite[11]/1000,
-        ],
-    },
-    {
-        name: 'Coltan',
-        data: [
-            monthly.coltan[0]/1000,
-            monthly.coltan[1]/1000,
-            monthly.coltan[2]/1000,
-            monthly.coltan[3]/1000,
-            monthly.coltan[4]/1000,
-            monthly.coltan[5]/1000,
-            monthly.coltan[6]/1000,
-            monthly.coltan[7]/1000,
-            monthly.coltan[8]/1000,
-            monthly.coltan[9]/1000,
-            monthly.coltan[10]/1000,
-            monthly.coltan[11]/1000,
-        ],
-    },
-    {
-        name: 'Wolframite',
-        data: [
-            monthly.wolframite[0]/1000,
-            monthly.wolframite[1]/1000,
-            monthly.wolframite[2]/1000,
-            monthly.wolframite[3]/1000,
-            monthly.wolframite[4]/1000,
-            monthly.wolframite[5]/1000,
-            monthly.wolframite[6]/1000,
-            monthly.wolframite[7]/1000,
-            monthly.wolframite[8]/1000,
-            monthly.wolframite[9]/1000,
-            monthly.wolframite[10]/1000,
-            monthly.wolframite[11]/1000,
-        ],
-    },
-];
+     {
+       name: 'Cassiterite',
+       data: months.map(month => (monthly.cassiterite[month] || 0) / 1000),
+     },
+     {
+       name: 'Coltan',
+       data: months.map(month => (monthly.coltan[month] || 0) / 1000),
+     },
+     {
+       name: 'Wolframite',
+       data: months.map(month => (monthly.wolframite[month] || 0) / 1000),
+     },
+   ];
 
 const chartOptions = {
     chart: {
@@ -497,13 +591,23 @@ const chartOptions = {
     },
     xaxis: {
         categories: [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
+            t('January'), 
+            t('February'), 
+            t('March'), 
+            t('April'), 
+            t('May'), 
+            t('June'),
+            t('July'), 
+            t('August'), 
+            t('September'), 
+            t('October'), 
+            t('November'), 
+            t('December')
         ],
     },
     yaxis: {
         title: {
-            text: 'MTD Actuals (TONS)',
+            text: t('MTDActuals'),
         },
         labels: {
             formatter: function (value) {
@@ -552,45 +656,45 @@ const chartOptions = {
     //chart For Balance in Country
     const chartSeries_Balance = [
         {
-            name: 'With RMR (TONS)',
+            name: t('WithRMR'),
             data: [
-                (balance.cassiterite.rmr/1000).toFixed(2),
-                (balance.coltan.rmr/1000).toFixed(2),
-                (balance.wolframite.rmr/1000).toFixed(2),
+                ((balance.cassiterite.rmr || 0) / 1000).toFixed(2),
+                ((balance.coltan.rmr || 0) / 1000).toFixed(2),
+                ((balance.wolframite.rmr || 0)/ 1000).toFixed(2),
             ],
             
             
         },
         {
-            name: 'With Minexx (TONS)',
+            name: t('WithMinexx'),
             data: [
-                (balance.cassiterite.minexx/1000).toFixed(2),
-                (balance.coltan.minexx/1000).toFixed(2),
-                (balance.wolframite.minexx/1000).toFixed(2),
+                ((balance.cassiterite.minexx || 0)/ 1000).toFixed(2),
+                ((balance.coltan.minexx || 0)/ 1000).toFixed(2),
+                ((balance.wolframite.minexx || 0)/ 1000).toFixed(2),
             ],
         },
         {
-            name: 'Pending Shipment (TONS)',
+            name: t('PendingShipment'),
             data: [
-                (balance.cassiterite.pending/1000).toFixed(2),
-                (balance.coltan.pending/1000).toFixed(2),
-                (balance.wolframite.pending/1000).toFixed(2),
+                ((balance.cassiterite.pending || 0) /  1000).toFixed(2),
+                ((balance.coltan.pending || 0 )/ 1000).toFixed(2),
+                ((balance.wolframite.pending || 0)/ 1000).toFixed(2),
             ],
         },
         {
-            name: 'Shipped (TONS)',
+            name: t('Shipped'),
             data: [
-                (balance.cassiterite.shipped/1000).toFixed(2),
-                (balance.coltan.shipped/1000).toFixed(2),
-                (balance.wolframite.shipped/1000).toFixed(2),
+                ((balance.cassiterite.shipped || 0) / 1000).toFixed(2),
+                ((balance.coltan.shipped || 0 )/ 1000).toFixed(2),
+                ((balance.wolframite.shipped || 0 )/1000).toFixed(2),
             ],
         },
         {
-            name: 'With Buyer (SOLD)',
+            name: t('WithBuyer'),
             data: [
-                (balance.cassiterite.buyer/1000).toFixed(2),
-                (balance.coltan.buyer/1000).toFixed(2),
-                (balance.wolframite.buyer/1000).toFixed(2),
+                ((balance.cassiterite.buyer || 0) / 1000).toFixed(2),
+                ((balance.coltan.buyer || 0 )/ 1000).toFixed(2),
+                ((balance.wolframite.buyer || 0) / 1000).toFixed(2),
             ],
         },
         
@@ -622,7 +726,7 @@ const chartOptions = {
         },
         yaxis: {
             title: {
-                text: 'TONS / Percentage',
+                text: t('Percentage'),
             },
             labels: {
                 formatter: function (value) {
@@ -671,62 +775,24 @@ const chartOptions = {
         ],
     };
 //End for Balance in Country
-
+//const monthss = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 //Graph for Purchased
-const chartSeries_Purchase = [
-    {
-        name: 'Cassiterite',
-        data: [
-            monthlypurchase.cassiterite[0],
-            monthlypurchase.cassiterite[1],
-            monthlypurchase.cassiterite[2],
-            monthlypurchase.cassiterite[3],
-            monthlypurchase.cassiterite[4],
-            monthlypurchase.cassiterite[5],
-            monthlypurchase.cassiterite[6],
-            monthlypurchase.cassiterite[7],
-            monthlypurchase.cassiterite[8],
-            monthlypurchase.cassiterite[9],
-            monthlypurchase.cassiterite[10],
-            monthlypurchase.cassiterite[11],
-        ],
-    },
-    {
-        name: 'Coltan',
-        data: [
-            monthlypurchase.coltan[0],
-            monthlypurchase.coltan[1],
-            monthlypurchase.coltan[2],
-            monthlypurchase.coltan[3],
-            monthlypurchase.coltan[4],
-            monthlypurchase.coltan[5],
-            monthlypurchase.coltan[6],
-            monthlypurchase.coltan[7],
-            monthlypurchase.coltan[8],
-            monthlypurchase.coltan[9],
-            monthlypurchase.coltan[10],
-            monthlypurchase.coltan[11],
-        ],
-    },
-    {
-        name: 'Wolframite',
-        data: [
-            monthlypurchase.wolframite[0],
-            monthlypurchase.wolframite[1],
-            monthlypurchase.wolframite[2],
-            monthlypurchase.wolframite[3],
-            monthlypurchase.wolframite[4],
-            monthlypurchase.wolframite[5],
-            monthlypurchase.wolframite[6],
-            monthlypurchase.wolframite[7],
-            monthlypurchase.wolframite[8],
-            monthlypurchase.wolframite[9],
-            monthlypurchase.wolframite[10],
-            monthlypurchase.wolframite[11],
-        ],
-    },
-];
+const monthss = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+const chartSeries_Purchase = [
+  {
+    name: 'Cassiterite',
+    data: monthss.map(month => monthlypurchase.cassiterite[month] || 0),
+  },
+  {
+    name: 'Coltan',
+    data: monthss.map(month => monthlypurchase.coltan[month] || 0),
+  },
+  {
+    name: 'Wolframite',
+    data: monthss.map(month => monthlypurchase.wolframite[month] || 0),
+  },
+];
 const chartOptions_Purchase = {
     chart: {
         type: 'bar',
@@ -750,13 +816,23 @@ const chartOptions_Purchase = {
     },
     xaxis: {
         categories: [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
+            t('January'), 
+            t('February'), 
+            t('March'), 
+            t('April'), 
+            t('May'), 
+            t('June'),
+            t('July'), 
+            t('August'), 
+            t('September'), 
+            t('October'), 
+            t('November'), 
+            t('December')
         ],
     },
     yaxis: {
         title: {
-            text: 'Total Amount Piad($)',
+            text: t('TotalAmountPaid'),
         },
         labels: {
             formatter: function (value) {
@@ -814,9 +890,21 @@ const chartOptions_Purchase = {
             </Modal> : null }
             <div className="page-titles">
 				<ol className="breadcrumb">
-					<li className="breadcrumb-item active"><Link to={"#"}>Dashboard</Link></li>
-					<li className="breadcrumb-item"><Link to={"#"} >Reports</Link></li>
-					<li className="breadcrumb-item"><Link to={"#"} >{ type === 'today' ? `Today's Report` : type === 'trace' ? `Trace Report [${company?company.name: ''}]` : type === `daily` ? `Total Stock Delivery` : type === `mtd` ? `In-Stock Country Balance` : `Total Purchase`}</Link></li>
+					<li className="breadcrumb-item active"><Link to={"#"}>{t("Dashboard")}</Link></li>
+					<li className="breadcrumb-item"><Link to={"#"} >{t("Report")}</Link></li>
+					<li className="breadcrumb-item">
+                    <Link to={"#"}>
+                        {type === 'today' 
+                        ? "Today's Report" 
+                        : type === 'trace' 
+                            ? `${t('TraceReport')} ${company ? `[${company.name}]` : ''}`
+                            : type === 'daily' 
+                            ? t('TotalStockDelivery')
+                            : type === 'mtd' 
+                                ? t('InStockCountryBalance')
+                                : t('TotalPurchase')}
+                    </Link>
+                    </li>
 				</ol>
 			</div>
             {/**<div className="row mb-5 align-items-center">
@@ -891,11 +979,11 @@ const chartOptions_Purchase = {
                                     </table>
                                     <div className="d-sm-flex text-center justify-content-between align-items-center mt-3 mb-3">
                                         <div className="dataTables_info">
-                                            Showing {activePag.current * sort + 1} to{" "}
+                                        {t("Showing")} {activePag.current * sort + 1} {t("To")}{" "}
                                             {data.length > (activePag.current + 1) * sort
                                                 ? (activePag.current + 1) * sort
                                                 : data.length}{" "}
-                                            of {data.length} entries
+                                            {t("Of")} {data.length} {t("Entries")}
                                         </div>
                                         <div
                                             className="dataTables_paginate paging_simple_numbers mb-0"
@@ -903,13 +991,22 @@ const chartOptions_Purchase = {
                                         >
                                             <Link
                                                 className="paginate_button previous disabled"
+                                                style={{
+                                                    minWidth: '120px',  // Adjust this value as needed
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    padding: '8px 12px',  // Adjust padding to your preference
+                                                    display: 'inline-block',
+                                                    textAlign: 'center'
+                                                }}
                                                 to="/reports"
                                                 onClick={() =>
                                                     activePag.current > 0 &&
                                                     onClick(activePag.current - 1)
                                                 }
                                             >
-                                                Previous
+                                                {t("Previous")}
                                             </Link>
                                             <Link
                                                 className="paginate_button next"
@@ -921,7 +1018,7 @@ const chartOptions_Purchase = {
                                                     }
                                                 }
                                             >
-                                                Next
+                                                {t("Next")}
                                             </Link>
                                         </div>
                                     </div>
@@ -946,13 +1043,13 @@ const chartOptions_Purchase = {
                                         <table id="cassiteriteTargets" className="display dataTablesCard table-responsive-sm dataTable no-footer">
                                             <thead>
                                                 <tr>                                               	                                            
-                                                    <th>Date</th>
+                                                    <th>{t("Date")}</th>
                                                     <th>{new Date().toUTCString().substring(0, 16)}</th>                                          
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr key="ct">     
-                                                    <td className="sorting_1">Daily Target (TONS)</td>
+                                                    <td className="sorting_1">{t("DailyTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.cassiterite.dailyTarget/1000).toFixed(2)}</Link>
@@ -960,7 +1057,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ct2">     
-                                                    <td className="sorting_1">Daily Actuals (TONS)</td>
+                                                    <td className="sorting_1">{t("DailyActuals")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.cassiterite.dailyActual/1000).toFixed(2)}</Link>
@@ -968,7 +1065,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ct3">     
-                                                    <td className="sorting_1">Monthly Target (TONS)</td>
+                                                    <td className="sorting_1">{t("MonthlyTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.cassiterite.mtdTarget/1000).toFixed(2)}</Link>
@@ -976,7 +1073,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ct4">     
-                                                    <td className="sorting_1">MTD Target (TONS)</td>
+                                                    <td className="sorting_1">{t("MTDTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(4.76*days).toFixed(2)}</Link>
@@ -984,7 +1081,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ct5">
-                                                    <td className="sorting_1">MTD Actuals (TONS)</td>
+                                                    <td className="sorting_1">{t("MTDActuals")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.cassiterite.mtdActual/1000).toFixed(2)}</Link>
@@ -992,7 +1089,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ct6">     
-                                                    <td className="sorting_1">MTD Actuals vs Target (%)</td>
+                                                    <td className="sorting_1">{t("MTDActualsVsTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{((daily.cassiterite.mtdActual/1000)/(4.76*days)*100).toFixed(2)}%</Link>
@@ -1017,13 +1114,13 @@ const chartOptions_Purchase = {
                                         <table id="coltanTargets" className="display dataTablesCard table-responsive-sm dataTable no-footer">
                                             <thead>
                                                 <tr>                                               	                                            
-                                                    <th>Date</th>
+                                                    <th>{t("Date")}</th>
                                                     <th>{new Date().toUTCString().substring(0, 16)}</th>                                          
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr key="col1">     
-                                                    <td className="sorting_1">Daily Target (TONS)</td>
+                                                    <td className="sorting_1">{t("DailyTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.coltan.dailyTarget/1000).toFixed(2)}</Link>
@@ -1031,7 +1128,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="col2">     
-                                                    <td className="sorting_1">Daily Actuals (TONS)</td>
+                                                    <td className="sorting_1">{t("DailyActuals")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.coltan.dailyActual/1000).toFixed(2)}</Link>
@@ -1039,7 +1136,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="col3">     
-                                                    <td className="sorting_1">Monthly Target (TONS)</td>
+                                                    <td className="sorting_1">{t("MonthlyTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.coltan.mtdTarget/1000).toFixed(2)}</Link>
@@ -1047,7 +1144,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="col4">     
-                                                    <td className="sorting_1">MTD Target (TONS)</td>
+                                                    <td className="sorting_1">{t("MTDTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(0.38*days).toFixed(2)}</Link>
@@ -1055,7 +1152,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="col5">     
-                                                    <td className="sorting_1">MTD Actuals (TONS)</td>
+                                                    <td className="sorting_1">{t("MTDActuals")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.coltan.mtdActual/1000).toFixed(2)}</Link>
@@ -1063,7 +1160,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="col6">     
-                                                    <td className="sorting_1">MTD Actuals vs Target (%)</td>
+                                                    <td className="sorting_1">{t("MTDActualsVsTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{((daily.coltan.mtdActual/1000)/(0.38*days)*100).toFixed(2)}%</Link>
@@ -1088,13 +1185,13 @@ const chartOptions_Purchase = {
                                         <table id="wolframiteTargets" className="display dataTablesCard table-responsive-sm dataTable no-footer">
                                             <thead>
                                                 <tr>                                               	                                            
-                                                    <th>Date</th>
+                                                    <th>{t("Date")}</th>
                                                     <th>{new Date().toUTCString().substring(0, 16)}</th>                                          
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr key="wt1">     
-                                                    <td className="sorting_1">Daily Target (TONS)</td>
+                                                    <td className="sorting_1">{t("DailyTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.wolframite.dailyTarget/1000).toFixed(2)}</Link>
@@ -1102,7 +1199,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wt2">     
-                                                    <td className="sorting_1">Daily Actuals (TONS)</td>
+                                                    <td className="sorting_1">{t("DailyActuals")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.wolframite.dailyActual/1000).toFixed(2)}</Link>
@@ -1110,7 +1207,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wt3">     
-                                                    <td className="sorting_1">Monthly Target (TONS)</td>
+                                                    <td className="sorting_1">{t("MonthlyTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.wolframite.mtdTarget/1000).toFixed(2)}</Link>
@@ -1118,7 +1215,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wt4">
-                                                    <td className="sorting_1">MTD Target (TONS)</td>
+                                                    <td className="sorting_1">{t("MTDTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(0.19*days).toFixed(2)}</Link>
@@ -1126,7 +1223,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wt5">     
-                                                    <td className="sorting_1">MTD Actuals (TONS)</td>
+                                                    <td className="sorting_1">{t("MTDActuals")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(daily.wolframite.mtdActual/1000).toFixed(2)}</Link>
@@ -1134,7 +1231,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wt6">     
-                                                    <td className="sorting_1">MTD Actuals vs Target (%)</td>
+                                                    <td className="sorting_1">{t("MTDActualsVsTarget")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{((daily.wolframite.mtdActual/1000)/(0.19*days)*100).toFixed(2)}%</Link>
@@ -1151,7 +1248,7 @@ const chartOptions_Purchase = {
                     <div className='col-12 mt-4'>
                         <div className="card">
                             <div className="card-header">
-                                <h4 className="card-title">Minerals Performance Overview</h4>
+                                <h4 className="card-title">{t("MineralsPerformanceOverview")}</h4>
                             </div>
                             <div className="card-body">
                             <ReactApexChart
@@ -1180,13 +1277,13 @@ const chartOptions_Purchase = {
                                         <table id="cassiteriteBalance" className="display dataTablesCard table-responsive-sm dataTable no-footer">
                                             <thead>
                                                 <tr>                                               	                                            
-                                                    <th>Overall Balance as of</th>
+                                                    <th>{t("OverallBalanceAsOf")}</th>
                                                     <th>{new Date().toUTCString().substring(0, 16)}</th>                                          
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr key="cb2">     
-                                                    <td className="sorting_1">With RMR (TONS)</td>
+                                                    <td className="sorting_1">{t("WithRMR")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.cassiterite.rmr/1000).toFixed(2)}</Link>
@@ -1194,7 +1291,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="cb1">     
-                                                    <td className="sorting_1">With Minexx (TONS)</td>
+                                                    <td className="sorting_1">{t("WithMinexx")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.cassiterite.minexx/1000).toFixed(2)}</Link>
@@ -1202,7 +1299,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="cb5">     
-                                                    <td className="sorting_1">Pending Shipment (TONS)</td>
+                                                    <td className="sorting_1">{t("PendingShipment")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.cassiterite.pending/1000).toFixed(2)}</Link>
@@ -1210,7 +1307,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="cb4">     
-                                                    <td className="sorting_1">Shipped (TONS)</td>
+                                                    <td className="sorting_1">{t("Shipped")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.cassiterite.shipped/1000).toFixed(2)}</Link>
@@ -1218,7 +1315,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="cb3">     
-                                                    <td className="sorting_1">With Buyer (SOLD)</td>
+                                                    <td className="sorting_1">{t("WithBuyer")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.cassiterite.buyer/1000).toFixed(2)}</Link>
@@ -1243,13 +1340,13 @@ const chartOptions_Purchase = {
                                         <table id="coltanBalance" className="display dataTablesCard table-responsive-sm dataTable no-footer">
                                             <thead>
                                                 <tr>                                               	                                            
-                                                    <th>Overall Balance as of</th>
+                                                    <th>{t("OverallBalanceAsOf")}</th>
                                                     <th>{new Date().toUTCString().substring(0, 16)}</th>                                          
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr key="ccb2">     
-                                                    <td className="sorting_1">With RMR (TONS)</td>
+                                                    <td className="sorting_1">{t("WithRMR")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.coltan.rmr/1000).toFixed(2)}</Link>
@@ -1257,7 +1354,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ccb1">     
-                                                    <td className="sorting_1">With Minexx (TONS)</td>
+                                                    <td className="sorting_1">{t("WithMinexx")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.coltan.minexx/1000).toFixed(2)}</Link>
@@ -1265,7 +1362,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ccb5">     
-                                                    <td className="sorting_1">Pending Shipment (TONS)</td>
+                                                    <td className="sorting_1">{t("PendingShipment")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.coltan.pending/1000).toFixed(2)}</Link>
@@ -1273,7 +1370,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ccb4">     
-                                                    <td className="sorting_1">Shipped (TONS)</td>
+                                                    <td className="sorting_1">{t("Shipped")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.coltan.shipped/1000).toFixed(2)}</Link>
@@ -1281,7 +1378,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ccb3">     
-                                                    <td className="sorting_1">With Buyer (SOLD)</td>
+                                                    <td className="sorting_1">{t("WithBuyer")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.coltan.buyer/1000).toFixed(2)}</Link>
@@ -1306,13 +1403,13 @@ const chartOptions_Purchase = {
                                         <table id="wolframiteBalance" className="display dataTablesCard table-responsive-sm dataTable no-footer">
                                             <thead>
                                                 <tr>                                               	                                            
-                                                    <th>Overall Balance as of</th>
+                                                    <th>{t("OverallBalanceAsOf")}</th>
                                                     <th>{new Date().toUTCString().substring(0, 16)}</th>                                          
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr key="wb2">     
-                                                    <td className="sorting_1">With RMR (TONS)</td>
+                                                    <td className="sorting_1">{t("WithRMR")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.wolframite.rmr/1000).toFixed(2)}</Link>
@@ -1320,7 +1417,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wb1">     
-                                                    <td className="sorting_1">With Minexx (TONS)</td>
+                                                    <td className="sorting_1">{t("WithMinexx")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.wolframite.minexx/1000).toFixed(2)}</Link>
@@ -1328,7 +1425,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wb5">     
-                                                    <td className="sorting_1">Pending Shipment (TONS)</td>
+                                                    <td className="sorting_1">{t("PendingShipment")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.wolframite.pending/1000).toFixed(2)}</Link>
@@ -1336,7 +1433,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wb4">     
-                                                    <td className="sorting_1">Shipped (TONS)</td>
+                                                    <td className="sorting_1">{t("Shipped")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.wolframite.shipped/1000).toFixed(2)}</Link>
@@ -1344,7 +1441,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wb3">     
-                                                    <td className="sorting_1">With Buyer (SOLD)</td>
+                                                    <td className="sorting_1">{t("WithBuyer")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{(balance.wolframite.buyer/1000).toFixed(2)}</Link>
@@ -1361,7 +1458,7 @@ const chartOptions_Purchase = {
                     <div className='col-12 mt-4'>
                         <div className="card">
                             <div className="card-header">
-                                <h4 className="card-title">Minerals Performance Overview</h4>
+                                <h4 className="card-title">{t("MineralsPerformanceOverview")}</h4>
                             </div>
                             <div className="card-body">
                                 <ReactApexChart
@@ -1389,7 +1486,7 @@ const chartOptions_Purchase = {
                                         <table id="cassiteritePurchases" className="display dataTablesCard table-responsive-sm dataTable no-footer">
                                             <thead>
                                                 <tr>                                               	                                            
-                                                    <th>Total Purchases</th>
+                                                    <th>{t("TotalPurchase")}</th>
                                                     <th></th>                                          
                                                 </tr>
                                             </thead>
@@ -1403,7 +1500,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="cd2">     
-                                                    <td className="sorting_1">This Week</td>
+                                                    <td className="sorting_1">{t("ThisWeek")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">${(deliveries.cassiterite.weekly).toFixed(2)}</Link>
@@ -1411,7 +1508,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="cd3">     
-                                                    <td className="sorting_1">This Month</td>
+                                                    <td className="sorting_1">{t("ThisMonth")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">${(deliveries.cassiterite.monthly).toFixed(2)}</Link>
@@ -1436,7 +1533,7 @@ const chartOptions_Purchase = {
                                         <table id="coltanPurchases" className="display dataTablesCard table-responsive-sm dataTable no-footer">
                                             <thead>
                                                 <tr>                                               	                                            
-                                                    <th>Total Purchases</th>
+                                                    <th>{t("TotalPurchase")}</th>
                                                     <th></th>                                          
                                                 </tr>
                                             </thead>
@@ -1450,7 +1547,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ccd2">     
-                                                    <td className="sorting_1">This Week</td>
+                                                    <td className="sorting_1">{t("ThisWeek")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">${(deliveries.coltan.weekly).toFixed(2)}</Link>
@@ -1458,7 +1555,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="ccd3">     
-                                                    <td className="sorting_1">This Month</td>
+                                                    <td className="sorting_1">{t("ThisMonth")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">${(deliveries.coltan.monthly).toFixed(2)}</Link>
@@ -1483,7 +1580,7 @@ const chartOptions_Purchase = {
                                         <table id="example" className="display dataTablesCard table-responsive-sm dataTable no-footer">
                                             <thead>
                                                 <tr>                                               	                                            
-                                                    <th>Total Purchases</th>
+                                                    <th>{t("TotalPurchase")}</th>
                                                     <th></th>                                          
                                                 </tr>
                                             </thead>
@@ -1497,7 +1594,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wd2">     
-                                                    <td className="sorting_1">This Week</td>
+                                                    <td className="sorting_1">{t("ThisWeek")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">${(deliveries.wolframite.weekly).toFixed(2)}</Link>
@@ -1505,7 +1602,7 @@ const chartOptions_Purchase = {
                                                     </td>
                                                 </tr>
                                                 <tr key="wd3">     
-                                                    <td className="sorting_1">This Month</td>
+                                                    <td className="sorting_1">{t("ThisMonth")}</td>
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">${(deliveries.wolframite.monthly).toFixed(2)}</Link>
@@ -1522,7 +1619,7 @@ const chartOptions_Purchase = {
                     <div className='col-12 mt-4'>
                         <div className="card">
                             <div className="card-header">
-                                <h4 className="card-title">Minerals Performance Overview</h4>
+                                <h4 className="card-title">{t("MineralsPerformanceOverview")}</h4>
                             </div>
                             <div className="card-body">
                                 <ReactApexChart
@@ -1541,7 +1638,7 @@ const chartOptions_Purchase = {
                     <div className='row'>
                         <div className='col-md-3'>
                             <select onChange={changeCompany} className='form-control'>
-                                <option>Select Company</option>
+                                <option>{t('SelectCompany')}</option>
                                 { companies.map(company=><option key={company.id} value={JSON.stringify(company)}>{company.name}</option>) }
                             </select>
                         </div>
@@ -1550,45 +1647,45 @@ const chartOptions_Purchase = {
                         <Nav as="ul" className="nav nav-pills review-tab" role="tablist">
                             <Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link  px-2 px-lg-3"  to="#production" role="tab" eventKey="production">
-                                    Production
+                                    {t("Production")}
                                 </Nav.Link>
                             </Nav.Item>
                             { access === `3ts` ?
                             <>
                             <Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#bags" role="tab" eventKey="bags">
-                                    Bags Produced
+                                    {t("BagsProduced")}
                                 </Nav.Link>
                             </Nav.Item>
                             <Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#processing" role="tab" eventKey="processing">
-                                    Processing
+                                    {t("Processing")}
                                 </Nav.Link>
                             </Nav.Item>
                             <Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#bags_proc" role="tab" eventKey="bags_proc">
-                                    Bags Processed
+                                    {t("BagsProcessed")}
                                 </Nav.Link>
                             </Nav.Item>
                             <Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#blending" role="tab" eventKey="blending">
-                                    Blending
+                                    {t("Blending")}
                                 </Nav.Link>
                             </Nav.Item>
                             <Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#drums" role="tab" eventKey="drums">
-                                    Drums
+                                    {t("Drums")}
                                 </Nav.Link>
                             </Nav.Item>
                             </> :
                             <Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#purchase" role="tab" eventKey="purchase">
-                                    Purchase
+                                    {t("Purchase")}
                                 </Nav.Link>
                             </Nav.Item> }
                             <Nav.Item as="li" className="nav-item">
                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#exports" role="tab" eventKey="exports">
-                                    Exports
+                                    {t("Exports")}
                                 </Nav.Link>
                             </Nav.Item>
                         </Nav>
@@ -1596,7 +1693,7 @@ const chartOptions_Purchase = {
                             <Tab.Pane eventKey="production" id='production'>
                                 <div className='card'>
                                     <div className='card-header'>
-                                        <h4 className='card-title'>Production</h4>
+                                        <h4 className='card-title'>{t("Production")}</h4>
                                     </div>
                                     <div className='card-body'>
                                         <div id="soldre-view" className="dataTables_wrapper no-footer">
@@ -1605,28 +1702,28 @@ const chartOptions_Purchase = {
                                                     <tr>
                                                         <th></th>
                                                         <th className="text-center text-dark">
-                                                            Production Weight (Kg)
+                                                            {t("ProductionWeight")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Business Location
+                                                        {t("BusinessLocation")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Name of RMB Representative
+                                                        {t("NameOfRMBRepresentative")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Traceability Agent
+                                                        {t("TraceabilityAgent")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Name of Operator Representative
+                                                        {t("NameOfOperatorRepresentative")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Number of Bags
+                                                        {t("NumberOfBags")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Total Weight (Kg)
+                                                        {t("TotalWeight")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Note
+                                                        {t("Note")}
                                                         </th>
                                                     </tr>
                                                 </thead>
@@ -1646,17 +1743,22 @@ const chartOptions_Purchase = {
                                                     }
                                                     {
                                                         trace.production.length === 0 ? <tr>
-                                                            <td colSpan={9}>The selected company does not have any production to show.</td>
+                                                            <td colSpan={9}>{t('NoProduction')}</td>
                                                         </tr> : <tr></tr>
                                                     }
                                                 </tbody>
                                             </Table> : <Table bordered striped hover responsive size='sm'>
                                                 <thead>
-                                                    <tr>
-                                                        { trace.production?.header?.map(h=><th className="text-center text-dark">
-                                                            {h}
-                                                        </th>) }
-                                                    </tr>
+                                                <tr>
+                                                {trace.production?.header?.map(h => (
+                                                    <th 
+                                                        className="text-center text-dark"
+                                                        key={h} // Added key for React list rendering
+                                                    >
+                                                        {t(h)}
+                                                    </th>
+                                                ))}
+                                            </tr>
                                                 </thead>
                                                 <tbody>
                                                     {
@@ -1680,52 +1782,52 @@ const chartOptions_Purchase = {
                             <Tab.Pane eventKey="bags" id='bags'>
                                 <div className='card'>
                                     <div className='card-header'>
-                                        <h4 className='card-title'>Bags Produced</h4>
+                                        <h4 className='card-title'>{t("BagsProduced")}</h4>
                                     </div>
                                     <div className='card-body'>
                                         <div id="soldre-view" className="dataTables_wrapper no-footer">
                                             <Table bordered striped hover responsive size='sm'>
                                                 <thead>
                                                     <tr>
-                                                        <th>Tag Number</th>
+                                                        <th>{t("TagNumber")}</th>
                                                         <th className="text-center text-dark">
-                                                            Weight (Kg)
+                                                        {t("Weight")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Tunnel/Pit Number or Name
+                                                        {t("TunnelPitNumberOrName")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Production/Mining Date
+                                                        {t("ProductionMiningDate")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Miner Name
+                                                        {t("MinerName")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Transporter Name
+                                                        {t("TransporterName")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            RMB Representative at Mine Site
+                                                        {t("RMBRepresentativeAtMineSite")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Security Officer Name
+                                                        {t("SecurityOfficerName")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Estimated concentrate %
+                                                        {t("EstimatedConcentratePercentage")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Color of The Bag/Drum Package
+                                                        {t("ColorOfTheBagDrumPackage")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Transport Mode
+                                                        {t("TransportMode")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Transport Itinerary
+                                                        {t("TransportItinerary")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Time
+                                                        {t("Time")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Production ID
+                                                        {t("ProductionID")}
                                                         </th>
                                                     </tr>
                                                 </thead>
@@ -1750,18 +1852,18 @@ const chartOptions_Purchase = {
                                                     }
                                                     {
                                                         trace?.bags.length === 0 ? <tr>
-                                                            <td colSpan={14}>The selected company does not have any produced bags to show.</td>
+                                                            <td colSpan={14}>{t("NoSelected")}</td>
                                                         </tr> : <tr></tr>
                                                     }
                                                 </tbody>
                                             </Table>
                                             <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
                                                 <div className="dataTables_info">
-                                                Showing {(bagsPage-1) * sort + 1} to{" "}
+                                                {t("Showing")} {(bagsPage-1) * sort + 1} {t("To")}{" "}
                                                 {trace?.bags.length > bagsPage * sort
                                                     ? bagsPage*sort
                                                     : trace?.bags.length}{" "}
-                                                of {trace?.bags.length} entries
+                                                {t("Of")}{trace?.bags.length} {t("Entries")}
                                                 </div>
                                                 <div
                                                     className="dataTables_paginate paging_simple_numbers"
@@ -1769,12 +1871,21 @@ const chartOptions_Purchase = {
                                                 >
                                                 <Link
                                                     className="paginate_button previous disabled"
+                                                    style={{
+                                                        minWidth: '120px',  // Adjust this value as needed
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        padding: '8px 12px',  // Adjust padding to your preference
+                                                        display: 'inline-block',
+                                                        textAlign: 'center'
+                                                    }}
                                                     // to="/reviews"
                                                     onClick={() =>
                                                     bagsPage > 1 && setbagsPage(bagsPage - 1)
                                                     }
                                                 >
-                                                    Previous
+                                                    {t("Previous")}
                                                 </Link>
                                                 <Link
                                                     className="paginate_button next mx-4"
@@ -1783,7 +1894,7 @@ const chartOptions_Purchase = {
                                                         setbagsPage(bagsPage + 1)
                                                     }
                                                 >
-                                                    Next
+                                                    {t("Next")}
                                                 </Link>
                                                 </div>
                                             </div>
@@ -1794,7 +1905,7 @@ const chartOptions_Purchase = {
                             <Tab.Pane eventKey="processing" id='processing'>
                                 <div className='card'>
                                     <div className='card-header'>
-                                        <h4 className='card-title'>Processing</h4>
+                                        <h4 className='card-title'>{t("Processing")}</h4>
                                     </div>
                                     <div className='card-body'>
                                         <div id="soldre-view" className="dataTables_wrapper no-footer">
@@ -1804,88 +1915,88 @@ const chartOptions_Purchase = {
                                                         <th>
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Date
+                                                            {t("Date")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Business Location
+                                                        {t("BusinessLocation")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            RMB Representative
+                                                        {t("RMBRepresentative")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Traceability Agent
+                                                        {t("TraceabilityAgent")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Operator Representative
+                                                        {t("OperatorRepresentative")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Mineral Type
+                                                        {t("MineralType")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Number of Input Bags
+                                                        {t("NumberOfInputBags")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Total Input Weight (kg)
+                                                        {t("TotalInputWeight")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Number of Output Bags
+                                                        {t("NumberOfOutputBags")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Total Output Weight(kg)
+                                                        {t("TotalOutputWeight")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Tag Number
+                                                        {t("TagNumber")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Tagging Date and Time
+                                                        {t("TaggingDateTime")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Grade (%)
+                                                        {t("Grade")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Processing Weight (kg)
+                                                        {t("ProcessingWeight")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Note
+                                                        {t("Note")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Name of mine supplier
+                                                        {t("NameOfMineSupplier")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Presence of Alex Stuart International (ASI)
+                                                        {t("PresenceOfASI")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Laboratory
+                                                        {t("Laboratory")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Certificate
+                                                        {t("Certificate")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Pricing (USD)
+                                                        {t("PricingUSD")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            LME
+                                                        {t("LME")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            TC
+                                                        {t("TC")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Price per Ta (%)
+                                                        {t("PricePerTaPercentage")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Unit Price
+                                                        {t("UnitPrice")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Total Price
+                                                        {t("TotalPrice")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Payment Method
+                                                        {t("PaymentMethod")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Security Officer Name
+                                                        {t("SecurityOfficerName")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Lot Number
+                                                        {t("LotNumber")}
                                                         </th>
                                                     </tr>
                                                 </thead>
@@ -1925,31 +2036,38 @@ const chartOptions_Purchase = {
                                                     }
                                                     {
                                                         trace.processing.length === 0 ? <tr>
-                                                            <td colSpan={29}>The selected company does not have any processing to show.</td>
+                                                            <td colSpan={29}>{t("NoProcessing")}</td>
                                                         </tr> : <tr></tr>
                                                     }
                                                 </tbody>
                                             </Table>
                                             <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
                                                 <div className="dataTables_info">
-                                                Showing {(procPage-1) * sort + 1} to{" "}
+                                                {t("Showing")} {(procPage-1) * sort + 1} {t("To")}{" "}
                                                 {trace.processing.length > procPage * sort
                                                     ? procPage*sort
                                                     : trace.processing.length}{" "}
-                                                of {trace.processing.length} entries
+                                                {t("Of")} {trace.processing.length} {t("Entrier")}
                                                 </div>
                                                 <div
                                                     className="dataTables_paginate paging_simple_numbers"
                                                     id="example2_paginate"
                                                 >
-                                                    <Link
-                                                        className="paginate_button previous disabled"
-                                                        onClick={() =>
-                                                            procPage > 1 && setprocPage(procPage - 1)
-                                                        }
-                                                    >
-                                                        Previous
-                                                    </Link>
+                                                <Link
+                                                    className="paginate_button previous disabled"
+                                                    style={{
+                                                        minWidth: '120px',  // Adjust this value as needed
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        padding: '8px 12px',  // Adjust padding to your preference
+                                                        display: 'inline-block',
+                                                        textAlign: 'center'
+                                                    }}
+                                                    onClick={() => drumsPage > 1 && setdrumsPage(drumsPage - 1)}
+                                                >
+                                                    {t("Previous")}
+                                                </Link>
                                                     <Link
                                                         className="paginate_button next mx-4"
                                                         onClick={() =>
@@ -1957,7 +2075,7 @@ const chartOptions_Purchase = {
                                                             setprocPage(procPage + 1)
                                                         }
                                                     >
-                                                        Next
+                                                        {t("Next")}
                                                     </Link>
                                                 </div>
                                             </div>
@@ -1968,43 +2086,43 @@ const chartOptions_Purchase = {
                             <Tab.Pane eventKey="bags_proc" id='bags_proc'>
                                 <div className='card'>
                                     <div className='card-header'>
-                                        <h4 className='card-title'>Bags Processed</h4>
+                                        <h4 className='card-title'>{t("BagsProcessed")}</h4>
                                     </div>
                                     <div className='card-body'>
                                         <div id="soldre-view" className="dataTables_wrapper no-footer">
                                             <Table bordered striped hover responsive size='sm'>
                                                 <thead>
                                                     <tr>
-                                                        <th>Tag Number</th>
+                                                        <th>{t("TagNumber")}</th>
                                                         <th className="text-center text-dark">
-                                                            Weight (Kg)
+                                                        {t("Weight")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Processing ID
+                                                        {t("ProcessingID")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Production/Mining Date
+                                                        {t("ProductionMiningDate")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            RMB Representative at Mine Site
+                                                        {t("RMBRepresentativeAtMineSite")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Security Officer Name
+                                                        {t("SecurityOfficerName")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Time
+                                                        {t("Time")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Storage Container
+                                                        {t("StorageContainer")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Color of the Package/Container
+                                                        {t("ColorOfThePackageContainer")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Mineral Type
+                                                        {t("MineralType")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Grade (%)
+                                                        {t("Grade")}
                                                         </th>
                                                     </tr>
                                                 </thead>
@@ -2025,18 +2143,18 @@ const chartOptions_Purchase = {
                                                         </tr>)
                                                     }{
                                                         trace?.bags_proc.length === 0 ? <tr>
-                                                            <td colSpan={24}>The selected company does not have any processed bags to show.</td>
+                                                            <td colSpan={24}>{t("NoProcessedBags")}</td>
                                                         </tr> : <tr></tr>
                                                     }
                                                 </tbody>
                                             </Table>
                                             <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
                                                 <div className="dataTables_info">
-                                                Showing {(bagsProcPage-1) * sort + 1} to{" "}
+                                                {t("Showing")} {(bagsProcPage-1) * sort + 1} {t("To")}{" "}
                                                 {trace?.bags_proc.length > bagsProcPage * sort
                                                     ? bagsProcPage*sort
                                                     : trace?.bags_proc.length}{" "}
-                                                of {trace?.bags_proc.length} entries
+                                                {t("Of")} {trace?.bags_proc.length} {t("Entries")}
                                                 </div>
                                                 <div
                                                     className="dataTables_paginate paging_simple_numbers"
@@ -2044,12 +2162,21 @@ const chartOptions_Purchase = {
                                                 >
                                                 <Link
                                                     className="paginate_button previous disabled"
+                                                    style={{
+                                                        minWidth: '120px',  // Adjust this value as needed
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        padding: '8px 12px',  // Adjust padding to your preference
+                                                        display: 'inline-block',
+                                                        textAlign: 'center'
+                                                    }}
                                                     // to="/reviews"
                                                     onClick={() =>
                                                         bagsProcPage > 1 && setbagsProcPage(bagsProcPage - 1)
                                                     }
                                                 >
-                                                    Previous
+                                                    {t("Previous")}
                                                 </Link>
                                                 <Link
                                                     className="paginate_button next mx-4"
@@ -2058,7 +2185,7 @@ const chartOptions_Purchase = {
                                                         setbagsProcPage(bagsProcPage + 1)
                                                     }
                                                 >
-                                                    Next
+                                                    {t("Next")}
                                                 </Link>
                                                 </div>
                                             </div>
@@ -2069,7 +2196,7 @@ const chartOptions_Purchase = {
                             <Tab.Pane eventKey="blending" id='blending'>
                                 <div className='card'>
                                     <div className='card-header'>
-                                        <h4 className='card-title'>Blending</h4>
+                                        <h4 className='card-title'>{t("Blending")}</h4>
                                     </div>
                                     <div className='card-body'>
                                     {
@@ -2090,14 +2217,15 @@ const chartOptions_Purchase = {
                                                             rowSpan={1}
                                                             colSpan={1}
                                                             style={{ width: 73 }}
+                                                            key={header} 
                                                             >
-                                                            {header}
+                                                           {t(header)}
                                                         </th>) }
                                                     </tr>
                                                     </thead>
                                                     <tbody>
                                                         { trace.blending['rows'].length === 0 ? <tr>
-                                                            <td colSpan={trace.blending['header'].length}>Company does not have any blending records to report on.</td> 
+                                                            <td colSpan={trace.blending['header'].length}>{t("NoBlendingRecords")}</td> 
                                                         </tr> :
                                                         trace.blending['rows'].map(row=><tr key={`blending-${row[0]}`}>{
                                                             row.map((field, i)=><td>
@@ -2118,34 +2246,34 @@ const chartOptions_Purchase = {
                             <Tab.Pane eventKey="drums" id='drums'>
                                 <div className='card'>
                                     <div className='card-header'>
-                                        <h4 className='card-title'>Drums</h4>
+                                        <h4 className='card-title'>{t("Drums")}</h4>
                                     </div>
                                     <div className='card-body'>
                                         <div id="soldre-view" className="dataTables_wrapper no-footer">
                                             <Table bordered striped hover responsive size='sm'>
                                                 <thead>
                                                     <tr>
-                                                        <th>Drum Number</th>
+                                                        <th>{t("DrumNumber")}</th>
                                                         <th className="text-center text-dark">
-                                                            Gross Weight
+                                                            {t("GrossWeight")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Net Weight 
+                                                        {t("NetWeight")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            ITSCI Tag Number
+                                                        {t("ITSCITagNumber")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Drum/Bag Color
+                                                        {t("DrumBagColor")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Grade (%) 
+                                                        {t("Grade")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Blending ID
+                                                        {t("BlendingID")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            ASI Tag Number
+                                                        {t("ASITagNumber")}
                                                         </th>
                                                     </tr>
                                                 </thead>
@@ -2164,18 +2292,18 @@ const chartOptions_Purchase = {
                                                         }
                                                         {
                                                             trace.drums.length === 0 ? <tr>
-                                                                <td colSpan={24}>The selected company does not have any drums to show.</td>
+                                                                <td colSpan={24}>{t("NoDrums")}</td>
                                                             </tr> : <tr></tr>
                                                         }
                                                 </tbody>
                                             </Table>
                                             <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
                                                 <div className="dataTables_info">
-                                                Showing {(drumsPage-1) * sort + 1} to{" "}
+                                                {t("Showing")} {(drumsPage-1) * sort + 1} {t("To")}{" "}
                                                 {trace.drums.length > drumsPage * sort
                                                     ? drumsPage*sort
                                                     : trace.drums.length}{" "}
-                                                of {trace.drums.length} entries
+                                               {t("Of")} {trace.drums.length} {t("Entries")}
                                                 </div>
                                                 <div
                                                     className="dataTables_paginate paging_simple_numbers"
@@ -2183,11 +2311,21 @@ const chartOptions_Purchase = {
                                                 >
                                                     <Link
                                                         className="paginate_button previous disabled"
+                                                        style={{
+                                                            minWidth: '120px',  // Adjust this value as needed
+                                                            whiteSpace: 'nowrap',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            padding: '8px 12px',  // Adjust padding to your preference
+                                                            display: 'inline-block',
+                                                            textAlign: 'center'
+                                                        }}
+                                                        
                                                         onClick={() =>
                                                             drumsPage > 1 && setdrumsPage(drumsPage - 1)
                                                         }
                                                     >
-                                                        Previous
+                                                        {t("Previous")}
                                                     </Link>
                                                     <Link
                                                         className="paginate_button next mx-4"
@@ -2196,7 +2334,7 @@ const chartOptions_Purchase = {
                                                             setdrumsPage(drumsPage + 1)
                                                         }
                                                     >
-                                                        Next
+                                                        {t("Next")}
                                                     </Link>
                                                 </div>
                                             </div>
@@ -2208,7 +2346,7 @@ const chartOptions_Purchase = {
                             <Tab.Pane eventKey="purchase" id='purchase'>
                                 <div className='card'>
                                     <div className='card-header'>
-                                        <h4 className='card-title'>Purchase</h4>
+                                        <h4 className='card-title'>{t("Purchase")}</h4>
                                     </div>
                                     <div className='card-body'>
                                     {
@@ -2224,14 +2362,15 @@ const chartOptions_Purchase = {
                                                             rowSpan={1}
                                                             colSpan={1}
                                                             style={{ width: 73 }}
+                                                            key={header}
                                                             >
-                                                            {header}
+                                                            {t(header)}
                                                         </th>) }
                                                     </tr>
                                                     </thead>
                                                     <tbody>
                                                         { trace.purchases['rows'].length === 0 ? <tr>
-                                                            <td colSpan={trace.purchases['header'].length}>Company does not have any purchase records to report on.</td> 
+                                                            <td colSpan={trace.purchases['header'].length}>{t("NoPurchaseRecords")}</td> 
                                                         </tr> :
                                                         trace.purchases['rows'].map(row=><tr key={`purchase-${row[0]}`}>{
                                                             row.map((field, i)=><td>
@@ -2252,7 +2391,7 @@ const chartOptions_Purchase = {
                             <Tab.Pane eventKey="exports" id='exports'>
                                 <div className='card'>
                                     <div className='card-header'>
-                                        <h4 className='card-title'>Exports</h4>
+                                        <h4 className='card-title'>{t("Exports")}</h4>
                                     </div>
                                     <div className='card-body'>
                                         <div id="soldre-view" className="dataTables_wrapper no-footer">
@@ -2260,73 +2399,73 @@ const chartOptions_Purchase = {
                                                 <thead>
                                                     <tr>
                                                         <th className="text-center text-dark">
-                                                            Date
+                                                            {t("Date")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Mineral Type
+                                                            {t("MineralType")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Grade
+                                                        {t("Grade")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Net Weight (kg)
+                                                        {t("NetWeightKg")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Gross Weight (kg)
+                                                        {t("GrossWeightKg")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Exportation ID
+                                                        {t("ExportationID")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            RMB Representative
+                                                        {t("RMBRepresentative")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Exporter Representative
+                                                        {t("ExporterRepresentative")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Traceability Agent
+                                                        {t("TraceabilityAgent")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Destination
+                                                        {t("Destination")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Itinerary
+                                                        {t("Itinerary")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Shipment Number
+                                                        {t("ShipmentNumber")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Export Certificate Number
+                                                        {t("ExportCertificateNumber")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            RRA certificate Number
+                                                        {t("RRACertificateNumber")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Export value (USD)
+                                                        {t("ExportValueUSD")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Transporter
+                                                        {t("Transporter")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            ID Number of the driver
+                                                        {t("IDNumberOfDriver")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Truck Plate Number - Front
+                                                        {t("TruckPlateNumberFront")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Truck Plate Number - Back
+                                                        {t("TruckPlateNumberBack")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Number of tags
+                                                        {t("NumberOfTags")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Total Gross Weight(kg)
+                                                        {t("TotalGrossWeightKg")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Total Net Weight(kg)
+                                                        {t("TotalNetWeightKg")}
                                                         </th>
                                                         <th className="text-center text-dark">
-                                                            Attachments
+                                                        {t("Attachments")}
                                                         </th>
                                                     </tr>
                                                 </thead>
@@ -2360,18 +2499,18 @@ const chartOptions_Purchase = {
                                                         }
                                                         {
                                                             trace.exports.length === 0 ? <tr>
-                                                                <td colSpan={24}>The selected company does not have any exports to show.</td>
+                                                                <td colSpan={24}>{t("NoExports")}</td>
                                                             </tr> : <tr></tr>
                                                         }
                                                 </tbody>
                                             </Table>
                                             <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
                                                 <div className="dataTables_info">
-                                                Showing {(exportsPage-1) * sort + 1} to{" "}
+                                                {t("Showing")} {(exportsPage-1) * sort + 1} {t("To")}{" "}
                                                 {(trace.exports.length > exportsPage * sort
                                                     ? exportsPage*sort
                                                     : trace.exports.length)}{" "}
-                                                of {trace.exports.length} entries
+                                                {t("Of")} {trace.exports.length} {t("Entries")}
                                                 </div>
                                                 <div
                                                     className="dataTables_paginate paging_simple_numbers"
@@ -2379,11 +2518,20 @@ const chartOptions_Purchase = {
                                                 >
                                                     <Link
                                                         className="paginate_button previous disabled"
+                                                        style={{
+                                                            minWidth: '120px',  // Adjust this value as needed
+                                                            whiteSpace: 'nowrap',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            padding: '8px 12px',  // Adjust padding to your preference
+                                                            display: 'inline-block',
+                                                            textAlign: 'center'
+                                                        }}
                                                         onClick={() =>
                                                             exportsPage > 1 && setexportsPage(exportsPage - 1)
                                                         }
                                                     >
-                                                        Previous
+                                                        {t("Previous")}
                                                     </Link>
                                                     <Link
                                                         className="paginate_button next mx-4"
@@ -2392,7 +2540,7 @@ const chartOptions_Purchase = {
                                                             setexportsPage(exportsPage + 1)
                                                         }
                                                     >
-                                                        Next
+                                                        {t("Next")}
                                                     </Link>
                                                 </div>
                                             </div>
@@ -2406,11 +2554,11 @@ const chartOptions_Purchase = {
                     <div className='col-md-6'>
                         <div className='card'>
                             <div className='card-header'>
-                            <h5 className='card-title'>Please select company to generate trace report</h5>
+                            <h5 className='card-title'>{t("SelectCompany")}</h5>
                             </div>
                             <div className='card-body'>
                                     <select onChange={changeCompany} className='form-control'>
-                                        <option>Select Company</option>
+                                        <option>{t("SelectCompanyShort")}</option>
                                         { companies.map(company=><option value={JSON.stringify(company)}>{company.name}</option>) }
                                     </select>
                                 </div>

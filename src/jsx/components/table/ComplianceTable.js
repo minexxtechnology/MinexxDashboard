@@ -3,11 +3,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { icon } from '@fortawesome/fontawesome-svg-core/import.macro'
 import { Link } from "react-router-dom";
 import { Modal } from "react-bootstrap";
-
-const ComplianceTable = ({ documents }) => {
+import { translations } from '../../pages/Companytranslation';
+const ComplianceTable = ({ documents,language }) => {
   const [data, setData] = useState(
     document.querySelectorAll("#allreview tbody tr")
   );
+  const t = (key) => {
+    if (!translations[language]) {
+      console.warn(`Translation for language "${language}" not found`);
+      return key;
+    }
+    return translations[language][key] || key;
+  };
   const sort = 6;
   const activePag = useRef(0);
   const [docu, setdocu] = useState()
@@ -26,7 +33,7 @@ const ComplianceTable = ({ documents }) => {
   useEffect(() => {
     setData(document.querySelectorAll("#allreview tbody tr"));
    // chackboxFun();
-  }, [ documents ]);
+  }, [ documents,language ]);
 
 
   // Active pagginarion
@@ -108,7 +115,7 @@ const ComplianceTable = ({ documents }) => {
 						className="d-none d-lg-table-cell sorting" tabIndex="0" aria-controls="example5"
 						rowSpan="1" colSpan="1" aria-label="Event NAME: activate to sort column ascending"
 					>
-						Document/Attachment
+					{t('Attachment')}
 					</th>
 					{/* <th
 						className="sorting" tabIndex="0" aria-controls="example5" rowSpan="1"
@@ -119,14 +126,14 @@ const ComplianceTable = ({ documents }) => {
 					<th
 						className="sorting" 
 					>
-						Action
+						{t('Action')}
 					</th>
 				</tr>
             </thead>
 
             <tbody>
               {documents.length === 0 ? <tr>
-                <td className="pa-5 text-center font-w200" colSpan={4}>There are no documents to display.</td>
+                <td className="pa-5 text-center font-w200" colSpan={4}>{t('Noducument')}</td>
               </tr>
               : documents.map( (doc, i) => <tr key={`doc${i}`} role="row" className="odd">
                 {/**<td className="sorting_1">
@@ -173,11 +180,11 @@ const ComplianceTable = ({ documents }) => {
 
           <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
             <div className="dataTables_info">
-              Showing {activePag.current * sort + 1} to{" "}
+              {t('Showing')} {activePag.current * sort + 1} to{" "}
               {data.length > (activePag.current + 1) * sort
                 ? (activePag.current + 1) * sort
                 : data.length}{" "}
-              of {data.length} entries
+              {t('of')} {data.length} {t('entries')}
             </div>
             <div
               className="dataTables_paginate paging_simple_numbers"
@@ -190,7 +197,7 @@ const ComplianceTable = ({ documents }) => {
                   activePag.current > 0 && onClick(activePag.current - 1)
                 }
               >
-                Previous
+                {t('Previous')}
               </Link>
               <span>
                 {paggination.map((number, i) => (
@@ -215,7 +222,7 @@ const ComplianceTable = ({ documents }) => {
                   onClick(activePag.current + 1)
                 }
               >
-                Next
+                {t('Next')}
               </Link>
             </div>
           </div>

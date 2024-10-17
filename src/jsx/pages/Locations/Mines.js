@@ -7,9 +7,10 @@ import { baseURL_ } from '../../../config'
 import { toast } from 'react-toastify';
 import { Logout } from '../../../store/actions/AuthActions';
 import axiosInstance from '../../../services/AxiosInstance';
-import { useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux';
+import { translations } from './MinesTranslation';
 
-const Mines = () => {
+const Mines = ({ language,country }) => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
     const { changeTitle } = useContext(ThemeContext);
@@ -22,10 +23,35 @@ const Mines = () => {
         'authorization': `Bearer ${localStorage.getItem('_authTkn')}`,
         'x-refresh': localStorage.getItem(`_authRfrsh`)
     }
+    const t = (key) => {
+        if (!translations[language]) {
+          console.warn(`Translation for language "${language}" not found`);
+          return key;
+        }
+        return translations[language][key] || key;
+      };
 
     const fetch = async() => {
         try {
-            let response = await axiosInstance.get(`${baseURL_}companies`, { headers: apiHeaders })
+            
+            let normalizedCountry = country.trim();
+            
+            // Special handling for Rwanda
+            if (normalizedCountry.toLowerCase() === 'rwanda') {
+                // Randomly choose one of the three formats
+                 normalizedCountry ='.Rwanda';
+                // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+            } else {
+                // For other countries, remove leading/trailing dots and spaces
+                normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+            }
+            let response = await axiosInstance.get(`${baseURL_}companies`,
+                {
+                    headers: apiHeaders,
+                    params: {
+                        country: normalizedCountry,
+                    }
+                })
             let response_ = await axiosInstance.get(`${baseURL_}mines`, { headers: apiHeaders })
             setinit(response.data.companies[0].id)
             setsuppliers(response.data.companies)
@@ -38,18 +64,18 @@ const Mines = () => {
                 if (err.response.code === 403) {
                     dispatch(Logout(navigate))
                 } else {
-                    toast.warn(err.response.message)
+                   // toast.warn(err.response.message)
                 }
             } catch (e) {
-                toast.error(err.message)
+                //toast.error(err.message)
             }
         }
     }
 
     useEffect(() => {
         fetch()
-        changeTitle(`Mines | Minexx`)
-    }, []);
+        changeTitle(`${t('Mines')} | Minexx`)
+    }, [language,country]);
 
     const filter = e => {
         let input = e.currentTarget.value
@@ -62,17 +88,17 @@ const Mines = () => {
         <>
             <div className="row page-titles">
                 <ol className="breadcrumb">
-                    <li className="breadcrumb-item active"><Link to={"/overview"}> Dashboard</Link></li>
-                    <li className="breadcrumb-item"><Link to={""}> Mines</Link></li>
+                    <li className="breadcrumb-item active"><Link to={"/overview"}> {t("Dashboard")}</Link></li>
+                    <li className="breadcrumb-item"><Link to={""}> {t('Mines')}</Link></li>
                 </ol>
             </div>
             <div className="row">
                 <div className="col-xl-12 col-xxl-12">
                     <div className="card">
                         <div className='card-header'>
-                            <h4 className='card-title'>Mines</h4>
+                            <h4 className='card-title'> {t('Mines')}</h4>
                             <div className='col-md-3'>
-                                <input className='form-control' placeholder='Search' onChange={filter} />
+                                <input className='form-control' placeholder={t('Search')} onChange={filter} />
                             </div>
                         </div>
                         <div className='card-body'>
@@ -94,7 +120,7 @@ const Mines = () => {
 
                                                         <Accordion.Collapse id={supplier?.id} eventKey={supplier?.id}>
                                                             <div className="accordion-body">
-                                                                {mines.filter(single => single.company === supplier.id).length === 0 ? <div className='pa-5 text-center'>There are no mine sites associated with {supplier.name}</div>
+                                                                {mines.filter(single => single.company === supplier.id).length === 0 ? <div className='pa-5 text-center'>{t('nomine')} {supplier.name}</div>
                                                                     : mines.filter(single => single.company === supplier.id).map(mine => (
                                                                         <p className='mt-2 mb-2' key={mine.id}>
                                                                             <Link className='text-warning' to={`/mines/${mine.id}`}>{mine.name}</Link><br />

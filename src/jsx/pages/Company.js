@@ -8,9 +8,10 @@ import { ThemeContext } from '../../context/ThemeContext';
 import { Logout } from '../../store/actions/AuthActions';
 import { useDispatch } from 'react-redux';
 import axiosInstance from '../../services/AxiosInstance';
+import { translations } from './Companytranslation';
 
 
-const Company = () => {
+const Company = ({ language }) => {
 
     const { id } = useParams()
     const navigate = useNavigate()
@@ -21,7 +22,13 @@ const Company = () => {
     const [shareholders, setshareholders] = useState([])
     const [beneficialOwners, setbeneficialOwners] = useState([])
     const [sharehodlerID, setsharehodlerID] = useState()
-
+    const t = (key) => {
+        if (!translations[language]) {
+          console.warn(`Translation for language "${language}" not found`);
+          return key;
+        }
+        return translations[language][key] || key;
+      };
     const getCompany = async()=>{
         axiosInstance.get(`companies/${id}`).then(response=>{
             setcompany(response.data.company)
@@ -50,6 +57,7 @@ const Company = () => {
 				toast.error(err.message)
 			}
         })
+       
 
         axiosInstance.get(`${baseURL_}shareholders/${id}`).then(response=>{
             setshareholders(response.data.shareholders)
@@ -82,7 +90,7 @@ const Company = () => {
     
     useEffect(() => {
         getCompany()
-    }, [])
+    }, [language])
 
     return (
         <>
@@ -97,8 +105,8 @@ const Company = () => {
             </Modal>
             <div className="row page-titles">
                 <ol className="breadcrumb">
-                    <li className="breadcrumb-item active"><Link to={"/overview"}>Dashboard</Link></li>
-                    <li className="breadcrumb-item"><Link to={"/exports"}>Exports</Link></li>
+                    <li className="breadcrumb-item active"><Link to={"/overview"}>{t('Dashboard')}</Link></li>
+                    <li className="breadcrumb-item"><Link to={"/exports"}>{t('Exports')}</Link></li>
                     <li className="breadcrumb-item"><Link to={""}>{company ? company.name : `Company Details`}</Link></li>
                 </ol>
             </div>
@@ -112,22 +120,22 @@ const Company = () => {
                                         <Nav as="ul" className="nav nav-pills review-tab" role="tablist">
                                             <Nav.Item as="li" className="nav-item">
                                                 <Nav.Link className="nav-link  px-2 px-lg-3"  to="#basic" role="tab" eventKey="basic">
-                                                    Basic Info
+                                                    {t('BasicInfo')}
                                                 </Nav.Link>
                                             </Nav.Item>
                                             <Nav.Item as="li" className="nav-item">
                                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#documents" role="tab" eventKey="documents">
-                                                    Documents <span className='badge badge-primary'>{documents.length}</span>
+                                                    {t('Documents')} <span className='badge badge-primary'>{documents.length}</span>
                                                 </Nav.Link>
                                             </Nav.Item>
                                             <Nav.Item as="li" className="nav-item">
                                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#shareholders" role="tab" eventKey="shareholders">
-                                                    Shareholders
+                                                    {t('Shareholders')}
                                                 </Nav.Link>
                                             </Nav.Item>
                                             <Nav.Item as="li" className="nav-item">
                                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#owners" role="tab" eventKey="owners">
-                                                    Beneficial Owners
+                                                    {t('BeneficialOwners')}
                                                 </Nav.Link>
                                             </Nav.Item>
                                         </Nav>
@@ -141,32 +149,32 @@ const Company = () => {
                             <Tab.Pane eventKey="basic" id='basic'>
                                 <div className='card'>
                                     <div className='card-body'>
-                                        <h4 className="text-primary mb-2">Company Name</h4>
+                                        <h4 className="text-primary mb-2">{t('CompanyName')}</h4>
                                         <Link className="text-black">{company?.name || `--`}</Link>
                                         
-                                        <h4 className="text-primary mb-2 mt-4">Company Address</h4>
+                                        <h4 className="text-primary mb-2 mt-4">{t('CompanyAddress')}</h4>
                                         <Link className="text-black">{company?.address || `--`}</Link>
                                         
-                                        <h4 className="text-primary mb-2 mt-4">Company Country</h4>
+                                        <h4 className="text-primary mb-2 mt-4">{t('CompanyCountry')}</h4>
                                         <Link className="text-black">{company?.country || `--`}</Link>
                                         
-                                        <h4 className="text-primary mb-2 mt-4">Company Number</h4>
+                                        <h4 className="text-primary mb-2 mt-4">{t('CompanyNumber')}</h4>
                                         <Link className="text-black">{company?.number || `--`}</Link>
                                         
-                                        <h4 className="text-primary mb-2 mt-4">Company Type</h4>
+                                        <h4 className="text-primary mb-2 mt-4">{t('CompanyType')}</h4>
                                         <Link className="text-black">{company?.type || `--`}</Link>
                                     </div>
                                 </div>
                             </Tab.Pane>
                             <Tab.Pane eventKey="documents" id='documents'>
-								<ComplianceTable documents={documents}/>
+								<ComplianceTable documents={documents} language={language}/>
                             </Tab.Pane>
                             <Tab.Pane eventKey="shareholders" id='shareholders'>
                                 {
                                     shareholders.length === 0 ? 
                                     <div className='card'>
                                         <div className=' card-body text-center'>
-                                            <p>No shareholder information/details.</p>
+                                            <p>{t('NoShare')}</p>
                                         </div>
                                     </div>
                                     : shareholders?.map((shareholder, i) => (
@@ -174,10 +182,10 @@ const Company = () => {
                                             <div className='card'>
                                                 <div className=' card-body'>
                                                     <h5 className='text-primary'>{shareholder?.name}</h5>
-                                                    <span>Nationality: {shareholder?.nationality}</span><br/>
-                                                    <span>Percentage Owned: {shareholder?.percent}%</span><br/>
-                                                    <span>Address: {shareholder?.address || `--`}</span><br/>
-                                                    { shareholder.nationalID ? <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(shareholder)}>View National ID</Link> : <div></div> }
+                                                    <span>{t('Nationality')}: {shareholder?.nationality}</span><br/>
+                                                    <span>{t('PercentageOwned')}: {shareholder?.percent}%</span><br/>
+                                                    <span>{t('Address')}: {shareholder?.address || `--`}</span><br/>
+                                                    { shareholder.nationalID ? <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(shareholder)}>{t('View')}</Link> : <div></div> }
                                                 </div>
                                             </div>
                                     </div>
@@ -187,7 +195,7 @@ const Company = () => {
                                 { beneficialOwners.length === 0 ?
                                     <div className='card'>
                                         <div className=' card-body text-center'>
-                                            <p>No beneficial owner(s) information/details.</p>
+                                            <p>{t('Nobeneficial')}</p>
                                         </div>
                                     </div>
                                     : beneficialOwners?.map((owner, i) => (
@@ -195,10 +203,10 @@ const Company = () => {
                                         <div className='card'>
                                             <div className=' card-body'>
                                                 <h5 className='text-primary'>{owner?.name}</h5>
-                                                <span>Nationality: {owner?.nationality}</span><br/>
-                                                <span>Percentage Owned: {owner?.percent}%</span><br/>
-                                                <span>Address: {owner?.address || '--'} </span><br/>
-                                                { owner.nationalID ? <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(owner)}>View National ID</Link> : <div></div> }
+                                                <span>{t('Nationality')}: {owner?.nationality}</span><br/>
+                                                <span>{t('PercentageOwned')}: {owner?.percent}%</span><br/>
+                                                <span>{t('Address')}: {owner?.address || '--'} </span><br/>
+                                                { owner.nationalID ? <Link to="" className='btn btn-sm btn-primary mt-3' onClick={()=>setsharehodlerID(owner)}>{t('View')}</Link> : <div></div> }
                                             </div>
                                         </div>
                                     </div>

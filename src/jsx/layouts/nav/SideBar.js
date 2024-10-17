@@ -10,6 +10,45 @@ import {RootMenu, RegulatorMenu, BIMenu, IMenu, BMenu} from './Menu';
 import {useScrollPosition} from "@n8tb1t/use-scroll-position";
 import { ThemeContext } from "../../../context/ThemeContext";
 
+// Add translations for menu items
+const menuTranslations = {
+  en: {
+    Overview: "Overview",
+    Exports: "Exports",
+    Mines: "Mines",
+    "Knowledge Base": "Knowledge Base",
+    Reporting: "Reporting",
+    "User Management": "User Management",
+    "Dashboard Users": "Dashboard Users",
+    "App Users": "App Users",
+    "Trace Report": "Trace Report",
+    "Total Stock Delivery": "Total Stock Delivery",
+    "In-Stock Country Balance": "In-Stock Country Balance",
+    "Total Purchase": "Total Purchase",
+    "Get System Report Now": "Get System Report Now",
+    "All Rights Reserved": "All Rights Reserved",
+    "Developed with": "Developed with",
+    "by": "by"
+  },
+  fr: {
+    Overview: "Vue d'ensemble",
+    Exports: "Exportations",
+    Mines: "Mines",
+    "Knowledge Base": "Base de connaissances",
+    Reporting: "Rapports",
+    "User Management": "Gestion des utilisateurs",
+    "Dashboard Users": "Utilisateurs du tableau de bord",
+    "App Users": "Utilisateurs de l'application",
+    "Trace Report": "Rapport de traçabilité",
+    "Total Stock Delivery": "Livraison totale de stock",
+    "In-Stock Country Balance": "Solde du pays en stock",
+    "Total Purchase": "Achat total",
+    "Get System Report Now": "Obtenir le rapport système maintenant",
+    "All Rights Reserved": "Tous droits réservés",
+    "Developed with": "Développé avec",
+    "by": "par"
+  }
+};
 
 const reducer = (previousState, updatedState) => ({
   ...previousState,
@@ -17,89 +56,85 @@ const reducer = (previousState, updatedState) => ({
 });
 
 const initialState = {
-  active : "",
-  activeSubmenu : "",
+  active: "",
+  activeSubmenu: "",
 }
 
-
-const SideBar = () => {
-  var d  = new Date();
-	const {
-		iconHover,
-		sidebarposition,
-		headerposition,
-		sidebarLayout,
+const SideBar = ({ language }) => {
+  const {
+    iconHover,
+    sidebarposition,
+    headerposition,
+    sidebarLayout,
     ChangeIconSidebar,
-  
-	} = useContext(ThemeContext);
-  let menu = []
-  const user = JSON.parse(localStorage.getItem(`_authUsr`))
-	const access = localStorage.getItem(`_dash`) || '3ts'
-
-  if(user){
-    if(user.type === 'buyer'){
-      menu = BMenu
-    }else if(user.type === 'investor'){
-      menu = IMenu
-    }else if(user.type === 'minexx'){
-      menu = RootMenu
-    }else{
-      menu = RegulatorMenu
-    }
-
-    // if(dash){
-    //   if(dash === 'gold'){
-    //     menu = menu.filter(item=>{
-    //       return item.title !== "Exports"
-    //     })
-    //   }
-    // }
-  }
+  } = useContext(ThemeContext);
 
   const [state, setState] = useReducer(reducer, initialState);	
+  const [hideOnScroll, setHideOnScroll] = useState(true);
 
- //For scroll
- 
- 
-	  let handleheartBlast = document.querySelector('.heart');
-	  function heartBlast(){
-		return handleheartBlast.classList.toggle("heart-blast");
-	  }
-  
- 	const [hideOnScroll, setHideOnScroll] = useState(true)
-	useScrollPosition(
-		({ prevPos, currPos }) => {
-		  const isShow = currPos.y > prevPos.y
-		  if (isShow !== hideOnScroll) setHideOnScroll(isShow)
-		},
-		[hideOnScroll]
-	)
+  let menu = [];
+  const user = JSON.parse(localStorage.getItem(`_authUsr`));
+  const access = localStorage.getItem(`_dash`) || '3ts';
 
- 
-	const handleMenuActive = status => {		
-		setState({active : status});			
-		if(state.active === status){				
-			setState({active : ""});
-		}   
-	}
-	const handleSubmenuActive = (status) => {		
-		setState({activeSubmenu : status})
-		if(state.activeSubmenu === status){
-			setState({activeSubmenu : ""})			
-		}    
-	}
-	// Menu dropdown list End
+  if (user) {
+    if (user.type === 'buyer') {
+      menu = BMenu;
+    } else if (user.type === 'investor') {
+      menu = IMenu;
+    } else if (user.type === 'minexx') {
+      menu = RootMenu;
+    } else {
+      menu = RegulatorMenu;
+    }
+  }
 
-  /// Path
+  useScrollPosition(
+    ({ prevPos, currPos }) => {
+      const isShow = currPos.y > prevPos.y;
+      if (isShow !== hideOnScroll) setHideOnScroll(isShow);
+    },
+    [hideOnScroll]
+  );
+
+  const handleMenuActive = status => {		
+    setState({ active: status });			
+    if (state.active === status) {				
+      setState({ active: "" });
+    }   
+  }
+
+  const handleSubmenuActive = (status) => {		
+    setState({ activeSubmenu: status });
+    if (state.activeSubmenu === status) {
+      setState({ activeSubmenu: "" });			
+    }    
+  }
+
+  // Function to get translated text
+  const t = (key) => menuTranslations[language][key] || key;
+
+  // Function to get translated menu item
+  const getTranslatedMenuItem = (item) => {
+    const translatedTitle = t(item.title);
+    return {
+      ...item,
+      title: translatedTitle,
+      content: item.content ? item.content.map(getTranslatedMenuItem) : undefined
+    };
+  };
+
+  // Translate menu items
+  const translatedMenu = menu.map(getTranslatedMenuItem);
+
   let path = window.location.pathname;
   path = path.split("/");
   path = path[path.length - 1];
-  	
+
   return (
     <div 
-      onMouseEnter={()=>ChangeIconSidebar(true)}
-      onMouseLeave={()=>ChangeIconSidebar(false)}
-      className={`deznav  border-right ${iconHover} ${
+      onMouseEnter={() => ChangeIconSidebar(true)}
+      onMouseLeave={() => ChangeIconSidebar(false)}
+      className={`deznav border-right ${iconHover} ${
         sidebarposition.value === "fixed" &&
         sidebarLayout.value === "horizontal" &&
         headerposition.value === "static"
@@ -109,103 +144,101 @@ const SideBar = () => {
           : ""
       }`}
     >
-      <PerfectScrollbar className="deznav-scroll">         
-          <ul className="metismenu" id="menu">
-              { menu.filter(item=>user.type !== "buyer" ? item : item.to !== "reports").map((data, index)=>{
-                let menuClass = data.classChange;
-                  if(menuClass === "menu-title"){
-                    return(
-                        <li className={menuClass}  key={index} >{data.title}</li>
-                    )
-                  }else{
-                    return(				
-                      <li className={` ${ path === data.to || window.location.pathname.includes(data.to) || state.active === data.title ? 'mm-active' : ''}`}
-                        key={index} 
-                      >
-                        
-                        {data.content ?
-                            <Link to={"#"} 
-                              className={`has-arrow`}
-                              onClick={() => {handleMenuActive(data.title)}}
-                            >								
-								                {data.iconStyle}
-                                {" "}<span className="nav-text">{data.title}
-                                  {data.update && data.update.length > 0 ?
-                                    <span className="badge badge-xs badge-danger ms-2">{data.update}</span>
-                                    :
-                                    ''
-                                  }
-                                </span>
-                            </Link>
-                        :
-                          <Link className={data.to === path || window.location.pathname.includes(data.to) ? 'mm-active' : ''} to={data.to} >
-                              {data.iconStyle}
-                              {" "}<span className="nav-text">{data.title}
-                                  {data.update && data.update.length > 0 ?
-                                    <span className="badge badge-xs badge-danger ms-2">{data.update}</span>
-                                    :
-                                    ''
-                                  }
-                              </span>
-                          </Link>
+      <PerfectScrollbar className="deznav-scroll">
+        <ul className="metismenu" id="menu">
+          {translatedMenu.filter(item => user.type !== "buyer" ? item : item.to !== "reports").map((data, index) => {
+            let menuClass = data.classChange;
+            if (menuClass === "menu-title") {
+              return (
+                <li className={menuClass} key={index}>{data.title}</li>
+              );
+            } else {
+              return (
+                <li className={`${path === data.to || window.location.pathname.includes(data.to) || state.active === data.title ? 'mm-active' : ''}`}
+                  key={index}
+                >
+                  {data.content ? (
+                    <Link to={"#"} 
+                      className="has-arrow"
+                      onClick={() => handleMenuActive(data.title)}
+                    >								
+                      {data.iconStyle}
+                      <span className="nav-text">{data.title}
+                        {data.update && data.update.length > 0 &&
+                          <span className="badge badge-xs badge-danger ms-2">{data.update}</span>
                         }
-                        {data.content ? <Collapse in={state.active === data.title ? true :false}>
-                          <ul className={`${menuClass === "mm-collapse" && data.content ? "mm-show" : ""}`}>
-                            {data.content && data.content.filter(c=>access === `gold` ? !["reports/daily", "reports/mtd", "reports/deliveries"].includes(c.to) : c!== null).map((data,index) => {									
-                              return(	
-                                  <li key={index}
-                                    className={`${ path === data.to || window.location.pathname.includes(data.to) ? "mm-active" : ""}`}                                    
+                      </span>
+                    </Link>
+                  ) : (
+                    <Link className={data.to === path || window.location.pathname.includes(data.to) ? 'mm-active' : ''} to={data.to}>
+                      {data.iconStyle}
+                      <span className="nav-text">{data.title}
+                        {data.update && data.update.length > 0 &&
+                          <span className="badge badge-xs badge-danger ms-2">{data.update}</span>
+                        }
+                      </span>
+                    </Link>
+                  )}
+                  {data.content && (
+                    <Collapse in={state.active === data.title}>
+                      <ul className={`${menuClass === "mm-collapse" && data.content ? "mm-show" : ""}`}>
+                        {data.content && data.content.filter(c => access === `gold` ? !["reports/daily", "reports/mtd", "reports/deliveries"].includes(c.to) : c !== null).map((subData, subIndex) => {									
+                          return (
+                            <li key={subIndex}
+                              className={`${path === subData.to || window.location.pathname.includes(subData.to) ? "mm-active" : ""}`}
+                            >
+                              {subData.content ? (
+                                <>
+                                  <Link to={subData.to} className={subData.content ? 'has-arrow' : ''}
+                                    onClick={() => handleSubmenuActive(subData.title)}
                                   >
-                                    {data.content ?
-                                        <>
-                                          <Link to={data.to} className={data.content ? 'has-arrow' : ''}
-                                            onClick={() => { handleSubmenuActive(data.title)}}
-                                          >
-                                            {data.title}
+                                    {subData.title}
+                                  </Link>
+                                  <Collapse in={state.activeSubmenu === subData.title}>
+                                    <ul className={`${menuClass === "mm-collapse" ? "mm-show" : ""}`}>
+                                      {subData.content && subData.content.filter(c => c.to !== "/reports/daily").map((subSubData, subSubIndex) => (
+                                        <li className={`${path === subSubData.to || window.location.pathname.includes(subSubData.to) ? "mm-active" : ""}`} key={subSubIndex}>
+                                          <Link className={`${path === subSubData.to || window.location.pathname.includes(subSubData.to) ? "mm-active" : ""}`} to={subSubData.to}>
+                                            {subSubData.title}
                                           </Link>
-                                          <Collapse in={state.activeSubmenu === data.title ? true :false}>
-                                              <ul className={`${menuClass === "mm-collapse" ? "mm-show" : ""}`}>
-                                                {data.content && data.content.filter(c=>c.to!== "/reports/daily").map((data,index) => {
-                                                  return(	
-                                                    <>
-                                                      <li className={`${path === data.to || window.location.pathname.includes(data.to) ? "mm-active" : ""}`} key={index}>
-                                                        <Link className={`${path === data.to || window.location.pathname.includes(data.to) ? "mm-active" : ""}`} to={data.to}>{data.title}123</Link>
-                                                      </li>
-                                                    </>
-                                                  )
-                                                })}
-                                              </ul>
-                                          </Collapse>
-                                        </>
-                                      :
-                                      <Link className={`${path === data.to || window.location.pathname.includes(data.to) ? "mm-active" : ""}`} to={data.to}>
-                                        {data.title}
-                                      </Link>
-                                    }
-                                    
-                                  </li>
-                                
-                              )
-                            })}
-                          </ul>
-                        </Collapse> : null }
-                      </li>	
-                    )
-                }
-              })}          
-          </ul>	
-          { user.type === 'minexx' ? 
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </Collapse>
+                                </>
+                              ) : (
+                                <Link className={`${path === subData.to || window.location.pathname.includes(subData.to) ? "mm-active" : ""}`} to={subData.to}>
+                                  {subData.title}
+                                </Link>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </Collapse>
+                  )}
+                </li>	
+              );
+            }
+          })}          
+        </ul>	
+        {user.type === 'minexx' && (
           <div className="plus-box">
-            <p className="fs-15 font-w500 mb-1">Get System Report Now</p>
-            <Link to={"summary-report"} className="text-white fs-26"><i className="las la-long-arrow-alt-right"></i></Link>
-          </div> : <></> }
-          <div className="copyright mt-4">
-            <p className="fs-13 font-w200"><strong className="font-w400">Minexx</strong> &copy; {d.getFullYear()} All Rights Reserved</p>
-            <p>Developed with <i className="fa fa-heart text-danger"></i> by Minexx</p>
-          </div> 
-        </PerfectScrollbar>
-      </div>
-    );
+            <p className="fs-15 font-w500 mb-1">{t("Get System Report Now")}</p>
+            <Link to={"summary-report"} className="text-white fs-26">
+              <i className="las la-long-arrow-alt-right"></i>
+            </Link>
+          </div>
+        )}
+        <div className="copyright mt-4">
+          <p className="fs-13 font-w200">
+            <strong className="font-w400">Minexx</strong> &copy; {new Date().getFullYear()} {t("All Rights Reserved")}
+          </p>
+          <p>{t("Developed with")} <i className="fa fa-heart text-danger"></i> {t("by")} Minexx</p>
+        </div> 
+      </PerfectScrollbar>
+    </div>
+  );
 };
 
 export default SideBar;

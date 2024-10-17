@@ -12,8 +12,9 @@ export function signUp(email, password) {
         password,
         returnSecureToken: true,
     };
+    const apiKey = process.env.apiKey_authservice
     return axios.post(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyD3RPAp3nuETDn9OQimqn_YF6zdzqWITII`,
+        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
         postData,
     );
 }
@@ -25,7 +26,7 @@ export function login(email, password) {
         returnSecureToken: true,
     };
     return axios.post(
-        `https://minexx-api-main.vercel.app/login`,
+        `https://minexx-api-main-countrys.vercel.app/login`,
         postData,
     );
 }

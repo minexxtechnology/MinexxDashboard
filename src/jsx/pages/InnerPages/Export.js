@@ -7,8 +7,9 @@ import { ThemeContext } from '../../../context/ThemeContext';
 import { Logout } from '../../../store/actions/AuthActions';
 import { useDispatch } from 'react-redux';
 import axiosInstance from '../../../services/AxiosInstance';
+import { translations } from '../Events/Exporttranslation';
 
-const Export = () => {
+const Export = ({country,language}) => { 
 
     const { id } = useParams()
     const navigate = useNavigate()
@@ -47,36 +48,44 @@ const Export = () => {
         null
     ])
 	const user = JSON.parse(localStorage.getItem(`_authUsr`))
-    const documents = access === "3ts" ? [
-        `Provisional Invoice`,
-        `Freight Forwarder's Cargo Receipt`,
-        `Exporter Sheet`,
-        `Alex Stewart Certificate of Assay`,
-        `Alex Stewart Packing report including weight`,
-        `Certificate of Origin-certified by government authorities`,
-        `ICGLR Certificate`,
-        `Inland Transportation from Mine to the port`,
-        `Original Warehouse Certificate`,
-        `Certificate of Insurance`,
-        `Bill of Lading`,
-        `C2 Form`,
-        `Mine Sheets`,
-        `Processing Sheets`,
-        `RRA Customs Declaration`,
-        `Tag List`,
-        `Other Scanned Exporter Documents`,
-        `Other Exporter Documents`,
-        `Other Transporter Document`,
-    ] : [
-        "Exporter Invoice",
-        "Packing List",
-        "Non-narcotics Note",
-        "Essay Report",
-        "Proof of Payment of Essay and Witholding Tax",
-        "Copy of Customs Declaration",
-        "Export Approval"
-    ]
+    const t = (key) => {
+        if (!translations[language]) {
+          console.warn(`Translation for language "${language}" not found`);
+          return key;
+        }
+        return translations[language][key] || key;
+      };
 
+    const documents = access === "3ts" ? [
+        t("ProvisionalInvoice"),
+        t("FreightForwarderCargoReceipt"),
+        t("ExporterSheet"),
+        t("AlexStewartCertificateOfAssay"),
+        t("AlexStewartPackingReport"),
+        t("CertificateOfOrigin"),
+        t("ICGLRCertificate"),
+        t("InlandTransportation"),
+        t("OriginalWarehouseCertificate"),
+        t("CertificateOfInsurance"),
+        t("BillOfLading"),
+        t("C2Form"),
+        t("MineSheets"),
+        t("ProcessingSheets"),
+        t("RRACustomsDeclaration"),
+        t("TagList"),
+        t("OtherScannedExporterDocuments"),
+        t("OtherExporterDocuments"),
+        t("OtherTransporterDocument"),
+    ] : [
+        t("ExporterInvoice"),
+        t("PackingList"),
+        t("NonNarcoticsNote"),
+        t("EssayReport"),
+        t("ProofOfPayment"),
+        t("CopyOfCustomsDeclaration"),
+        t("ExportApproval")
+    ];
+   
     let eid = null
     const getExport = async()=>{
         if(eid == null){
@@ -130,14 +139,14 @@ const Export = () => {
     
     useEffect(() => {
         getExport()
-    }, [id])
+    }, [id,country,language])
 
     return (
         <div>
             <div className="row page-titles">
                 <ol className="breadcrumb">
-                    <li className="breadcrumb-item active"><Link to={"#"}> Dashboard</Link></li>
-                    <li className="breadcrumb-item"><Link to={`/exports`}> Exports</Link></li>
+                    <li className="breadcrumb-item active"><Link to={"#"}> {t('Dashboard')}</Link></li>
+                    <li className="breadcrumb-item"><Link to={`/exports`}> {t('Exports')}</Link></li>
                     <li className="breadcrumb-item"><Link to={""}> Shipment: {export_?.shipmentNumber || 'Export ID MISSING'}</Link></li>
                 </ol>
             </div>
@@ -151,12 +160,12 @@ const Export = () => {
                                         <Nav as="ul" className="nav nav-pills review-tab" role="tablist">
                                             <Nav.Item as="li" className="nav-item">
                                                 <Nav.Link className="nav-link  px-2 px-lg-3"  to="#basic" role="tab" eventKey="basic">
-                                                    Shipment Details
+                                                {t('ShipmentDetails')}
                                                 </Nav.Link>
                                             </Nav.Item>
                                             <Nav.Item as="li" className="nav-item">
                                                 <Nav.Link className="nav-link px-2 px-lg-3" to="#documents" role="tab" eventKey="documents">
-                                                    Documents
+                                                    {t("Documents")}
                                                 </Nav.Link>
                                             </Nav.Item>
                                         </Nav>
@@ -173,7 +182,7 @@ const Export = () => {
                                         <Accordion className="accordion accordion-primary" defaultActiveKey="exportation">
                                             <Accordion.Item className="accordion-item" key="exportation" eventKey="exportation">
                                                 <Accordion.Header className="accordion-header rounded-lg">
-                                                    Exportation Details
+                                                {t("ExportationDetails")}
                                                 </Accordion.Header>
                                                 <Accordion.Collapse eventKey={`exportation`}>
                                                     <div className="accordion-body">
@@ -184,49 +193,49 @@ const Export = () => {
                                                             <div className='col-lg-6'>
                                                                 { export_?.exportationID ?
                                                                     <>
-                                                                        <h4 className="text-primary mb-2 mt-4">Exportation ID</h4>
+                                                                        <h4 className="text-primary mb-2 mt-4">{t("ExportationID")}</h4>
                                                                         <Link className="text-black">{export_?.exportationID || `--`}</Link>
                                                                     </>
                                                                 : <></> }
 
                                                                 { export_?.date ?
                                                                     <>
-                                                                        <h4 className="text-primary mb-2 mt-4">Exportation Date</h4>
+                                                                        <h4 className="text-primary mb-2 mt-4">{t("ExportationDate")}</h4>
                                                                         <Link className="text-black">{export_?.date || `--`}</Link>
                                                                     </>
                                                                 : <></> }
                                                             
                                                                 { export_?.mineral ?
                                                                     <>
-                                                                        <h4 className="text-primary mb-2 mt-4">Mineral Type</h4>
+                                                                        <h4 className="text-primary mb-2 mt-4">{t("MineralType")}</h4>
                                                                         <Link className="text-black">{export_?.mineral || `--`}</Link>
                                                                     </>
                                                                 : <></> }
                                                                 
                                                                 { export_?.grade ?
                                                                     <>
-                                                                        <h4 className="text-primary mb-2 mt-4">Grade</h4>
+                                                                        <h4 className="text-primary mb-2 mt-4">{t("Grade")}</h4>
                                                                         <Link className="text-black">{export_?.grade || `--`}</Link>
                                                                     </>
                                                                 : <></> }
                                                                 
                                                                 { export_?.netWeight ?
                                                                     <>
-                                                                        <h4 className="text-primary mb-2 mt-4">Net Weight</h4>
+                                                                        <h4 className="text-primary mb-2 mt-4">{t("NetWeight")}</h4>
                                                                         <Link className="text-black">{access === '3ts' ? export_?.netWeight : (export_?.netWeight/1000).toFixed(2) || `--`} kg</Link>
                                                                     </>
                                                                 : <></> }
                                                                 
                                                                 { export_?.grossWeight ?
                                                                     <>
-                                                                        <h4 className="text-primary mb-2 mt-4">Gross Weight</h4>
+                                                                        <h4 className="text-primary mb-2 mt-4">{t("GrossWeight")}</h4>
                                                                         <Link className="text-black">{export_?.grossWeight || `--`} kg</Link>
                                                                     </>
                                                                 : <></> }
                                                                 
                                                                 { export_?.tags ?
                                                                     <>
-                                                                        <h4 className="text-primary mb-2 mt-4">Number of Tags</h4>
+                                                                        <h4 className="text-primary mb-2 mt-4">{t("NumberOfTags")}</h4>
                                                                         <Link className="text-black">{export_?.tags || 0}</Link>
                                                                     </>
                                                                 : <></> }
@@ -237,7 +246,7 @@ const Export = () => {
                                             </Accordion.Item>
                                             { export_?.link ? <Accordion.Item className="accordion-item" key="transport" eventKey="shipment">
                                                 <Accordion.Header className="accordion-header rounded-lg">
-                                                    Shipment Tracking
+                                                {t("ShipmentTracking")}
                                                 </Accordion.Header>
                                                 <Accordion.Collapse eventKey={`shipment`}>
                                                     <div className="accordion-body"><a target="_blank" href={`${export_?.link}`} className='text-primary' rel="noreferrer">Click here to Track the Shipment</a></div>
@@ -246,27 +255,27 @@ const Export = () => {
                                             
                                             <Accordion.Item className="accordion-item" key="transport" eventKey="transport">
                                                 <Accordion.Header className="accordion-header rounded-lg">
-                                                    Transport Details
+                                                {t("TransportDetails")}
                                                 </Accordion.Header>
                                                 <Accordion.Collapse eventKey={`transport`}>
                                                     <div className="accordion-body">
                                                         { export_?.destination ?
                                                             <>
-                                                                <h4 className="text-primary mb-2 mt-4">Destination</h4>
+                                                                <h4 className="text-primary mb-2 mt-4">{t("Destination")}</h4>
                                                                 <Link className="text-black">{export_?.destination || `--`}</Link>
                                                             </>
                                                         : <></> }
                                                     
                                                         { export_?.itinerary ?
                                                             <>
-                                                                <h4 className="text-primary mb-2 mt-4">Itinerary</h4>
+                                                                <h4 className="text-primary mb-2 mt-4">{t("Itinerary")}</h4>
                                                                 <Link className="text-black">{export_?.itinerary || `--`}</Link>
                                                             </>
                                                         : <></> }
                                                         
                                                         { export_?.shipmentNumber ?
                                                             <>
-                                                                <h4 className="text-primary mb-2 mt-4">Shipment Number</h4>
+                                                                <h4 className="text-primary mb-2 mt-4">{t("ShipmentNumber")}</h4>
                                                                 <Link className="text-black">{export_?.shipmentNumber || `--`}</Link>
                                                             </>
                                                         : <></> }
@@ -287,7 +296,7 @@ const Export = () => {
                                                         
                                                         { export_?.transporter ?
                                                             <>
-                                                                <h4 className="text-primary mb-2 mt-4">Transporter</h4>
+                                                                <h4 className="text-primary mb-2 mt-4">{t("Transporter")}</h4>
                                                                 <Link className="text-black">{export_?.transporter || `--`}</Link>
                                                             </>
                                                         : <></> }
@@ -301,14 +310,14 @@ const Export = () => {
                                                         
                                                         { export_?.truckFrontPlate ?
                                                             <>
-                                                                <h4 className="text-primary mb-2 mt-4">Truck Front Plate</h4>
+                                                                <h4 className="text-primary mb-2 mt-4">{t("TruckFrontPlate")}</h4>
                                                                 <Link className="text-black">{export_?.truckFrontPlate || `--`}</Link>
                                                             </>
                                                         : <></> }
                                                         
                                                         { export_?.truckBackPlate ?
                                                             <>
-                                                                <h4 className="text-primary mb-2 mt-4">Truck Back Plate</h4>
+                                                                <h4 className="text-primary mb-2 mt-4">{t("TruckBackPlate")}</h4>
                                                                 <Link className="text-black">{export_?.truckBackPlate || `--`}</Link>
                                                             </>
                                                         : <></> }
@@ -317,27 +326,27 @@ const Export = () => {
                                             </Accordion.Item>
                                             <Accordion.Item className="accordion-item" key="representatives" eventKey="representatives">
                                                 <Accordion.Header className="accordion-header rounded-lg">
-                                                    Representatives Details
+                                                {t("RepresentativesDetails")}
                                                 </Accordion.Header>
                                                 <Accordion.Collapse eventKey={`representatives`}>
                                                     <div className="accordion-body">
                                                         { export_?.rmbRep ?
                                                             <>
-                                                                <h4 className="text-primary mb-2 mt-4">RMB Representative</h4>
+                                                                <h4 className="text-primary mb-2 mt-4">{t("RMBRepresentative")}</h4>
                                                                 <Link className="text-black">{export_?.rmbRep || `--`}</Link>
                                                             </>
                                                         : <></> }
 
                                                         { export_?.exportRep ?
                                                             <>
-                                                                <h4 className="text-primary mb-2 mt-4">Exporter Representative</h4>
+                                                                <h4 className="text-primary mb-2 mt-4">{t("ExporterRepresentative")}</h4>
                                                                 <Link className="text-black">{export_?.exportRep || `--`}</Link>
                                                             </>
                                                         : <></> }
 
                                                         { export_?.traceabilityAgent ?
                                                             <>
-                                                                <h4 className="text-primary mb-2 mt-4">Traceability Agent</h4>
+                                                                <h4 className="text-primary mb-2 mt-4">{t("TraceabilityAgent")}</h4>
                                                                 <Link className="text-black">{export_?.traceabilityAgent || `--`}</Link>
                                                             </>
                                                         : <></> }
@@ -351,11 +360,13 @@ const Export = () => {
                             <Tab.Pane eventKey="documents" id='documents'>
                                 <div className="row">
                                     <div className="col-xl-3">
-                                        <ListGroup className="mb-4" id="list-tab">
-                                            {documents.map((item,i)=><ListGroup.Item key={i} onClick={()=>{setdocument(i);}} action href={`#${i}`}>
-                                                {item}
-                                            </ListGroup.Item>)}
-                                        </ListGroup>
+                                    <ListGroup className="mb-4" id="list-tab">
+                                    {documents.map((item, i) => (
+                                        <ListGroup.Item key={i} onClick={() => { setdocument(i); }} action href={`#${i}`}>
+                                            {item}
+                                        </ListGroup.Item>
+                                    ))}
+                                </ListGroup>
                                     </div>
                                     <div className="col-xl-9">
                                         <div className="card">
@@ -368,7 +379,7 @@ const Export = () => {
                                             {
                                                 uploads[document] ?
                                                     <iframe title={`${documents[document]}`} src={`https://drive.google.com/file/d/${uploads[document]}/preview`} width="100%" height="700" allow="autoplay"></iframe>
-                                                : <p>There is no document do display.</p>
+                                                : <p>{t("NoDocumentToDisplay")}</p>
                                             }
                                             </div>
                                         </div>

@@ -418,7 +418,7 @@ legal and regulatory provisions governing gold panning activities, in particular
                             </Tab.Pane>
                             { location ? <Tab.Pane id='map' eventKey={'map'}>
                                 <div className="card event-bx" style={{ height: '80vh', width: '100%' }}>
-                                    <iframe src={`https://www.google.com/maps/embed/v1/place?key=${process.env.api_mines}&q=${location.split(',')[0]},${location.split(',')[1]}`} width="100%" height="100%" title={mine?.name} style={{border:0}} allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                                    <iframe src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDEabEXDTK0hQXB3l7WIXM2Cg4PJJo3x_o&q=${location.split(',')[0]},${location.split(',')[1]}`} width="100%" height="100%" title={mine?.name} style={{border:0}} allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                                 </div>
                             </Tab.Pane> : <div></div> }
                             <Tab.Pane id="miners" eventKey="miners">

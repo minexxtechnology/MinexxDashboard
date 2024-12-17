@@ -36,15 +36,20 @@ const Exports = ({ language, country }) => {
                 // For other countries, remove leading/trailing dots and spaces
                 normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
             }
-            
+            console.log('Normalized Country:', normalizedCountry);
             let response = await axiosInstance.get(`exports`,
                 {
                     params: {
                         country:normalizedCountry,
                       }
                 });
+                console.log('Export Endpoint Response:');
+            console.log(`Total Exports Received: ${response.data.exports.length}`);
+            console.log(`Response Timestamp: ${new Date().toISOString()}`);
+            console.log('Export Details:', response.data.exports);
             setLoading(false);
             setExports(response.data.exports.reverse());
+            
             setFiltered(response.data.exports.reverse());
         } catch (err) {
             setLoading(false);
@@ -184,7 +189,7 @@ const Exports = ({ language, country }) => {
                                                         <td>{access === '3ts' ? _export.netWeight : (_export.netWeight/1000).toFixed(2)}</td>
                                                         <td>{_export.link ? <a target="_blank" href={`${_export.link}`} className="text-primary" rel="noreferrer">Track Shipment</a> : <span className="text-warning">Tracking not available</span>}</td>
                                                         <td>
-                                                        <QRCodeWithPrintButton value={`https://minexx-scann.vercel.app/export/${_export?.id}/${_export?.company?.id}/?x-platform=${_export.mineral === 'Gold' ? 'gold' : '3ts'}`} />
+                                                        <QRCodeWithPrintButton value={`https://minexx-scann-mysql.vercel.app/export/${_export?.id}/${_export?.company?.id}/?x-platform=${_export.mineral === 'Gold' ? 'gold' : '3ts'}`} />
                                                         </td> 
                                                     </tr> 
                                                 ))}

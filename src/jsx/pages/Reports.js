@@ -1761,17 +1761,35 @@ const chartOptions_Purchase = {
                                             </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {
-                                                        trace.production?.production?.map((prod, i)=><tr key={`prod${i}`}>
-                                                            {   prod.map(p=><td>{p.includes('Images') ? <button onClick={()=>showAttachment(p, `Transaction: ${prod[0]}`)} className='btn btn-sm btn-primary'>View</button> : p}</td>) }
-                                                        </tr>)
-                                                    }
-                                                    {
-                                                        trace.production?.production?.length === 0 ? <tr>
-                                                            <td colSpan={9}>The selected company does not have any production to show.</td>
-                                                        </tr> : <tr></tr>
-                                                    }
-                                                </tbody>
+    {trace.production?.production?.length > 0 ? (
+        trace.production.production.map((prod, i) => {
+            // Check if prod is an object or an array
+            const rowData = Array.isArray(prod) ? prod : Object.values(prod);
+            return (
+                <tr key={`prod${i}`}>
+                    {rowData.map((p, index) => (
+                        <td key={index}>
+                            {p.includes && p.includes('Images') ? (
+                                <button 
+                                    onClick={() => showAttachment(p, `Transaction: ${rowData[0]}`)} 
+                                    className='btn btn-sm btn-primary'
+                                >
+                                    View
+                                </button>
+                            ) : (
+                                p
+                            )}
+                        </td>
+                    ))}
+                </tr>
+            );
+        })
+    ) : (
+        <tr>
+            <td colSpan={9}>The selected company does not have any production to show.</td>
+        </tr>
+    )}
+</tbody>
                                             </Table>}
                                         </div>
                                     </div>
@@ -2224,17 +2242,30 @@ const chartOptions_Purchase = {
                                                     </tr>
                                                     </thead>
                                                     <tbody>
-                                                        { trace.blending['rows'].length === 0 ? <tr>
-                                                            <td colSpan={trace.blending['header'].length}>{t("NoBlendingRecords")}</td> 
-                                                        </tr> :
-                                                        trace.blending['rows'].map(row=><tr key={`blending-${row[0]}`}>{
-                                                            row.map((field, i)=><td>
-                                                            {field.includes(`Miners_Images`) ? 
-                                                                <button className="btn btn-sm btn-primary" onClick={()=>showAttachment(field, trace.blending['header'][i])}>View</button> : 
-                                                            field }
-                                                            </td>)
-                                                        }</tr>)
-                                                        }
+                                                        {trace.blending['rows'].length === 0 ? (
+                                                            <tr>
+                                                                <td colSpan={trace.blending['header'].length}>{t("NoBlendingRecords")}</td> 
+                                                            </tr>
+                                                        ) : (
+                                                            trace.blending['rows'].map((row, index) => (
+                                                                <tr key={`blending-${row.ID || index}`}>
+                                                                    {trace.blending['header'].map((headerKey) => (
+                                                                        <td key={headerKey}>
+                                                                            {headerKey.includes('Miners_Images') ? 
+                                                                                <button 
+                                                                                    className="btn btn-sm btn-primary" 
+                                                                                    onClick={() => showAttachment(row[headerKey], headerKey)}
+                                                                                >
+                                                                                    View
+                                                                                </button> 
+                                                                            : 
+                                                                                row[headerKey]
+                                                                            }
+                                                                        </td>
+                                                                    ))}
+                                                                </tr>
+                                                            ))
+                                                        )}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -2368,19 +2399,37 @@ const chartOptions_Purchase = {
                                                         </th>) }
                                                     </tr>
                                                     </thead>
-                                                    <tbody>
-                                                        { trace.purchases['rows'].length === 0 ? <tr>
-                                                            <td colSpan={trace.purchases['header'].length}>{t("NoPurchaseRecords")}</td> 
-                                                        </tr> :
-                                                        trace.purchases['rows'].map(row=><tr key={`purchase-${row[0]}`}>{
-                                                            row.map((field, i)=><td>
-                                                            {field.includes(`Sell_Images`) ? 
-                                                                <button className="btn btn-sm btn-primary" onClick={()=>showAttachment(field, trace.purchases['header'][i])}>View</button> : 
-                                                            field }
-                                                            </td>)
-                                                        }</tr>)
-                                                        }
-                                                    </tbody>
+                                                                                                    <tbody>
+                                                    {trace.purchases['rows'].length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan={trace.purchases['header'].length}>
+                                                                {t("NoPurchaseRecords")}
+                                                            </td> 
+                                                        </tr>
+                                                    ) : (
+                                                        trace.purchases['rows'].map((row, rowIndex) => (
+                                                            <tr key={`purchase-${rowIndex}`}>
+                                                                {trace.purchases['header'].map((headerField, colIndex) => (
+                                                                    <td key={`${rowIndex}-${colIndex}`}>
+                                                                        {(() => {
+                                                                            const fieldValue = row[headerField];
+                                                                            return fieldValue && fieldValue.includes(`Sell_Images`) ? (
+                                                                                <button 
+                                                                                    className="btn btn-sm btn-primary" 
+                                                                                    onClick={() => showAttachment(fieldValue, headerField)}
+                                                                                >
+                                                                                    View
+                                                                                </button>
+                                                                            ) : (
+                                                                                fieldValue || ''
+                                                                            );
+                                                                        })()}
+                                                                    </td>
+                                                                ))}
+                                                            </tr>
+                                                        ))
+                                                    )}
+                                                </tbody>
                                                 </Table>
                                             </div>
                                         </div>

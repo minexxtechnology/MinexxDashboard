@@ -36,9 +36,9 @@ function Home({ language ,country}) {
   const [showincidents, setshowincidents] = useState(true)
   const [incidents, setincidents] = useState([])
   const [rates, setrates] = useState({
-    "LME-TIN": "",
-    "TIN": "",
-    "TIN3M": ""
+    "USDLME-TIN": "",
+    "USDTIN": "",
+    "USDTIN3M": ""
   })
   const [loading, setloading] = useState(true)
   const [exportweight, setexportweight] = useState(0)
@@ -101,8 +101,23 @@ function Home({ language ,country}) {
         setrates(response.data.rates)
       })
     }
-
-    axiosInstance.get(`${baseURL_}overview/risks`).then(response=>{
+    let normalizedCountrys = country.trim();
+            
+    // Special handling for Rwanda
+    if (normalizedCountrys.toLowerCase() === 'rwanda') {
+        // Randomly choose one of the three formats
+         normalizedCountrys ='.Rwanda';
+        // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+    } else {
+        // For other countries, remove leading/trailing dots and spaces
+        normalizedCountrys = normalizedCountrys.replace(/^\.+|\.+$/g, '');
+    }
+    axiosInstance.get(`${baseURL_}overview/risks`,
+      {
+        params: {
+            country:normalizedCountrys,
+          }
+    }).then(response=>{
       setincidents(response.data.risks)
     }).catch(err=>{
       try{
@@ -116,7 +131,14 @@ function Home({ language ,country}) {
       }
     })
 
-    axiosInstance.get(`${baseURL_}overview/incidents`).then(response=>{
+    axiosInstance.get(`${baseURL_}overview/incidents`,
+      {
+        params:
+        {
+          country:normalizedCountrys,
+
+        }
+      }).then(response=>{
       setseries1(response.data.incidents)
       settotal1(response.data.count)
     }).catch(err=>{
@@ -163,8 +185,25 @@ function Home({ language ,country}) {
         toast.error(err.message)
       }
     })
+    let normalizedCountryq = country.trim();
+            
+    // Special handling for Rwanda
+    if (normalizedCountryq.toLowerCase() === 'rwanda') {
+        // Randomly choose one of the three formats
+         normalizedCountryq ='Rwanda';
+        // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+    } else {
+        // For other countries, remove leading/trailing dots and spaces
+        normalizedCountryq = normalizedCountryq.replace(/^\.+|\.+$/g, '');
+    }
+    axiosInstance.get(`${baseURL_}overview/assessments`,
+      {
+        params:
+        {
+          country:normalizedCountryq,
 
-    axiosInstance.get(`${baseURL_}overview/assessments`).then(response=>{
+        }
+      }).then(response=>{
       setseries3(response.data.assessments)
       settotal3(response.data.count)
     }).catch(err=>{ 

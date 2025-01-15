@@ -97,11 +97,11 @@ const Export = ({country,language}) => {
             setuploads(access === "3ts" ? [
                 response.data.export.provisionalInvoice,
                 response.data.export.cargoReceipt,
-                response.data.export.itsciForms,
+                response.data.export.c2,
                 response.data.export.asiDocument,
                 response.data.export.packingReport,
                 response.data.export.rraExportDocument,
-                response.data.export.rmbExportDocument,
+                response.data.export.itsciForms,
                 response.data.export.otherDocument,
                 response.data.export.warehouseCert,
                 response.data.export.insuranceCert,

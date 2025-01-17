@@ -444,98 +444,88 @@ const Reports = ({language,country}) => {
     }, [type, company,language,country]);
     
     const loadMonthlyData = () => {
-
         let normalizedCountry = country.trim();
             
         // Special handling for Rwanda
         if (normalizedCountry.toLowerCase() === 'rwanda') {
-            // Randomly choose one of the three formats
-             normalizedCountry ='.Rwanda';
-            // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+            normalizedCountry = '.Rwanda';
         } else {
             // For other countries, remove leading/trailing dots and spaces
             normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
         }
-        axiosInstance.get(`/report/Monthly`,
-            {
-                params: {
-                    country: normalizedCountry,
-                }
-            })
-            .then(response => {
-                
-                setMonthly({
-                    cassiterite: response.data.cassiterite.company[normalizedCountry].monthly,
-                    coltan: response.data.coltan.company[normalizedCountry].monthly,
-                    wolframite: response.data.wolframite.company[normalizedCountry].monthly
-                  });
     
-                console.log('Monthly data:', {  
-                    cassiterite:response.data.cassiterite.company[normalizedCountry].monthly ,
-                   
-                });
-    
-            })
-            .catch(err => {
-                try {
-                    if (err.response.code === 403) {
-                        dispatch(Logout(navigate));
-                    } else {
-                        console.log(err.response.message);
-                      //  toast.warn(err.response.message);
-                    }
-                } catch (e) {
-                    console.log(err.message);
-                   // toast.error(err.message);
-                }
+        axiosInstance.get(`/report/Monthly`, {
+            params: {
+                country: normalizedCountry,
+            }
+        })
+        .then(response => {
+            // Add null checks and provide default values
+            setMonthly({
+                cassiterite: response.data.cassiterite.company[normalizedCountry]?.monthly || {},
+                coltan: response.data.coltan.company[normalizedCountry]?.monthly || {},
+                wolframite: response.data.wolframite.company[normalizedCountry]?.monthly || {} // This will default to empty object if path doesn't exist
             });
+    
+            console.log('Monthly data:', {  
+                cassiterite: response.data.cassiterite.company[normalizedCountry]?.monthly || {}
+            });
+        })
+        .catch(err => {
+            try {
+                if (err.response?.code === 403) {
+                    dispatch(Logout(navigate));
+                } else {
+                    console.log(err.response?.message);
+                    //toast.warn(err.response.message);
+                }
+            } catch (e) {
+                console.log(err.message);
+                //toast.error(err.message);
+            }
+        });
     };
     const loadMonthlyPurchase = () => {
         let normalizedCountry = country.trim();
             
         // Special handling for Rwanda
         if (normalizedCountry.toLowerCase() === 'rwanda') {
-            // Randomly choose one of the three formats
-             normalizedCountry ='.Rwanda';
-            // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+            normalizedCountry = '.Rwanda';
         } else {
             // For other countries, remove leading/trailing dots and spaces
             normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
         }
-        axiosInstance.get(`/report/purchaseMonthly`, 
-            {
+    
+        axiosInstance.get(`/report/purchaseMonthly`, {
             params: {
                 country: normalizedCountry,
             }
         })
-            .then(response => {
-               
-
-                setMonthlyPurchase({
-                    cassiterite: response.data.purchases.cassiterite.company[normalizedCountry].monthly,
-                    coltan: response.data.purchases.coltan.company[normalizedCountry].monthly,
-                    wolframite: response.data.purchases.wolframite.company[normalizedCountry].monthly
-                  });
-                console.log('MonthlyPurchase data:', {  
-                        cassiterite: response.data.purchases.cassiterite.company[normalizedCountry].monthly,
-                        coltan: response.data.purchases.coltan.company[normalizedCountry].monthly,
-                        wolframite: response.data.purchases.wolframite.company[normalizedCountry].monthly
-                    });
-    
-            })
-            .catch(err => {
-                try {
-                    if (err.response.code === 403) {
-                        dispatch(Logout(navigate));
-                    } else {
-                        //toast.warn(err.response.message);
-                    }
-                } catch (e) {
-                  //  toast.error(err.message);
-                }
+        .then(response => {
+            setMonthlyPurchase({
+                cassiterite: response.data.purchases?.cassiterite?.company?.[normalizedCountry]?.monthly || {},
+                coltan: response.data.purchases?.coltan?.company?.[normalizedCountry]?.monthly || {},
+                wolframite: response.data.purchases?.wolframite?.company?.[normalizedCountry]?.monthly || {}
             });
+    
+            console.log('MonthlyPurchase data:', {  
+                cassiterite: response.data.purchases?.cassiterite?.company?.[normalizedCountry]?.monthly || {},
+                coltan: response.data.purchases?.coltan?.company?.[normalizedCountry]?.monthly || {},
+                wolframite: response.data.purchases?.wolframite?.company?.[normalizedCountry]?.monthly || {}
+            });
+        })
+        .catch(err => {
+            try {
+                if (err.response?.code === 403) {
+                    dispatch(Logout(navigate));
+                } else {
+                    //toast.warn(err.response?.message);
+                }
+            } catch (e) {
+                //toast.error(err.message);
+            }
+        });
     };
-
   
    // Active pagginarion
    activePag.current === 0 && chageData(0, sort);

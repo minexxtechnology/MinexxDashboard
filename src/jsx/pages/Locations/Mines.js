@@ -11,6 +11,7 @@ import { useDispatch } from 'react-redux';
 import { translations } from './MinesTranslation';
 
 const Mines = ({ language,country }) => {
+    const [user] = useState(JSON.parse(localStorage.getItem(`_authUsr`)));
     const navigate = useNavigate()
     const dispatch = useDispatch()
     const { changeTitle } = useContext(ThemeContext);
@@ -124,6 +125,7 @@ const Mines = ({ language,country }) => {
                                                                     : mines.filter(single => single.company === supplier.id).map(mine => (
                                                                         <p className='mt-2 mb-2' key={mine.id}>
                                                                             <Link className='text-warning' to={`/mines/${mine.id}`}>{mine.name}</Link><br />
+                                                                            {user?.type === 'buyer' && <Link className='text-warning' to={`/Kyc`}>KYC</Link>}
                                                                         </p>
                                                                     ))}
                                                             </div>

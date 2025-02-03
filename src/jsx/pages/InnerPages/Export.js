@@ -17,6 +17,7 @@ const Export = ({country,language}) => {
     const { changeTitle } = useContext(ThemeContext)
     const access = localStorage.getItem(`_dash`) || '3ts'
     const [ export_ , setexport_] = useState()
+    const [loading, setLoading] = useState(true);
     const [document, setdocument] = useState(0)
     const [uploads, setuploads] = useState(access === "3ts" ?[
         null,
@@ -85,14 +86,15 @@ const Export = ({country,language}) => {
         t("CopyOfCustomsDeclaration"),
         t("ExportApproval")
     ];
-   
+    
     let eid = null
-    const getExport = async()=>{
-        if(eid == null){
-            toast.info("Getting Export details...")
+    const getExport = async () => {
+        if (eid == null) {
+           // toast.info("Getting Export details...")
         }
         eid = id
-        axiosInstance.get(`exports/${id}`).then(response=>{
+        try {
+            const response = await axiosInstance.get(`exports/${id}`)
             setexport_(response.data.export)
             setuploads(access === "3ts" ? [
                 response.data.export.provisionalInvoice,
@@ -124,18 +126,20 @@ const Export = ({country,language}) => {
                 response.data.export.exporterApplicationDocument,
             ])
             changeTitle(`Shipment: ${response.data.export?.exportationID || "--"}`)
-        }).catch(err=>{
-            try{
-				if(err.response.code === 403){
-					dispatch(Logout(navigate))
-				}else{
-					toast.warn(err.response.message)
-				}
-			}catch(e){
-				toast.error(err.message)
-			}
-        })
-    }
+        } catch (err) {
+            try {
+                if (err.response.code === 403) {
+                    dispatch(Logout(navigate))
+                } else {
+                    toast.warn(err.response.message)
+                }
+            } catch (e) {
+                toast.error(err.message)
+            }
+        } finally {
+            setLoading(false)
+        }
+    };
     
     useEffect(() => {
         getExport()
@@ -150,6 +154,20 @@ const Export = ({country,language}) => {
                     <li className="breadcrumb-item"><Link to={""}> Shipment: {export_?.shipmentNumber || 'Export ID MISSING'}</Link></li>
                 </ol>
             </div>
+            {loading ? (
+                <div className="row">
+                    <div className="col-xl-12">
+                        <div className="card">
+                            <div className="card-body text-center py-5">
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="sr-only">Loading...</span>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
             <div className="row">
                 <Tab.Container defaultActiveKey="basic">
                     <div className='colxl-12'>
@@ -395,6 +413,7 @@ const Export = ({country,language}) => {
                     </div>
                 </Tab.Container>
             </div>
+            )}
         </div>
     );
 };

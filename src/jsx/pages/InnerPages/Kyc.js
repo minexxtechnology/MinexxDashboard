@@ -86,7 +86,7 @@ const Kyc = () => {
 
       setLoading(false);
     } catch (err) {
-      // toast.error('Error fetching company data');
+     // toast.error('Error fetching company data');
       console.error('Error fetching company data:', err);
       setLoading(false);
     }

@@ -16,15 +16,21 @@ const Company = ({ language }) => {
     const dispatch = useDispatch();
     const { changeTitle } = useContext(ThemeContext);
     
-    // State management
+    // Separate loading states for each section
+    const [loadingStates, setLoadingStates] = useState({
+        basic: true,
+        documents: true,
+        shareholders: true,
+        beneficialOwners: true
+    });
+    
+    // Data states
     const [company, setCompany] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [documents, setDocuments] = useState([]);
     const [shareholders, setShareholders] = useState([]);
     const [beneficialOwners, setBeneficialOwners] = useState([]);
     const [shareholderID, setShareholderID] = useState(null);
 
-    // Translation helper
     const t = (key) => {
         if (!translations[language]) {
             console.warn(`Translation for language "${language}" not found`);
@@ -33,7 +39,6 @@ const Company = ({ language }) => {
         return translations[language][key] || key;
     };
 
-    // Error handler
     const handleError = (err) => {
         try {
             if (err.response?.status === 403) {
@@ -46,49 +51,68 @@ const Company = ({ language }) => {
         }
     };
 
-    // Fetch company data
-    const getCompany = async () => {
+    // Separate fetch functions for each data type
+    const fetchCompanyDetails = async () => {
         try {
-            setLoading(true);
-            
-            await Promise.all([
-                // Company details
-                axiosInstance.get(`companies/${id}`)
-                    .then(response => {
-                        setCompany(response.data.company);
-                        changeTitle(response.data.company.name);
-                    }),
-                
-                // Documents
-                axiosInstance.get(`${baseURL_}documents/${id}`)
-                    .then(response => {
-                        setDocuments(response.data.documents);
-                    }),
-                
-                // Shareholders
-                axiosInstance.get(`${baseURL_}shareholders/${id}`)
-                    .then(response => {
-                        setShareholders(response.data.shareholders);
-                    }),
-                
-                // Beneficial owners
-                axiosInstance.get(`${baseURL_}owners/${id}`)
-                    .then(response => {
-                        setBeneficialOwners(response.data.beneficial_owners);
-                    })
-            ]);
+            const response = await axiosInstance.get(`companies/${id}`);
+            setCompany(response.data.company);
+            changeTitle(response.data.company.name);
         } catch (err) {
             handleError(err);
         } finally {
-            setLoading(false);
+            setLoadingStates(prev => ({ ...prev, basic: false }));
+        }
+    };
+
+    const fetchDocuments = async () => {
+        try {
+            const response = await axiosInstance.get(`${baseURL_}documents/${id}`);
+            setDocuments(response.data.documents);
+        } catch (err) {
+            handleError(err);
+        } finally {
+            setLoadingStates(prev => ({ ...prev, documents: false }));
+        }
+    };
+
+    const fetchShareholders = async () => {
+        try {
+            const response = await axiosInstance.get(`${baseURL_}shareholders/${id}`);
+            setShareholders(response.data.shareholders);
+        } catch (err) {
+            handleError(err);
+        } finally {
+            setLoadingStates(prev => ({ ...prev, shareholders: false }));
+        }
+    };
+
+    const fetchBeneficialOwners = async () => {
+        try {
+            const response = await axiosInstance.get(`${baseURL_}owners/${id}`);
+            setBeneficialOwners(response.data.beneficial_owners);
+        } catch (err) {
+            handleError(err);
+        } finally {
+            setLoadingStates(prev => ({ ...prev, beneficialOwners: false }));
         }
     };
 
     useEffect(() => {
-        getCompany();
+        fetchCompanyDetails();
+        fetchDocuments();
+        fetchShareholders();
+        fetchBeneficialOwners();
     }, [id, language]);
 
-    // Render owner/shareholder card
+    // Loading spinner component
+    const LoadingSpinner = () => (
+        <div className="d-flex justify-content-center align-items-center py-5">
+            <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    );
+
     const renderPersonCard = (person, type, index) => (
         <div className='col-md-4' key={`${type}${index}`}>
             <div className='card'>
@@ -142,51 +166,47 @@ const Company = ({ language }) => {
                 </ol>
             </div>
 
-            {loading ? (
-                <div className="d-flex justify-content-center align-items-center py-5">
-                    <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            ) : (
-                <div className="row">
-                    <Tab.Container defaultActiveKey="basic">
-                        <div className='col-xl-12'>
-                            <div className="card">
-                                <div className="card-body px-4 py-3 py-md-2">
-                                    <div className="row align-items-center">
-                                        <div className="col-sm-12 col-md-7">
-                                            <Nav as="ul" className="nav nav-pills review-tab" role="tablist">
-                                                <Nav.Item as="li">
-                                                    <Nav.Link className="nav-link px-2 px-lg-3" eventKey="basic">
-                                                        {t('BasicInfo')}
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                                <Nav.Item as="li">
-                                                    <Nav.Link className="nav-link px-2 px-lg-3" eventKey="documents">
-                                                        {t('Documents')} <span className='badge badge-primary'>{documents.length}</span>
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                                <Nav.Item as="li">
-                                                    <Nav.Link className="nav-link px-2 px-lg-3" eventKey="shareholders">
-                                                        {t('Shareholders')}
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                                <Nav.Item as="li">
-                                                    <Nav.Link className="nav-link px-2 px-lg-3" eventKey="owners">
-                                                        {t('BeneficialOwners')}
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                            </Nav>
-                                        </div>
-                                    </div> 
-                                </div>
+            <div className="row">
+                <Tab.Container defaultActiveKey="basic">
+                    <div className='col-xl-12'>
+                        <div className="card">
+                            <div className="card-body px-4 py-3 py-md-2">
+                                <div className="row align-items-center">
+                                    <div className="col-sm-12 col-md-7">
+                                        <Nav as="ul" className="nav nav-pills review-tab" role="tablist">
+                                            <Nav.Item as="li">
+                                                <Nav.Link className="nav-link px-2 px-lg-3" eventKey="basic">
+                                                    {t('BasicInfo')}
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item as="li">
+                                                <Nav.Link className="nav-link px-2 px-lg-3" eventKey="documents">
+                                                    {t('Documents')} <span className='badge badge-primary'>{documents.length}</span>
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item as="li">
+                                                <Nav.Link className="nav-link px-2 px-lg-3" eventKey="shareholders">
+                                                    {t('Shareholders')}
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item as="li">
+                                                <Nav.Link className="nav-link px-2 px-lg-3" eventKey="owners">
+                                                    {t('BeneficialOwners')}
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                        </Nav>
+                                    </div>
+                                </div> 
                             </div>
                         </div>
+                    </div>
 
-                        <div className="col-xl-12 col-xxl-12">
-                            <Tab.Content>
-                                <Tab.Pane eventKey="basic">
+                    <div className="col-xl-12 col-xxl-12">
+                        <Tab.Content>
+                            <Tab.Pane eventKey="basic">
+                                {loadingStates.basic ? (
+                                    <LoadingSpinner />
+                                ) : (
                                     <div className='card'>
                                         <div className='card-body'>
                                             <h4 className="text-primary mb-2">{t('CompanyName')}</h4>
@@ -205,13 +225,21 @@ const Company = ({ language }) => {
                                             <p className="text-black">{company?.type || '--'}</p>
                                         </div>
                                     </div>
-                                </Tab.Pane>
+                                )}
+                            </Tab.Pane>
 
-                                <Tab.Pane eventKey="documents">
+                            <Tab.Pane eventKey="documents">
+                                {loadingStates.documents ? (
+                                    <LoadingSpinner />
+                                ) : (
                                     <ComplianceTable documents={documents} language={language} />
-                                </Tab.Pane>
+                                )}
+                            </Tab.Pane>
 
-                                <Tab.Pane eventKey="shareholders">
+                            <Tab.Pane eventKey="shareholders">
+                                {loadingStates.shareholders ? (
+                                    <LoadingSpinner />
+                                ) : (
                                     <div className="row">
                                         {shareholders.length === 0 ? (
                                             <div className='col-12'>
@@ -227,9 +255,13 @@ const Company = ({ language }) => {
                                             )
                                         )}
                                     </div>
-                                </Tab.Pane>
+                                )}
+                            </Tab.Pane>
 
-                                <Tab.Pane eventKey="owners">
+                            <Tab.Pane eventKey="owners">
+                                {loadingStates.beneficialOwners ? (
+                                    <LoadingSpinner />
+                                ) : (
                                     <div className="row">
                                         {beneficialOwners.length === 0 ? (
                                             <div className='col-12'>
@@ -245,12 +277,12 @@ const Company = ({ language }) => {
                                             )
                                         )}
                                     </div>
-                                </Tab.Pane>
-                            </Tab.Content>
-                        </div>
-                    </Tab.Container>
-                </div>
-            )}
+                                )}
+                            </Tab.Pane>
+                        </Tab.Content>
+                    </div>
+                </Tab.Container>
+            </div>
         </>
     );
 };

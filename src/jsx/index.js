@@ -173,7 +173,7 @@ const Markup = (props) => {
     { url: 'companies', component: <Companies/> },
     { url: 'company/:id', component: <Company key={language} language={language}/> },
     { url: 'mines/:id', component: <Mine key={language} language={language}/> },
-    { url: 'Kyc/', component: <Kyc /> },
+    { url: 'Kyc/:id', component: <Kyc key={language} language={language} /> },
     { url: 'users', component: <Users/> },
 	  { url: 'incidents', component: <Incidents/> },
 	  { url: 'exports', component: <Exports key={language} language={language} country={country}/> },

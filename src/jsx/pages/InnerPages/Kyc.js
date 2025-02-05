@@ -2,24 +2,48 @@ import React, { useState, useEffect } from 'react';
 import { Tab, Nav, ListGroup } from 'react-bootstrap';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { translations } from '../../pages/Locations/MinesTranslation';
+import { Turtle } from 'lucide-react';
 
-const Kyc = () => {
+
+const Kyc = ({language}) => {
+  const { id } = useParams();
   const [company, setCompany] = useState(null);
   const [companyDocs, setCompanyDocs] = useState([]);
   const [shareholder, setShareholder] = useState([]);
   const [beneficial, setBeneficial] = useState([]);
   const [loading, setLoading] = useState(true);
+  //loading
+  const [basicLoading, setBasicLoading] = useState(true);
+  const [docsLoading, setDocsLoading] = useState(true);
+  const [shareholderLoading,setShareholderLoading]=useState(true);
+  const [BeneficialLoading,setBeneficialLoading]=useState(true);
+
   const platform = localStorage.getItem('_dash') || '3ts';
 
-  useEffect(() => {
-    fetchCompanyData();
-  });
+  const t = (key) => {
+          if (!translations[language]) {
+              console.warn(`Translation for language "${language}" not found`);
+              return key;
+          }
+          return translations[language][key] || key;
+      };
 
-  const fetchCompanyData = async () => {
+  useEffect(() => {
+    if (id) {
+      fetchCompanyData(id);
+    }
+  }, [id,language]);
+
+  const fetchCompanyData = async (id) => {
     try {
+      setBasicLoading(true);
+      setDocsLoading(true);
+      setShareholderLoading(true);
+      setBeneficialLoading(true);
       // Fetch company info
       const companyResponse = await fetch(
-        `https://minexxapi-db-426415920655.us-central1.run.app/companiesnoAuth/ce62eb6o`,
+        `https://minexxapi-db-426415920655.us-central1.run.app/companiesnoAuth/${id}`,
         {
           method: 'GET',
           headers: {
@@ -32,11 +56,12 @@ const Kyc = () => {
       }
       const companyData = await companyResponse.json();
       setCompany(companyData);
+      setBasicLoading(false);
       console.log("Company Data", companyData);
 
       // Fetch documents
       const companyDocResponse = await fetch(
-        `https://minexxapi-db-426415920655.us-central1.run.app/documentsnoAuth/ce62eb6o`,
+        `https://minexxapi-db-426415920655.us-central1.run.app/documentsnoAuth/${id}`,
         {
           method: 'GET',
           headers: {
@@ -49,11 +74,12 @@ const Kyc = () => {
       }
       const companyDocData = await companyDocResponse.json();
       setCompanyDocs(companyDocData.documents);
+      setDocsLoading(false);
       console.log("Company Document Data", companyDocData);
 
       // Fetch shareholders
       const shareholderResponse = await fetch(
-        `https://minexxapi-db-426415920655.us-central1.run.app/shareholdersnoAuth/ce62eb6o`,
+        `https://minexxapi-db-426415920655.us-central1.run.app/shareholdersnoAuth/${id}`,
         {
           method: 'GET',
           headers: {
@@ -66,11 +92,12 @@ const Kyc = () => {
       }
       const shareholderData = await shareholderResponse.json();
       setShareholder(shareholderData.shareholders);
+      setShareholderLoading(false);
       console.log("Shareholder Data", shareholderData.shareholders);
 
       // Fetch beneficial owners
       const beneficialResponse = await fetch(
-        `https://minexxapi-db-426415920655.us-central1.run.app/ownersnoAuth/ce62eb6o`,
+        `https://minexxapi-db-426415920655.us-central1.run.app/ownersnoAuth/${id}`,
         {
           method: 'GET',
           headers: {
@@ -83,32 +110,36 @@ const Kyc = () => {
       }
       const beneficialData = await beneficialResponse.json();
       setBeneficial(beneficialData.beneficial_owners);
-
-      setLoading(false);
+      setBeneficialLoading(false)
     } catch (err) {
      // toast.error('Error fetching company data');
       console.error('Error fetching company data:', err);
-      setLoading(false);
+      setBasicLoading(false);
+      setDocsLoading(false);
+      setShareholderLoading(false);
+      setBeneficialLoading(false);
     }
   };
+
+  const LoadingSpinner = () => (
+    <div className="d-flex justify-content-center align-items-center py-5">
+      <div className="spinner-border text-primary" role="status">
+        <span className="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  );
 
   return (
     <div className="row">
       <div className="row page-titles">
         <ol className="breadcrumb">
-          <li className="breadcrumb-item active"><Link to={"/overview"}>Dashboard</Link></li>
-          <li className="breadcrumb-item"><Link to={"/mines"}>Mines</Link></li>
-          <li className="breadcrumb-item"><Link to={""}>Kyc</Link></li>
+          <li className="breadcrumb-item active"><Link to={"/overview"}>{t("Dashboard")}</Link></li>
+          <li className="breadcrumb-item"><Link to={"/mines"}>{t("Mines")}</Link></li>
+          <li className="breadcrumb-item"><Link to={""}>{t("Kyc")}</Link></li>
         </ol>
       </div>
 
-      {loading ? (
-        <div className="d-flex justify-content-center align-items-center py-5">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      ) : (
+   
         <Tab.Container defaultActiveKey="basic">
           <div className='col-xl-12'>
             <div className="card">
@@ -118,22 +149,22 @@ const Kyc = () => {
                     <Nav as="ul" className="nav nav-pills review-tab" role="tablist">
                       <Nav.Item as="li" className="nav-item">
                         <Nav.Link className="nav-link px-2 px-lg-3" to="#basic" role="tab" eventKey="basic">
-                          Basic Info
+                          {t('BasicInfo')}
                         </Nav.Link>
                       </Nav.Item>
                       <Nav.Item as="li" className="nav-item">
                         <Nav.Link className="nav-link px-2 px-lg-3" to="#documents" role="tab" eventKey="documents">
-                          Documents
+                          {t('Documents')}
                         </Nav.Link>
                       </Nav.Item>
                       <Nav.Item as="li" className="nav-item">
                         <Nav.Link className="nav-link px-2 px-lg-3" to="#shareholders" role="tab" eventKey="shareholders">
-                          Shareholders
+                          {t('Shareholders')}
                         </Nav.Link>
                       </Nav.Item>
                       <Nav.Item as="li" className="nav-item">
                         <Nav.Link className="nav-link px-2 px-lg-3" to="#beneficialOwners" role="tab" eventKey="beneficialOwners">
-                          Beneficial Owners
+                         {t('BeneficialOwners')}
                         </Nav.Link>
                       </Nav.Item>
                     </Nav>
@@ -147,123 +178,133 @@ const Kyc = () => {
               <Tab.Pane eventKey="basic" id="basic">
                 <div className="card">
                   <div className="card-body">
+                  {basicLoading ? (
+                    <LoadingSpinner />
+                  ) : (
                     <div className="row">
                       <div className="col-lg-6">
                         {company && company.company && (
                           <>
-                            <h4 className="text-primary mb-2 mt-4">Company Name</h4>
+                            <h4 className="text-primary mb-2 mt-4">{t("CompanyName")}</h4>
                             <Link className="text-light" style={{ textDecoration: 'none' }}>{company.company.name}</Link>
-                            <h4 className="text-primary mb-2 mt-4">Company Address</h4>
+                            <h4 className="text-primary mb-2 mt-4">{t("CompanyAddress")}</h4>
                             <Link className="text-light" style={{ textDecoration: 'none' }}>{company.company.address}</Link>
-                            <h4 className="text-primary mb-2 mt-4">Company Country</h4>
+                            <h4 className="text-primary mb-2 mt-4">{t("CompanyCountry")}</h4>
                             <Link className="text-light" style={{ textDecoration: 'none' }}>{company.company.country}</Link>
-                            <h4 className="text-primary mb-2 mt-4">Company Number</h4>
+                            <h4 className="text-primary mb-2 mt-4">{t("CompanyNumber")}</h4>
                             <Link className="text-light" style={{ textDecoration: 'none' }}>{company.company.number}</Link>
-                            <h4 className="text-primary mb-2 mt-4">Company Type</h4>
+                            <h4 className="text-primary mb-2 mt-4">{t("CompanyType")}</h4>
                             <Link className="text-light" style={{ textDecoration: 'none' }}>{company.company.type}</Link>
                           </>
                         )}
                       </div>
                     </div>
+                  )}
                   </div>
                 </div>
               </Tab.Pane>
 
               <Tab.Pane eventKey="documents" id="documents">
-                <div className="card">
-                  <div className="card-body">
-                    {companyDocs.length > 0 ? (
-                      <ListGroup>
-                        {companyDocs.map((document, index) => (
-                          <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
-                            <span className="accordion-body">{document.type}</span>
-                            <div className="mt-3 d-flex gap-2">
-                              <a
-                                target="_blank"
-                                className="btn btn-info"
-                                href={`https://drive.google.com/file/d/${document.file}/preview`}
-                                rel="noreferrer"
-                              >
-                                View
-                              </a>
-                              <a
-                                target="_blank"
-                                className="btn btn-primary"
-                                href={`https://drive.usercontent.google.com/download?id=${document.file}&export=download&authuser=0`}
-                                rel="noreferrer"
-                              >
-                                Download
-                              </a>
-                            </div>
-                          </ListGroup.Item>
-                        ))}
-                      </ListGroup>
-                    ) : (
-                      <p className="text-light">No documents available</p>
-                    )}
-                  </div>
-                </div>
-              </Tab.Pane>
-
-              <Tab.Pane eventKey="shareholders" id="shareholders">
-                <div className="card">
-                  <div className="card-body">
-                    {shareholder.length > 0 ? (
-                      <div>
-                        {shareholder.map((document, index) => (
-                          <div key={index}>
-                            <h4 className="text-primary mb-2 mt-4">Name: {document.name}</h4>
-                            <h4 className="text-light mb-2 mt-4">Percentage Owned: {document.percent}%</h4>
-                            <h4 className="text-light mb-2 mt-4">Nationality: {document.nationality}</h4>
-                            <h4 className="text-light mb-2 mt-4">Address: {document.address}</h4>
-                            <iframe
-                              title={document.name}
-                              src={`https://drive.google.com/file/d/${document.nationalID}/preview`}
-                              width="100%"
-                              height="500"
-                              allow="autoplay"
-                            />
+              <div className="card">
+                <div className="card-body">
+                  {docsLoading ? (
+                    <LoadingSpinner />
+                  ) : companyDocs.length > 0 ? (
+                    <ListGroup>
+                      {companyDocs.map((document, index) => (
+                        <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                          <span className="accordion-body">{document.type}</span>
+                          <div className="mt-3 d-flex gap-2">
+                            <a
+                              target="_blank"
+                              className="btn btn-info"
+                              href={`https://drive.google.com/file/d/${document.file}/preview`}
+                              rel="noreferrer"
+                            >
+                              {t("View")}
+                            </a>
+                            <a
+                              target="_blank"
+                              className="btn btn-primary"
+                              href={`https://drive.usercontent.google.com/download?id=${document.file}&export=download&authuser=0`}
+                              rel="noreferrer"
+                            >
+                              {t("Download")}
+                            </a>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-light">No shareholders available</p>
-                    )}
-                  </div>
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  ) : (
+                    <p className="text-light">{t("NoDocuments")}</p>
+                  )}
                 </div>
-              </Tab.Pane>
+              </div>
+            </Tab.Pane>
 
-              <Tab.Pane eventKey="beneficialOwners" id="beneficialOwners">
-                <div className="card">
-                  <div className="card-body">
-                    {beneficial.length > 0 ? (
-                      <div>
-                        {beneficial.map((owner, index) => (
-                          <div key={index}>
-                            <h4 className="text-primary mb-2 mt-4">Name: {owner.name}</h4>
-                            <h4 className="text-light mb-2 mt-4">Percentage Owned: {owner.percent}%</h4>
-                            <h4 className="text-light mb-2 mt-4">Nationality: {owner.nationality}</h4>
-                            <h4 className="text-light mb-2 mt-4">Address: {owner.address}</h4>
-                            <iframe
-                              title={owner.name}
-                              src={`https://drive.google.com/file/d/${owner.nationalID}/preview`}
-                              width="100%"
-                              height="500"
-                              allow="autoplay"
-                            />
-                          </div>
-                        ))}
+            <Tab.Pane eventKey="shareholders" id="shareholders">
+            <div className="card">
+              <div className="card-body">
+                {shareholderLoading ? (
+                  <LoadingSpinner />
+                ) : shareholder.length > 0 ? (
+                  <div>
+                    {shareholder.map((document, index) => (
+                      <div key={index}>
+                        <h4 className="text-primary mb-2 mt-4">{t("Name")}: {document.name}</h4>
+                        <h4 className="text-light mb-2 mt-4">{t("PercentageOwned")}: {document.percent}%</h4>
+                        <h4 className="text-light mb-2 mt-4">{t("Nationality")}: {document.nationality}</h4>
+                        <h4 className="text-light mb-2 mt-4">{t("Address")}: {document.address}</h4>
+                        <iframe
+                          title={document.name}
+                          src={`https://drive.google.com/file/d/${document.nationalID}/preview`}
+                          width="100%"
+                          height="500"
+                          allow="autoplay"
+                        />
                       </div>
-                    ) : (
-                      <p className="text-light">No Beneficial Owners available</p>
-                    )}
+                    ))}
                   </div>
-                </div>
-              </Tab.Pane>
+                ) : (
+                  <p className="text-light">{t("NoShareholders")}</p>
+                )}
+              </div>
+            </div>
+          </Tab.Pane>
+
+          <Tab.Pane eventKey="beneficialOwners" id="beneficialOwners">
+            <div className="card">
+              <div className="card-body">
+                {BeneficialLoading ? (
+                  <LoadingSpinner />
+                ) : beneficial.length > 0 ? (
+                  <div>
+                    {beneficial.map((owner, index) => (
+                      <div key={index}>
+                        <h4 className="text-primary mb-2 mt-4">{t("Name")}: {owner.name}</h4>
+                        <h4 className="text-light mb-2 mt-4">{t("PercentageOwned")}: {owner.percent}%</h4>
+                        <h4 className="text-light mb-2 mt-4">{t("Nationality")}: {owner.nationality}</h4>
+                        <h4 className="text-light mb-2 mt-4">{t("Address")}: {owner.address}</h4>
+                        <iframe
+                          title={owner.name}
+                          src={`https://drive.google.com/file/d/${owner.nationalID}/preview`}
+                          width="100%"
+                          height="500"
+                          allow="autoplay"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-light">{t("NoBeneficialOwners")}</p>
+                )}
+              </div>
+            </div>
+          </Tab.Pane>
             </Tab.Content>
           </div>
         </Tab.Container>
-      )}
+      
     </div>
   );
 };

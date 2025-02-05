@@ -22,12 +22,13 @@ const Mine = ({ language }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { changeTitle } = useContext(ThemeContext);
+    
+    // State variables for data
     const [mine, setmine] = useState();
     const [attachment, setattachment] = useState();
     const [videos, setvideos] = useState([]);
     const [incidentview, setincidentview] = useState();
     const [headers, setheaders] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [incidents, setincidents] = useState([]);
     const [picture, setpicture] = useState();
     const [location, setlocation] = useState();
@@ -35,6 +36,16 @@ const Mine = ({ language }) => {
     const [gallery, setgallery] = useState([]);
     const [miners, setminers] = useState([]);
     const [minersHeader, setminersHeader] = useState([]);
+
+    // Loading states for each tab
+    const [loadingStates, setLoadingStates] = useState({
+        basic: true,
+        assessments: true,
+        incidents: true,
+        gallery: true,
+        map: true,
+        miners: true
+    });
 
     const ignoreHeaders = [
         `I certify on my honor that I am free of any commitment to any employer and I commit myself to respect the legal and
@@ -45,7 +56,7 @@ const Mine = ({ language }) => {
         "Expiry Date",
         "User ID",
         "testQR"
-    ]; 
+    ];
 
     const t = (key) => {
         if (!translations[language]) {
@@ -55,58 +66,91 @@ const Mine = ({ language }) => {
         return translations[language][key] || key;
     };
 
+    const setTabLoading = (tab, isLoading) => {
+        setLoadingStates(prev => ({
+            ...prev,
+            [tab]: isLoading
+        }));
+    };
+
     let mid = null;
     const getMine = async () => {
-        setLoading(true);
-        
         if (mid == null) {
-           // toast.info("Getting Mine details...");
+            // Reset all loading states when fetching new mine
+            Object.keys(loadingStates).forEach(tab => setTabLoading(tab, true));
         }
 
         mid = id;
         
         try {
-            // mine images
-            const imagesResponse = await axiosInstance.get(`${baseURL_}mines/images/${id}`);
+            // Basic info and images
+            const [imagesResponse, mineResponse] = await Promise.all([
+                axiosInstance.get(`${baseURL_}mines/images/${id}`),
+                axiosInstance.get(`${baseURL_}mines/${id}`)
+            ]);
+            
             setgallery(imagesResponse.data.images);
-
-            // mine details
-            const mineResponse = await axiosInstance.get(`${baseURL_}mines/${id}`);
             changeTitle(mineResponse.data.mine.name + ` | Minexx`);
-            if (localStorage.getItem(`_dash`) === `gold`) {
-                getMiners(mineResponse.data.mine.name);
-            }
             setpicture(`https://lh3.googleusercontent.com/d/${mineResponse.data.mine.image}=w2160?authuser=0`);
             setmine(mineResponse.data.mine);
+            setTabLoading('basic', false);
+            setTabLoading('gallery', false);
 
-            // mine videos
+            // Load videos
             const videosResponse = await axiosInstance.get(`${baseURL_}mines/videos/${id}`);
             setvideos(videosResponse.data.videos);
 
-            // mine assessments
+            // Load assessments
             const assessmentsResponse = await axiosInstance.get(`${baseURL_}assessments/mine/${id}`);
             setassessments(assessmentsResponse.data.assessments);
             setheaders(assessmentsResponse.data.header);
             if (assessmentsResponse.data.assessments.length > 0) {
                 setlocation(assessmentsResponse.data.assessments[0].general[4]);
             }
+            setTabLoading('assessments', false);
+            setTabLoading('map', false);
 
-            // incidents assessments
+            // Load incidents
             const incidentsResponse = await axiosInstance.get(`${baseURL_}incidents/mine/${id}`);
             setincidents(incidentsResponse.data.incidents);
+            setTabLoading('incidents', false);
+
+            // Load miners if needed
+            if (localStorage.getItem(`_dash`) === `gold`) {
+                getMiners(mineResponse.data.mine.name);
+            } else {
+                setTabLoading('miners', false);
+            }
 
         } catch (err) {
-            try {
-                if (err.response.code === 403) {
-                    dispatch(Logout(navigate));
-                } else {
-                    toast.warn(err.response.message);
-                }
-            } catch (e) {
-                toast.error(err.message);
-            }
+            handleError(err);
+            // Set all loading states to false on error
+            Object.keys(loadingStates).forEach(tab => setTabLoading(tab, false));
+        }
+    };
+
+    const getMiners = async (name) => {
+        try {
+            setTabLoading('miners', true);
+            const response = await axiosInstance.get(`${baseURL_}miners/${name}`);
+            setminers(response.data.miners);
+            setminersHeader(response.data.header);
+        } catch (err) {
+            handleError(err);
         } finally {
-            setLoading(false);
+            setTabLoading('miners', false);
+        }
+    };
+
+    const handleError = (err) => {
+        try {
+            if (err.response?.code === 403) {
+                dispatch(Logout(navigate));
+            } else {
+                toast.warn(err.response?.message);
+            }
+        } catch (e) {
+            toast.error(err.message);
         }
     };
 
@@ -115,59 +159,42 @@ const Mine = ({ language }) => {
             file
         }).then(response => {
             setattachment({ image: response.data.image, field });
-        }).catch(err => {
-            try {
-                if (err.response.code === 403) {
-                    dispatch(Logout(navigate));
-                } else {
-                    toast.warn(err.response.message);
-                }
-            } catch (e) {
-                toast.error(err.message);
-            }
-        });
-    };
-
-    const getMiners = (name) => {
-        axiosInstance.get(`${baseURL_}miners/${name}`).then(response => {
-            setminers(response.data.miners);
-            setminersHeader(response.data.header);
-        }).catch(err => {
-            try {
-                if (err.response.code === 403) {
-                    dispatch(Logout(navigate));
-                } else {
-                    toast.warn(err.response.message);
-                }
-            } catch (e) {
-                toast.error(err.message);
-            }
-        });
+        }).catch(err => handleError(err));
     };
 
     useEffect(() => {
         getMine();
     }, [access, language]);
 
+    const LoadingSpinner = () => (
+        <div className="card">
+            <div className="card-body text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div>
-            {attachment ? (
-                <Modal size='lg' show={attachment} onBackDropClick={() => setattachment(null)}>
+            {attachment && (
+                <Modal size='lg' show={attachment} onHide={() => setattachment(null)}>
                     <Modal.Header>
                         <h3 className='modal-title'>{attachment.field}</h3>
-                        <Link className='modal-dismiss' data-toggle="data-dismiss" onClick={() => setattachment(null)}>x</Link>
+                        <Link className='modal-dismiss' onClick={() => setattachment(null)}>x</Link>
                     </Modal.Header>
                     <Modal.Body>
                         <img alt='' className='rounded mt-4' width={'100%'} src={`https://lh3.googleusercontent.com/d/${attachment.image}=w2160?authuser=0`} />
                     </Modal.Body>
                 </Modal>
-            ) : null}
+            )}
             
-            {incidentview ? (
-                <Modal size='lg' show={incidentview} onBackDropClick={() => setincidentview(null)}>
+            {incidentview && (
+                <Modal size='lg' show={incidentview} onHide={() => setincidentview(null)}>
                     <Modal.Header>
                         <h3 className='modal-title'>Incident: {incidentview.id}</h3>
-                        <Link className='modal-dismiss' data-toggle="data-dismiss" onClick={() => setincidentview(null)}>x</Link>
+                        <Link className='modal-dismiss' onClick={() => setincidentview(null)}>x</Link>
                     </Modal.Header>
                     <Modal.Body>
                         <Tab.Container defaultActiveKey="incidentInfo">
@@ -177,20 +204,20 @@ const Mine = ({ language }) => {
                                         Incident Info
                                     </Nav.Link>
                                 </Nav.Item>
-                                {incidentview.image ? (
+                                {incidentview.image && (
                                     <Nav.Item as="li" className="nav-item">
                                         <Nav.Link className="nav-link px-2 px-lg-3" to="#image" role="tab" eventKey="image">
                                             Image
                                         </Nav.Link>
                                     </Nav.Item>
-                                ) : <div></div>}
-                                {incidentview.proof ? (
+                                )}
+                                {incidentview.proof && (
                                     <Nav.Item as="li" className="nav-item">
                                         <Nav.Link className="nav-link px-2 px-lg-3" to="#proof" role="tab" eventKey="proof">
                                             Proof
                                         </Nav.Link>
                                     </Nav.Item>
-                                ) : <div></div>}
+                                )}
                             </Nav>
                             <Tab.Content>
                                 <Tab.Pane eventKey="incidentInfo" id='incidentInfo'>
@@ -224,7 +251,7 @@ const Mine = ({ language }) => {
                         <button onClick={() => setincidentview(null)} className='btn btn-sm btn-outline-warning'>Dismiss</button>
                     </Modal.Footer>
                 </Modal>
-            ) : <div></div>}
+            )}
 
             <div className="row page-titles">
                 <ol className="breadcrumb">
@@ -234,71 +261,58 @@ const Mine = ({ language }) => {
                 </ol>
             </div>
 
-            {loading ? (
-                <div className="row">
-                    <div className="col-12">
+            <div className="row">
+                <Tab.Container defaultActiveKey="basic">
+                    <div className='colxl-12'>
                         <div className="card">
-                            <div className="card-body text-center py-5">
-                                <div className="spinner-border text-primary" role="status">
-                                    <span className="visually-hidden">Loading...</span>
-                                </div>
-                              
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                <div className="row">
-                    <Tab.Container defaultActiveKey="basic">
-                        <div className='colxl-12'>
-                            <div className="card">
-                                <div className="card-body px-4 py-3 py-md-2">
-                                    <div className="row align-items-center">
-                                        <div className="col-sm-12 col-md-7">
-                                            <Nav as="ul" className="nav nav-pills review-tab" role="tablist">
+                            <div className="card-body px-4 py-3 py-md-2">
+                                <div className="row align-items-center">
+                                    <div className="col-sm-12 col-md-7">
+                                        <Nav as="ul" className="nav nav-pills review-tab" role="tablist">
+                                            <Nav.Item as="li" className="nav-item">
+                                                <Nav.Link className="nav-link px-2 px-lg-3" to="#basic" role="tab" eventKey="basic">
+                                                    {t("BasicInfo")}
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item as="li" className="nav-item">
+                                                <Nav.Link className="nav-link px-2 px-lg-3" to="#assessments" role="tab" eventKey="assessments">
+                                                    {t("Assessments")}
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item as="li" className="nav-item">
+                                                <Nav.Link className="nav-link px-2 px-lg-3" to="#incidents" role="tab" eventKey="incidents">
+                                                    {t("Incidents")}
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            <Nav.Item as="li" className="nav-item">
+                                                <Nav.Link className="nav-link px-2 px-lg-3" to="#gallery" role="tab" eventKey="gallery">
+                                                    {t("Gallery")}
+                                                </Nav.Link>
+                                            </Nav.Item>
+                                            {location && (
                                                 <Nav.Item as="li" className="nav-item">
-                                                    <Nav.Link className="nav-link px-2 px-lg-3" to="#basic" role="tab" eventKey="basic">
-                                                        {t("BasicInfo")}
+                                                    <Nav.Link className="nav-link px-2 px-lg-3" to="#map" role="tab" eventKey="map">
+                                                        Map
                                                     </Nav.Link>
                                                 </Nav.Item>
+                                            )}
+                                            {access === 'gold' && (
                                                 <Nav.Item as="li" className="nav-item">
-                                                    <Nav.Link className="nav-link px-2 px-lg-3" to="#assessments" role="tab" eventKey="assessments">
-                                                        {t("Assessments")}
+                                                    <Nav.Link className="nav-link px-2 px-lg-3" to="#miners" role="tab" eventKey="miners">
+                                                        Miners
                                                     </Nav.Link>
                                                 </Nav.Item>
-                                                <Nav.Item as="li" className="nav-item">
-                                                    <Nav.Link className="nav-link px-2 px-lg-3" to="#incidents" role="tab" eventKey="incidents">
-                                                        {t("Incidents")}
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                                <Nav.Item as="li" className="nav-item">
-                                                    <Nav.Link className="nav-link px-2 px-lg-3" to="#gallery" role="tab" eventKey="gallery">
-                                                        {t("Gallery")}
-                                                    </Nav.Link>
-                                                </Nav.Item>
-                                                {location ? (
-                                                    <Nav.Item as="li" className="nav-item">
-                                                        <Nav.Link className="nav-link px-2 px-lg-3" to="#map" role="tab" eventKey="map">
-                                                            Map
-                                                        </Nav.Link>
-                                                    </Nav.Item>
-                                                ) : <div></div>}
-                                                {access === 'gold' ? (
-                                                    <Nav.Item as="li" className="nav-item">
-                                                        <Nav.Link className="nav-link px-2 px-lg-3" to="#miners" role="tab" eventKey="miners">
-                                                            Miners
-                                                        </Nav.Link>
-                                                    </Nav.Item>
-                                                ) : <div></div>}
-                                            </Nav>
-                                        </div>
+                                            )}
+                                        </Nav>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-xl-12 col-xxl-12">
-                            <Tab.Content>
-                                <Tab.Pane eventKey="basic" id='basic'>
+                    </div>
+                    <div className="col-xl-12 col-xxl-12">
+                        <Tab.Content>
+                            <Tab.Pane eventKey="basic" id='basic'>
+                                {loadingStates.basic ? <LoadingSpinner /> : (
                                     <div className='card'>
                                         <div className='card-body'>
                                             <div className="row">
@@ -309,224 +323,239 @@ const Mine = ({ language }) => {
                                                     <h4 className="text-primary mb-2">{t("MineName")}</h4>
                                                     <Link className="text-black">{mine?.name || `--`}</Link>
 
-                                                    <h4 className="text-primary mb-2 mt-4">{t("MineAddress")}</h4>
-                                                    <Link className="text-black">{mine?.location || `--`}</Link>
+<h4 className="text-primary mb-2 mt-4">{t("MineAddress")}</h4>
+<Link className="text-black">{mine?.location || `--`}</Link>
 
-                                                    <h4 className="text-primary mb-2 mt-4">{t("Mineral")}</h4>
-                                                    <Link className="text-black">{mine?.mineral || `--`}</Link>
+<h4 className="text-primary mb-2 mt-4">{t("Mineral")}</h4>
+<Link className="text-black">{mine?.mineral || `--`}</Link>
 
-                                                    <h4 className="text-primary mb-2 mt-4">{t("Note")}</h4>
-                                                    <Link className="text-black">{mine?.note || `--`}</Link>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Tab.Pane>
-                                <Tab.Pane eventKey="assessments" id='assessments'>
-                                    <AssessmentsTable headers={headers} assessments={assessments} language={language} />
-                                </Tab.Pane>
-                                <Tab.Pane eventKey="incidents" id='incidents'>
-                                    <div className="card-body pt-0 p-0" style={{ maxHeight: 700, overflow: 'auto' }}>
-                                        {incidents.length === 0 ? (
-                                            <div className='card'>
-                                                <div className='card-body'>
-                                                    <h5 className="mt-0 mb-0">{t("Noincidents")}</h5>
-                                                    <p className="fs-12 font-w200">{t("Therearenoincidents")}</p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            incidents.map(incident => (
-                                                <div onClick={() => setincidentview(incident)} className="media align-items-center border-bottom p-md-4 p-3" key={incident.id}>
-                                                    <div className="media-body col-sm-6 col-6 col-xxl-5 px-0 me-4">
-                                                        <h5 className="mt-0 mb-0">
-                                                            <Link to={""} className="fs-18 font-w400 text-ov">
-                                                                {incident.description ? incident.description : `No incident description specified.`}
-                                                            </Link>
-                                                        </h5>
-                                                        <p className="fs-12 font-w200">{incident.detailedDescription}</p>
-                                                    </div>
-                                                    <div className="media-footer ms-auto col-2 px-0 d-flex align-self-center align-items-center">
-                                                        <div className="text-center">
-                                                            <span className="text-primary d-block fs-20">{incident.score}</span>
-                                                            <span className="fs-14">Incident Score</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="me-3">
-                                                        <p className={`mb-0 ${incident.level === 'low' ? 'text-primary' : incident.level === 'medium' ? 'text-warning' : incident.level === 'high' ? 'text-danger' : 'text-warning'}`}>
-                                                            Level: {incident.level}
-                                                        </p>
-                                                        <span className="mt-0 font-w200">{incident.date.substring(0, 10)}</span>
-                                                    </div>
-                                                    <div className="chart-point mt-4 text-center">
-                                                        <div className="fs-13 col px-0 text-black">
-                                                            {incident.level === 'low' ? (
-                                                                <span className="b mx-auto"></span>
-                                                            ) : incident.level === 'medium' ? (
-                                                                <span className="c mx-auto"></span>
-                                                            ) : incident.level === 'high' ? (
-                                                                <span className="d mx-auto"></span>
-                                                            ) : (
-                                                                <span className="b mx-auto"></span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </Tab.Pane>
-                                <Tab.Pane eventKey="gallery" id='gallery'>
-                                    <div className="col-lg-12">
-                                        <div className="card">
-                                            <div className="card-header">
-                                                <h4 className="card-title">{t("Pictures")}</h4>
-                                            </div>
-                                            <div className="card-body pb-1">
-                                                {gallery.length === 0 ? (
-                                                    <div>
-                                                        <h5 className="mt-0 mb-0">{t("NoPictures")}</h5>
-                                                        <p className="fs-12 font-w200">{t("Therearenopictures")}</p>
-                                                    </div>
-                                                ) : (
-                                                    <LightGallery
-                                                        speed={500}
-                                                        plugins={[lgThumbnail, lgZoom]}
-                                                        elementClassNames="row"
-                                                    >
-                                                        {gallery.map((item, index) => (
-                                                            <div data-src={`https://lh3.googleusercontent.com/d/${item}=w2160?authuser=0`} className="col-lg-3 col-md-6 mb-4" key={index}>
-                                                                <img 
-                                                                    src={`https://lh3.googleusercontent.com/d/${item}=w2160?authuser=0`}
-                                                                    style={{ width: "100%", objectFit: 'cover' }}
-                                                                    height={300}
-                                                                    alt={mine?.name}
-                                                                    className='cursor-pointer rounded'
-                                                                />
-                                                            </div>
-                                                        ))}
-                                                    </LightGallery>
-                                                )}
-                                            </div>
-                                        </div>
+<h4 className="text-primary mb-2 mt-4">{t("Note")}</h4>
+<Link className="text-black">{mine?.note || `--`}</Link>
+</div>
+</div>
+</div>
+</div>
+)}
+</Tab.Pane>
 
-                                        <div className="card">
-                                            <div className="card-header">
-                                                <h4 className="card-title">Videos</h4>
-                                            </div>
-                                            <div className="card-body pb-1">
-                                                <div className='row'>
-                                                    {videos.length === 0 ? (
-                                                        <div>
-                                                            <h5 className="mt-0 mb-0">No Videos</h5>
-                                                            <p className="fs-12 font-w200">{t("Therearenovideos")}</p>
-                                                        </div>
-                                                    ) : (
-                                                        videos.map((item, index) => (
-                                                            <div data-src={`https://lh3.googleusercontent.com/d/${item}=w2160?authuser=0`} className="col-lg-3 col-md-6 mb-4" key={index}>
-                                                                <iframe
-                                                                    className='rounded'
-                                                                    title={mine?.name}
-                                                                    src={`https://drive.google.com/file/d/${item}/preview`}
-                                                                    width="100%"
-                                                                    height={300}
-                                                                    allow="autoplay, fullscreen"
-                                                                ></iframe>
-                                                            </div>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Tab.Pane>
-                                {location ? (
-                                    <Tab.Pane id='map' eventKey={'map'}>
-                                        <div className="card event-bx" style={{ height: '80vh', width: '100%' }}>
-                                            <iframe
-                                                src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDEabEXDTK0hQXB3l7WIXM2Cg4PJJo3x_o&q=${location.split(',')[0]},${location.split(',')[1]}`}
-                                                width="100%"
-                                                height="100%"
-                                                title={mine?.name}
-                                                style={{ border: 0 }}
-                                                allowFullScreen=""
-                                                loading="lazy"
-                                                referrerPolicy="no-referrer-when-downgrade"
-                                            ></iframe>
-                                        </div>
-                                    </Tab.Pane>
-                                ) : <div></div>}
-                                <Tab.Pane id="miners" eventKey="miners">
-                                    <div className="col-md-12">
-                                        <div className="card">
-                                            <div className="w-100 table-responsive">
-                                                <div id="patientTable_basic_table" className="dataTables_wrapper">
-                                                    <table
-                                                        id="example5"
-                                                        className="display dataTable w-100 no-footer"
-                                                        role="grid"
-                                                        aria-describedby="example5_info"
-                                                    >
-                                                        <thead>
-                                                            <tr role="row">
-                                                                {minersHeader
-                                                                    .filter(h => h !== 'ID' && h !== 'Mine/Concession Name' && !ignoreHeaders.includes(h))
-                                                                    .map(header => (
-                                                                        <th
-                                                                            className="sorting"
-                                                                            tabIndex={0}
-                                                                            aria-controls="example5"
-                                                                            rowSpan={1}
-                                                                            colSpan={1}
-                                                                            style={{ width: 73 }}
-                                                                            key={header}
-                                                                        >
-                                                                            {t(header)}
-                                                                        </th>
-                                                                    ))}
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {miners.length === 0 ? (
-                                                                <tr>
-                                                                    <td colSpan={minersHeader.length}>{t("Mine does not have any miners on record.")}</td>
-                                                                </tr>
-                                                            ) : (
-                                                                miners.map(miner => (
-                                                                    <tr key={`miner-${miner[0]}`}>
-                                                                        {miner
-                                                                            .filter((x, y) => y !== minersHeader.indexOf('ID') &&
-                                                                                y !== minersHeader.indexOf('Mine/Concession Name') &&
-                                                                                !ignoreHeaders.some(header => y === minersHeader.indexOf(header))
-                                                                            )
-                                                                            .map((field, i) => (
-                                                                                <td key={i}>
-                                                                                    {field.includes(`Miners_Images`) ? (
-                                                                                        <button
-                                                                                            className="btn btn-sm btn-primary"
-                                                                                            onClick={() => showAttachment(field, minersHeader.filter(h => h !== 'ID' && h !== 'Mine/Concession Name' && !ignoreHeaders.includes(h))[i])}
-                                                                                        >
-                                                                                            View
-                                                                                        </button>
-                                                                                    ) : field}
-                                                                                </td>
-                                                                            ))}
-                                                                    </tr>
-                                                                ))
-                                                            )}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Tab.Pane>
-                            </Tab.Content>
-                        </div>
-                    </Tab.Container>
-                </div>
-            )}
+<Tab.Pane eventKey="assessments" id='assessments'>
+{loadingStates.assessments ? <LoadingSpinner /> : (
+<AssessmentsTable headers={headers} assessments={assessments} language={language} />
+)}
+</Tab.Pane>
+
+<Tab.Pane eventKey="incidents" id='incidents'>
+{loadingStates.incidents ? <LoadingSpinner /> : (
+<div className="card-body pt-0 p-0" style={{ maxHeight: 700, overflow: 'auto' }}>
+{incidents.length === 0 ? (
+<div className='card'>
+<div className='card-body'>
+<h5 className="mt-0 mb-0">{t("Noincidents")}</h5>
+<p className="fs-12 font-w200">{t("Therearenoincidents")}</p>
+</div>
+</div>
+) : (
+incidents.map(incident => (
+<div onClick={() => setincidentview(incident)} className="media align-items-center border-bottom p-md-4 p-3" key={incident.id}>
+<div className="media-body col-sm-6 col-6 col-xxl-5 px-0 me-4">
+    <h5 className="mt-0 mb-0">
+        <Link to={""} className="fs-18 font-w400 text-ov">
+            {incident.description ? incident.description : `No incident description specified.`}
+        </Link>
+    </h5>
+    <p className="fs-12 font-w200">{incident.detailedDescription}</p>
+</div>
+<div className="media-footer ms-auto col-2 px-0 d-flex align-self-center align-items-center">
+    <div className="text-center">
+        <span className="text-primary d-block fs-20">{incident.score}</span>
+        <span className="fs-14">Incident Score</span>
+    </div>
+</div>
+<div className="me-3">
+    <p className={`mb-0 ${incident.level === 'low' ? 'text-primary' : incident.level === 'medium' ? 'text-warning' : incident.level === 'high' ? 'text-danger' : 'text-warning'}`}>
+        Level: {incident.level}
+    </p>
+    <span className="mt-0 font-w200">{incident.date.substring(0, 10)}</span>
+</div>
+<div className="chart-point mt-4 text-center">
+    <div className="fs-13 col px-0 text-black">
+        {incident.level === 'low' ? (
+            <span className="b mx-auto"></span>
+        ) : incident.level === 'medium' ? (
+            <span className="c mx-auto"></span>
+        ) : incident.level === 'high' ? (
+            <span className="d mx-auto"></span>
+        ) : (
+            <span className="b mx-auto"></span>
+        )}
+    </div>
+</div>
+</div>
+))
+)}
+</div>
+)}
+</Tab.Pane>
+
+<Tab.Pane eventKey="gallery" id='gallery'>
+{loadingStates.gallery ? <LoadingSpinner /> : (
+<div className="col-lg-12">
+<div className="card">
+<div className="card-header">
+<h4 className="card-title">{t("Pictures")}</h4>
+</div>
+<div className="card-body pb-1">
+{gallery.length === 0 ? (
+<div>
+    <h5 className="mt-0 mb-0">{t("NoPictures")}</h5>
+    <p className="fs-12 font-w200">{t("Therearenopictures")}</p>
+</div>
+) : (
+<LightGallery
+    speed={500}
+    plugins={[lgThumbnail, lgZoom]}
+    elementClassNames="row"
+>
+    {gallery.map((item, index) => (
+        <div data-src={`https://lh3.googleusercontent.com/d/${item}=w2160?authuser=0`} className="col-lg-3 col-md-6 mb-4" key={index}>
+            <img 
+                src={`https://lh3.googleusercontent.com/d/${item}=w2160?authuser=0`}
+                style={{ width: "100%", objectFit: 'cover' }}
+                height={300}
+                alt={mine?.name}
+                className='cursor-pointer rounded'
+            />
         </div>
-    );
+    ))}
+</LightGallery>
+)}
+</div>
+</div>
+
+<div className="card">
+<div className="card-header">
+<h4 className="card-title">Videos</h4>
+</div>
+<div className="card-body pb-1">
+<div className='row'>
+{videos.length === 0 ? (
+    <div>
+        <h5 className="mt-0 mb-0">No Videos</h5>
+        <p className="fs-12 font-w200">{t("Therearenovideos")}</p>
+    </div>
+) : (
+    videos.map((item, index) => (
+        <div data-src={`https://lh3.googleusercontent.com/d/${item}=w2160?authuser=0`} className="col-lg-3 col-md-6 mb-4" key={index}>
+            <iframe
+                className='rounded'
+                title={mine?.name}
+                src={`https://drive.google.com/file/d/${item}/preview`}
+                width="100%"
+                height={300}
+                allow="autoplay, fullscreen"
+            ></iframe>
+        </div>
+    ))
+)}
+</div>
+</div>
+</div>
+</div>
+)}
+</Tab.Pane>
+
+{location && (
+<Tab.Pane id='map' eventKey={'map'}>
+{loadingStates.map ? <LoadingSpinner /> : (
+<div className="card event-bx" style={{ height: '80vh', width: '100%' }}>
+<iframe
+src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyDEabEXDTK0hQXB3l7WIXM2Cg4PJJo3x_o&q=${location.split(',')[0]},${location.split(',')[1]}`}
+width="100%"
+height="100%"
+title={mine?.name}
+style={{ border: 0 }}
+allowFullScreen=""
+loading="lazy"
+referrerPolicy="no-referrer-when-downgrade"
+></iframe>
+</div>
+)}
+</Tab.Pane>
+)}
+
+<Tab.Pane id="miners" eventKey="miners">
+{loadingStates.miners ? <LoadingSpinner /> : (
+<div className="col-md-12">
+<div className="card">
+<div className="w-100 table-responsive">
+<div id="patientTable_basic_table" className="dataTables_wrapper">
+<table
+    id="example5"
+    className="display dataTable w-100 no-footer"
+    role="grid"
+    aria-describedby="example5_info"
+>
+    <thead>
+        <tr role="row">
+            {minersHeader
+                .filter(h => h !== 'ID' && h !== 'Mine/Concession Name' && !ignoreHeaders.includes(h))
+                .map(header => (
+                    <th
+                        className="sorting"
+                        tabIndex={0}
+                        aria-controls="example5"
+                        rowSpan={1}
+                        colSpan={1}
+                        style={{ width: 73 }}
+                        key={header}
+                    >
+                        {t(header)}
+                    </th>
+                ))}
+        </tr>
+    </thead>
+    <tbody>
+        {miners.length === 0 ? (
+            <tr>
+                <td colSpan={minersHeader.length}>{t("Mine does not have any miners on record.")}</td>
+            </tr>
+        ) : (
+            miners.map(miner => (
+                <tr key={`miner-${miner[0]}`}>
+                    {miner
+                        .filter((x, y) => y !== minersHeader.indexOf('ID') &&
+                            y !== minersHeader.indexOf('Mine/Concession Name') &&
+                            !ignoreHeaders.some(header => y === minersHeader.indexOf(header))
+                        )
+                        .map((field, i) => (
+                            <td key={i}>
+                                {field.includes(`Miners_Images`) ? (
+                                    <button
+                                        className="btn btn-sm btn-primary"
+                                        onClick={() => showAttachment(field, minersHeader.filter(h => h !== 'ID' && h !== 'Mine/Concession Name' && !ignoreHeaders.includes(h))[i])}
+                                    >
+                                        View
+                                    </button>
+                                ) : field}
+                            </td>
+                        ))}
+                </tr>
+            ))
+        )}
+    </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+)}
+</Tab.Pane>
+</Tab.Content>
+</div>
+</Tab.Container>
+</div>
+</div>
+);
 };
 
 export default Mine;

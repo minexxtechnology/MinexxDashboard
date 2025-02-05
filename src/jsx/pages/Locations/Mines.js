@@ -62,7 +62,7 @@ const Mines = ({ language,country }) => {
         } catch (err) {
             setloading(false)
             try {
-                if (err.response.code === 403) {
+                if (err.response.code === 403) { 
                     dispatch(Logout(navigate))
                 } else {
                    // toast.warn(err.response.message)
@@ -125,9 +125,10 @@ const Mines = ({ language,country }) => {
                                                                     : mines.filter(single => single.company === supplier.id).map(mine => (
                                                                         <p className='mt-2 mb-2' key={mine.id}>
                                                                             <Link className='text-warning' to={`/mines/${mine.id}`}>{mine.name}</Link><br />
-                                                                            {user?.type === 'buyer' && <Link className='text-warning' to={`/Kyc`}>KYC</Link>}
+                                                                          
                                                                         </p>
                                                                     ))}
+                                                                      <Link className='text-warning' to={`/Kyc/${supplier.id}`}>KYC</Link>
                                                             </div>
                                                         </Accordion.Collapse>
                                                     </Accordion.Item>

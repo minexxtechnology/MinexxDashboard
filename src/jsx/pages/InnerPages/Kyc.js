@@ -191,7 +191,7 @@ const Kyc = ({language}) => {
                             <Link className="text-light" style={{ textDecoration: 'none' }}>{company.company.address}</Link>
                             <h4 className="text-primary mb-2 mt-4">{t("CompanyCountry")}</h4>
                             <Link className="text-light" style={{ textDecoration: 'none' }}>{company.company.country}</Link>
-                            <h4 className="text-primary mb-2 mt-4">{t("CompanyNumber")}</h4>
+                           {company.company.number ?( <h4 className="text-primary mb-2 mt-4">{t("CompanyNumber")}</h4>):(<p></p>)}
                             <Link className="text-light" style={{ textDecoration: 'none' }}>{company.company.number}</Link>
                             <h4 className="text-primary mb-2 mt-4">{t("CompanyType")}</h4>
                             <Link className="text-light" style={{ textDecoration: 'none' }}>{company.company.type}</Link>

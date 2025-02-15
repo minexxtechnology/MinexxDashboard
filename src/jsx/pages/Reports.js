@@ -31,8 +31,10 @@ const Reports = ({language,country}) => {
     // const [dailyData, setDailyData] = useState({ cassiterite: [], coltan: [], wolframite: [] });
     const access = localStorage.getItem(`_dash`) || '3ts'
     const [attachment, setattachment] = useState()
+    const [loading, setLoading] = useState(false);
     const [companies, setcompanies] = useState([])
     const [company, setcompany] = useState()
+    const [mineral, setmineral] = useState();
     const [trace, settrace] = useState({
         production: [],
         bags: [],
@@ -45,11 +47,15 @@ const Reports = ({language,country}) => {
         processing: [],
         exports: []
     })
+    const [sale,setSale]=useState({
+        sale_Report:[]
+    })
     const [exportsPage, setexportsPage] = useState(1)
     const [drumsPage, setdrumsPage] = useState(1)
     const [prodPage, setprodPage] = useState(1)
     const [procPage, setprocPage] = useState(1)
     const [bagsPage, setbagsPage] = useState(1)
+    const [salesPage, setsalesPage] = useState(1)
     const [bagsProcPage, setbagsProcPage] = useState(1)
     const { changeTitle } = useContext(ThemeContext)
     const [data, setData] = useState(
@@ -292,6 +298,19 @@ const Reports = ({language,country}) => {
             autoClose: true
         })
     }
+    const changeMineral = (e)=>{
+        const input = e.currentTarget.value
+        if(input === 'Select Mineral'){
+            setmineral(null)
+            return toast.warn("Please select a Mineral to generate Sales report for.")
+        }
+        const selected = input;
+        setmineral(selected)
+        toast.info('Generating Sales report, please wait...', {
+            delay: 100,
+            autoClose: true
+        })
+    }
     
     const loadCompanies =  ()=>{
         let normalizedCountry = country.trim();
@@ -314,6 +333,8 @@ const Reports = ({language,country}) => {
             setcompanies(response.data.companies)
         })
     }
+    //Form apply filter
+    
 
     const loadReport = ()=>{
         if(type === `trace`){
@@ -333,11 +354,11 @@ const Reports = ({language,country}) => {
                 processing: [],
                 exports: []
             })
+           
         }
         if(type === `trace` && !company){
             return
         }
-
         let normalizedCountry = country.trim();
             
         // Special handling for Rwanda
@@ -424,8 +445,114 @@ const Reports = ({language,country}) => {
 			}catch(e){
 				toast.error(err.message)
 			}
-        })
+        })                
     }
+    const loadMinerals = () => {
+        if (type === 'sale' && mineral) {
+            let normalizedCountry = country.trim();
+    
+            // Special handling for Rwanda
+            if (normalizedCountry.toLowerCase() === 'rwanda') {
+                normalizedCountry = '.Rwanda';
+            } else {
+                // For other countries, remove leading/trailing dots and spaces
+                normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+            }
+    
+            axiosInstance.get(`/report/sales/${mineral}`, {
+                params: {
+                    country: normalizedCountry,
+                }
+            })
+            .then(response => {
+                // Ensure the response structure matches what you expect
+                if (response.data && response.data.salereport) {
+                    const totalValue = response.data.salereport.reduce((sum, item) => {
+                        // Convert string to number and add to sum
+                        return sum + parseFloat(item.value || 0);
+                    }, 0);
+                    setSale({
+                        sale_Report: response.data.salereport,
+                        totalValue: totalValue.toFixed(3) // Round to 3 decimal places
+                    });
+                    toast.success(`${mineral} sales report generated successfully!`);
+                    console.log("Sale Report", response.data.salereport);
+                    console.log("Total Value:", totalValue.toFixed(3));
+                } else {
+                    console.warn("Unexpected API response structure:", response.data);
+                }
+            })
+            .catch(err => {
+                if (err.response) {
+                    if (err.response.status === 403) {
+                        dispatch(Logout(navigate));
+                    } else {
+                        toast.warn(err.response.data.message || "An error occurred");
+                    }
+                } else {
+                    toast.error(err.message || "An error occurred");
+                }
+            });
+        }
+    };
+    //apply filter 
+    const applyFilter = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        const formData = new FormData(e.target);
+        const startDate = formData.get('start');
+        const endDate = formData.get('end');
+        
+        // Format dates from YYYY-MM-DD to M/D/YYYY
+        const formatDateForAPI = (dateStr) => {
+          const [year, month, day] = dateStr.split('-');
+          return `${parseInt(month)}/${parseInt(day)}/${year}`;
+        };
+    
+        let normalizedCountry = country.trim();
+    
+            // Special handling for Rwanda
+            if (normalizedCountry.toLowerCase() === 'rwanda') {
+                normalizedCountry = '.Rwanda';
+            } else {
+                // For other countries, remove leading/trailing dots and spaces
+                normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+            }
+    
+        try {
+          const response = await axiosInstance.get(
+            `/report/salesrange/${mineral}`,
+            {
+              params: {
+                country: normalizedCountry,
+                start_date: formatDateForAPI(startDate),
+                end_date: formatDateForAPI(endDate)
+              }
+            }
+          );
+    
+          if (response.data.success) {
+            const totalValue = response.data.salereport.reduce((sum, item) => 
+              sum + parseFloat(item.value || 0), 0
+            );
+    
+            setSale({
+              sale_Report: response.data.salereport,
+              totalValue: totalValue.toFixed(3)
+            });
+            console.log("Sales Report After Apply:", response.data.salereport);
+            toast.success(`${mineral} sales report generated successfully!`);
+          } else {
+            toast.warn(response.data.message || "Failed to fetch sales data");
+          }
+        } catch (error) {
+          console.error('Error fetching sales report:', error);
+          toast.error(error?.response?.data?.message || "An error occurred while fetching sales data");
+        } finally {
+            setLoading(false);
+          }
+      };
+    
 
     function paginate(array, page_number, page_size) {
         // human-readable page numbers usually start with 1, so we reduce 1 in the first argument
@@ -436,12 +563,13 @@ const Reports = ({language,country}) => {
         setData(document.querySelectorAll("#report_wrapper tbody tr"));
         changeTitle(`${t('Report')} | Minexx`)
         loadReport()
+        loadMinerals()
         loadMonthlyData();
         loadMonthlyPurchase();
         if(type === 'trace'){
             loadCompanies()
         }
-    }, [type, company,language,country]);
+    }, [type, company,language,country, mineral]);
     
     const loadMonthlyData = () => {
         let normalizedCountry = country.trim();
@@ -888,6 +1016,8 @@ const chartOptions_Purchase = {
                         ? "Today's Report" 
                         : type === 'trace' 
                             ? `${t('TraceReport')} ${company ? `[${company.name}]` : ''}`
+                            : type ==='sale'
+                            ? t('SaleReport')
                             : type === 'daily' 
                             ? t('TotalStockDelivery')
                             : type === 'mtd' 
@@ -2606,9 +2736,148 @@ const chartOptions_Purchase = {
                     </div>}
                 </div>
                 :
-                <div>
-                </div>
-                }
+                type === 'sale' ? (
+                   
+                    <div className='row'>
+                        <div className='col-md-5'>
+                        {access === "3ts"? (  
+                            // for prevent access of sale report to the gold 
+                            <div className='card'>
+                                <div className='card-header'>
+                                    <h5 className='card-title'>{t("SelectMinerals")}</h5>
+                                </div>
+                                <div className='card-body'>
+                                    <select onChange={changeMineral} className='form-control'>
+                                        <option>{t("SelectMineralShort")}</option>
+                                        {access === '3ts' ? (
+                                            <>
+                                                <option value="Cassiterite">Cassiterite/Tin</option>
+                                                <option value="Coltan">Coltan/Tantalum</option>
+                                                <option value="Wolframite">Wolframite</option>
+                                            </>
+                                        ) : (
+                                            <option value="Gold">Gold</option>
+                                        )}
+                                    </select>
+                                </div>
+                            </div>
+                            ):
+                            (<div></div>
+                            //nothing show when it is gold 
+                                
+                            )}
+                        </div>
+                                    
+                        {mineral && (
+                            <>
+                                <div className='col-md-4'>
+                                    <div className='card'>
+                                        <div className='card-header'>
+                                            <h5 className='card-title text-center'>{t("Sales")}</h5>
+                                        </div>
+                                        <div className='card-body'>
+                                        <h3 className='text-center text-primary fs-40'>
+                                            {new Intl.NumberFormat('en-US', {
+                                                style: 'currency',
+                                                currency: 'USD'
+                                            }).format(!sale.totalValue || isNaN(sale.totalValue) ? 0 : sale.totalValue)}
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="col-md-3">
+                                    <div className="card">
+                                        <div className="card-header">
+                                            <h5 className="card-title text-center mb-0">{t('Viewby')}</h5>
+                                        </div>
+                                        <div className="card-body">
+                                            <form onSubmit={applyFilter}> 
+                                                <div className="row mb-3">
+                                                    <div className="col-6 ps-2 pe-1">
+                                                        <input type="date" name="start" className="form-control form-control-sm" />
+                                                    </div>
+                                                    <div className="col-6 ps-1 pe-2">
+                                                        <input type="date" name="end" className="form-control form-control-sm" />
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="mineral" value={mineral} />
+                                                <div className="d-grid">
+                                                    <button className="btn btn-primary btn-sm" disabled={loading}>
+                                                    {loading ? 'Loading...' : 'Apply'}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                        {mineral && (
+                            <div className='card'>
+                                <div className='card-header'>
+                                    <h4 className='card-title'>{mineral} {t("CassiteriteSaleReport")}</h4>
+                                </div>
+                                <div className='card-body'>
+                                    <div id="soldre-view" className="dataTables_wrapper no-footer">
+                                        <Table bordered striped hover responsive size='sm'>
+                                            <thead>
+                                                <tr>
+                                                    <th>{t("Supplier")}</th>
+                                                    <th className="text-center text-dark">{t("Volume")}</th>
+                                                    <th className="text-center text-dark">{t("Values")}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {paginate(sale?.sale_Report || [], salesPage, 20).map((sale, i) => (
+                                                    <tr key={`sale${i}`}>
+                                                        <td>{sale.supplier}</td>
+                                                        <td>{sale.volume} Kg</td>
+                                                        <td>{new Intl.NumberFormat('en-US', {
+                                                                style: 'currency',
+                                                                currency: 'USD'
+                                                            }).format(!sale.value || isNaN(sale.value) ? 0 : sale.value)}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                {sale?.sale_Report.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan={14}>{t("NoSelectedMineral")}</td>
+                                                    </tr>
+                                                ) : (
+                                                    <tr></tr>
+                                                )}
+                                            </tbody>
+                                        </Table>
+                                        <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
+                                            <div className="dataTables_info">
+                                                {t("Showing")} {(salesPage-1) * sort + 1} {t("To")}{" "}
+                                                {sale?.sale_Report.length > salesPage * sort ? salesPage*sort : sale?.sale_Report.length}{" "}
+                                                {t("Of")} {sale?.sale_Report.length} {t("Entries")}
+                                            </div>
+                                            <div className="dataTables_paginate paging_simple_numbers" id="example2_paginate">
+                                                <Link
+                                                    className="paginate_button previous disabled"
+        
+                                                    onClick={() => salesPage > 1 && setsalesPage(salesPage - 1)}
+                                                >
+                                                    {t("Previous")}
+                                                </Link>
+                                                <Link
+                                                    className="paginate_button next mx-4"
+                                                    onClick={() => salesPage < paggination(sale?.sale_Report || []).length && setsalesPage(salesPage + 1)}
+                                                >
+                                                    {t("Next")}
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                <div></div>
+                )}
             </div>
         </>
     );

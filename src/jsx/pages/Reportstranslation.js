@@ -1,8 +1,14 @@
+import { Volume } from "lucide-react";
+
 export const translations = {
     en: {
         Dashboard: "Dashboard",
         TraceReport: "Trace Report",
+        SaleReport:"Sale Report",
+        CassiteriteSaleReport:"Sale Report",
         SelectCompany: "Please select company to generate trace report",
+        SelectMinerals:"Please select minerals to generate Sales Report",
+        SelectMineralShort:"Select Mineral",
         SelectCompanyShort: "Select Company",
         Production: "Production",
         BagsProduced: "Bags Produced",
@@ -151,6 +157,7 @@ export const translations = {
         Picture: "Picture",
         //drum tab
         Drums: "Drums",
+        NoSelectedMineral:"The selected Mineral does not have any Sale Report to show.",
         DrumNumber: "Drum Number",
         GrossWeight: "Gross Weight",
         NetWeight: "Net Weight",
@@ -289,13 +296,24 @@ export const translations = {
         "Colour": "Colour",
         "Receipt": "Receipt",
         "Miner ID": "Miner ID",
-        "Last Modification": "Last Modification"
+        "Last Modification": "Last Modification",
+        Supplier:"Supplier",
+        Volume:"Volume",
+        Values:"Value",
+        Sales:"Sales",
+        Viewby:"View By"
         
     },
     fr: {
         Dashboard: "Tableau de bord",
         Report:"Rapport",
+        Sales:"Vente",
+        Viewby: "Voir par",
         TraceReport: "Rapport de traçage",
+        SaleReport: "Rapport de vente",
+        CassiteriteSaleReport:"Rapport de vente ",
+        SelectMinerals: "Veuillez sélectionner des minéraux pour générer le rapport de vente",
+        SelectMineralShort: "Sélectionner un minéral",
         SelectCompany: "Veuillez sélectionner une entreprise pour générer un rapport de traçabilité",
         SelectCompanyShort: "Sélectionnez une entreprise",
         Production: "Production",
@@ -341,6 +359,7 @@ export const translations = {
         October: "octobre",
         November: "novembre",
         December: "Décembre",
+        NoSelectedMineral:"Le minéral sélectionné n'a aucun rapport de vente à afficher.",
         //production Tab
         ProductionWeight: "Poids de production (Kg)",
         BusinessLocation: "Lieu d'activité",
@@ -582,6 +601,9 @@ export const translations = {
         "Colour": "Couleur",
         "Receipt": "Reçu",
         "Miner ID": "ID du mineur",
-        "Last Modification": "Dernière modification"
+        "Last Modification": "Dernière modification",
+        Supplier:"Fournisseur",
+        Volume:"Volume",
+        Values:"Valeur",
     }
 };

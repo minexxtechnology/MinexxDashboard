@@ -79,7 +79,12 @@ const SideBar = ({ language }) => {
   if (user) {
     if (user.type === 'buyer') {
       menu = BMenu;
-    } else if (user.type === 'investor') {
+    }
+    else if (user.type === 'buyers') 
+      {
+        menu = BMenu;
+      }
+     else if (user.type === 'investor') {
       menu = IMenu;
     } else if (user.type === 'minexx') {
       menu = RootMenu;
@@ -146,7 +151,7 @@ const SideBar = ({ language }) => {
     >
       <PerfectScrollbar className="deznav-scroll">
         <ul className="metismenu" id="menu">
-          {translatedMenu.filter(item => user.type !== "buyer" ? item : item.to !== "reports").map((data, index) => {
+          {translatedMenu.filter(item => user.type !== "buyer"  ? item : item.to !== "reports").map((data, index) => {
             let menuClass = data.classChange;
             if (menuClass === "menu-title") {
               return (
@@ -182,7 +187,7 @@ const SideBar = ({ language }) => {
                   {data.content && (
                     <Collapse in={state.active === data.title}>
                       <ul className={`${menuClass === "mm-collapse" && data.content ? "mm-show" : ""}`}>
-                        {data.content && data.content.filter(c => access === `gold` ? !["reports/daily", "reports/mtd", "reports/deliveries"].includes(c.to) : c !== null).map((subData, subIndex) => {									
+                        {data.content && data.content.filter(c => access === `gold` ? !["reports/daily", "reports/mtd", "reports/deliveries","reports/sale"].includes(c.to) : c !== null).map((subData, subIndex) => {									
                           return (
                             <li key={subIndex}
                               className={`${path === subData.to || window.location.pathname.includes(subData.to) ? "mm-active" : ""}`}

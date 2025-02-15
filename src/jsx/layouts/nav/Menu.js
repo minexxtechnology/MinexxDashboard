@@ -17,13 +17,12 @@ export const RootMenu = [
         iconStyle: <i className="flaticon-location"></i>,
         to: 'mines',
     },
-
+ 
     {
         title: 'Knowledge Base',
         iconStyle: <i className="flaticon-monitor"></i>,
         to: 'knowledge' 
     },
-
     {
         title:'Reporting',
         to: 'reports',
@@ -33,6 +32,10 @@ export const RootMenu = [
             {
                 title: 'Trace Report',
                 to: 'reports/trace',
+            },
+            {
+            title:'Supplier Sales Report',
+            to:'reports/sale',
             },
             {
                 title: 'Total Stock Delivery',

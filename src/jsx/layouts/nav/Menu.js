@@ -107,6 +107,10 @@ export const RegulatorMenu = [
                 to: 'reports/trace',
             },
             {
+                title:'Supplier Sales Report',
+                to:'reports/sale',
+                },
+            {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
             },
@@ -186,6 +190,10 @@ export const IMenu = [
                 title: 'Trace Report',
                 to: 'reports/trace',
             },
+            {
+                title:'Supplier Sales Report',
+                to:'reports/sale',
+                },
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',

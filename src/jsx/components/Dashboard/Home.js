@@ -13,8 +13,8 @@ import { toast } from 'react-toastify';
 import { translations } from './Hometranslations';
 import { LanguageContext, LanguageProvider } from './LanguageContext';
 
-//  import ChatBot from './Chatbot';     //for Future 
-
+ import ChatBot from './Chatbot';     //for Future 
+ 
 
 const Doughnutchart = loadable(() =>
   pMinDelay(import("./../Karciz/Dashboard/Doughnutchart"), 1000)
@@ -401,7 +401,7 @@ function Home({ language ,country}) {
         </div>
       }						
       </div>	
-      {/* <ChatBot />  */}
+      <ChatBot /> 
       {/* //For Future */}
     </Fragment>
   )

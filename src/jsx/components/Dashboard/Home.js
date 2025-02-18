@@ -401,7 +401,7 @@ function Home({ language ,country}) {
         </div>
       }						
       </div>	
-      <ChatBot /> 
+      {/* <ChatBot />  */}
       {/* //For Future */}
     </Fragment>
   )

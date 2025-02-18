@@ -5,6 +5,7 @@ import { Dropdown } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEarthAmericas, faArrowRightArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { ThemeContext } from '../../../context/ThemeContext';
+import ChatBot from '../../components/Dashboard/Chatbot';
 
 const translations = {
   en: {
@@ -204,6 +205,8 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
           </div>
         </nav>
       </div>
+      <ChatBot /> 
+
     </div>
   );
 };

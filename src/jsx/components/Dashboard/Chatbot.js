@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Send, MessageCircle, X, MinusCircle } from 'lucide-react';
-
+import { OPENAI_API_KEY } from '../../../config'
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -10,8 +10,7 @@ const ChatBot = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const OPENAI_API_KEY = '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'; // Replace with your actual API key
-
+  
   const generateResponse = async (userMessage) => {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -78,7 +77,7 @@ const ChatBot = () => {
     position: 'fixed',
     right: '20px',
     bottom: '20px',
-    width: isOpen ? '300px' : 'auto',
+    width: isOpen ? '350px' : 'auto',
     zIndex: 1000,
     transition: 'all 0.3s ease',
     height: isOpen ? (isMinimized ? '50px' : '400px') : 'auto',
@@ -86,7 +85,7 @@ const ChatBot = () => {
   };
 
   const messageContainerStyle = {
-    height: '300px',
+    height: '400px',
     overflowY: 'auto',
     backgroundColor: '#1E1E1E',
   };

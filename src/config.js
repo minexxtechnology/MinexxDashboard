@@ -1,5 +1,4 @@
 export const apiKey =`AIzaSyBzKvTjARj6zl98DO9cH62cXlVMSqTMWYM`;
-export const OPENAI_API_KEY = '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'; // Replace with your actual API key
 
 export const baseURL_ = `https://minexxapi-db-p7n5ing2cq-uc.a.run.app/`
 export const authUser = JSON.parse(localStorage.getItem(`_authUsr`))

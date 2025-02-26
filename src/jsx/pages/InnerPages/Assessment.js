@@ -51,6 +51,54 @@ const Assessment = ({ language, country }) => {
     changeTitle(t('Assessment Details | Minexx'));
   }, [language, country]);
 
+  // Function to determine file type based on ID or extension
+  const getFileType = (fileId) => {
+    // Check if it's a PDF (either by ID format or if you have extension info)
+    if (fileId && fileId.includes('_') && !fileId.match(/\.(jpg|jpeg|png|gif)$/i)) {
+      return 'pdf';
+    }
+    return 'image';
+  };
+
+  // Function to render appropriate attachment viewer based on file type
+  const renderAttachment = (fileId) => {
+    const fileType = getFileType(fileId);
+    
+    if (fileType === 'pdf') {
+      // For PDFs - render embedded PDF viewer or link
+      return (
+        <div className="pdf-container">
+          <iframe 
+            src={`https://drive.google.com/file/d/${fileId}/preview`} 
+            width="100%" 
+            height="500" 
+            style={{ border: 'none' }}
+            title="PDF Document"
+          ></iframe>
+          <div className="mt-2">
+            <a 
+              href={`https://drive.google.com/file/d/${fileId}/view`} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn btn-primary btn-sm"
+            >
+              {t('Open PDF in new tab')}
+            </a>
+          </div>
+        </div>
+      );
+    } else {
+      // For images - render as before
+      return (
+        <img 
+          alt={t('Attachment')} 
+          src={`https://lh3.googleusercontent.com/d/${fileId}=w2160?authuser=0`} 
+          className="img-fluid" 
+        />
+      );
+    }
+  };
+
   return (
     <div>
       <div className="row page-titles">
@@ -89,8 +137,9 @@ const Assessment = ({ language, country }) => {
                                 {h.includes('Proof Details') ||
                                 h.includes('Image') ||
                                 h.includes('Photo') ||
+                                h.includes('Attachment') ||
                                 h.includes('Pictures') ?
-                                  <img alt='' src={`https://lh3.googleusercontent.com/d/${assessment[indexes[index]][i]}=w2160?authuser=0`} /> : 
+                                  renderAttachment(assessment[indexes[index]][i]) : 
                                   <p>{assessment[indexes[index]][i]}</p>}
                               </div>
                             </Accordion.Collapse>

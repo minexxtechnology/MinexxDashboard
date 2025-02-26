@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Send, MessageCircle, X, MinusCircle } from 'lucide-react';
-import { OPENAI_API_KEY } from '../../../config'
+// import { OPENAI_API_KEY } from '../../../config'
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -10,47 +10,56 @@ const ChatBot = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  
+  const OPENAI_API_KEY=process.env.REACT_APP_OPENAI_API_KEY;
   const generateResponse = async (userMessage) => {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: `You are a specialized minerals and mining information assistant. Focus on providing accurate information about:
-            - 3Ts (Tin, Tungsten, Tantalum)
-            - Gold and precious metals
-            - Mining processes and regulations
-            - Mineral trading and markets
-            - Responsible sourcing and conflict minerals
-            
-            Keep responses focused on these topics. If asked about unrelated topics, politely redirect to mineral-related discussions. Provide accurate, up-to-date information about mineral markets, mining operations, and regulations.`
-          },
-          ...messages.map(msg => ({
-            role: msg.isBot ? 'assistant' : 'user',
-            content: msg.text
-          })),
-          { role: 'user', content: userMessage }
-        ],
-        temperature: 0.7,
-        max_tokens: 150
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to generate response');
+    try {
+      const response = await fetch('https://minexxapi-db-p7n5ing2cq-uc.a.run.app/openai-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a specialized minerals and mining information assistant. Focus on providing accurate information about:
+              - 3Ts (Tin, Tungsten, Tantalum)
+              - Gold and precious metals
+              - Mining processes and regulations
+              - Mineral trading and markets
+              - Responsible sourcing and conflict minerals
+              
+              Keep responses focused on these topics. If asked about unrelated topics, politely redirect to mineral-related discussions. Provide accurate, up-to-date information about mineral markets, mining operations, and regulations.`
+            },
+            ...messages.map(msg => ({
+              role: msg.isBot ? 'assistant' : 'user',
+              content: msg.text
+            })),
+            { role: 'user', content: userMessage }
+          ],
+          temperature: 0.7,
+          max_tokens: 150
+        })
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate response');
+      }
+  
+      const data = await response.json();
+      // Handle the response structure from our fixed backend
+      if (data.success && data.data && data.data.choices && data.data.choices.length > 0) {
+        return data.data.choices[0].message.content;
+      } else {
+        throw new Error('Invalid response format from server');
+      }
+    } catch (error) {
+      console.error('Error generating response:', error);
+      throw error;
     }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
   };
-
   const handleSend = async () => {
     if (input.trim() && !isLoading) {
       const userMessage = input.trim();

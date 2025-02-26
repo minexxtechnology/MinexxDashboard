@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tab, Nav, ListGroup } from 'react-bootstrap';
+import { Tab, Nav, ListGroup,ProgressBar, Container, Row, Col } from 'react-bootstrap';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { translations } from '../../pages/Locations/MinesTranslation';
@@ -9,6 +9,8 @@ import { Turtle } from 'lucide-react';
 const Kyc = ({language}) => {
   const { id } = useParams();
   const [company, setCompany] = useState(null);
+  const[progress, setProgress]=useState(0);
+  const[totalDocuments, setTotalDocuments]=useState(0);
   const [companyDocs, setCompanyDocs] = useState([]);
   const [shareholder, setShareholder] = useState([]);
   const [beneficial, setBeneficial] = useState([]);
@@ -73,7 +75,10 @@ const Kyc = ({language}) => {
         throw new Error('Network response was not ok for documents');
       }
       const companyDocData = await companyDocResponse.json();
-      setCompanyDocs(companyDocData.documents);
+      const { documents, progress, totalDocuments } = companyDocData.documents;
+      setCompanyDocs(documents);
+      setProgress(progress);
+      setTotalDocuments(totalDocuments);
       setDocsLoading(false);
       console.log("Company Document Data", companyDocData);
 
@@ -207,34 +212,64 @@ const Kyc = ({language}) => {
               <Tab.Pane eventKey="documents" id="documents">
               <div className="card">
                 <div className="card-body">
+                
                   {docsLoading ? (
-                    <LoadingSpinner />
+                   
+                      <LoadingSpinner />
+                      
+                    
+                    
                   ) : companyDocs.length > 0 ? (
-                    <ListGroup>
-                      {companyDocs.map((document, index) => (
-                        <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
-                          <span className="accordion-body">{document.type}</span>
-                          <div className="mt-3 d-flex gap-2">
-                            <a
-                              target="_blank"
-                              className="btn btn-info"
-                              href={`https://drive.google.com/file/d/${document.file}/preview`}
-                              rel="noreferrer"
-                            >
-                              {t("View")}
-                            </a>
-                            <a
-                              target="_blank"
-                              className="btn btn-primary"
-                              href={`https://drive.usercontent.google.com/download?id=${document.file}&export=download&authuser=0`}
-                              rel="noreferrer"
-                            >
-                              {t("Download")}
-                            </a>
-                          </div>
-                        </ListGroup.Item>
-                      ))}
-                    </ListGroup>
+                    <>
+                    {/* for Future Features */}
+                  
+                  <Container fluid className="mt-3">
+                  <Row className="align-items-center">
+                    <Col xs="auto">
+                      <div className="d-flex align-items-baseline">
+                      <span style={{fontSize: '2.5rem'}} className="fw-bold">KYc Progress: </span>
+                        <span style={{fontSize: '2.5rem'}} className="text-primary fw-bold">  {progress}</span>
+                        <span style={{fontSize: '1.8rem'}} className="ms-1">%</span>
+                      </div>
+                    </Col>
+                    <Col>
+                      <ProgressBar 
+                        now={progress} 
+                        variant="primary" 
+                        style={{ height: '1.5rem' }} 
+                      />
+                    </Col>
+                  </Row>
+
+                </Container>
+                <div></div>
+                    
+                      <ListGroup>
+                        {companyDocs.map((document, index) => (
+                          <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                            <span className="accordion-body">{document.type}</span>
+                            <div className="mt-3 d-flex gap-2">
+                              <a
+                                target="_blank"
+                                className="btn btn-info"
+                                href={`https://drive.google.com/file/d/${document.file}/preview`}
+                                rel="noreferrer"
+                              >
+                                {t("View")}
+                              </a>
+                              <a
+                                target="_blank"
+                                className="btn btn-primary"
+                                href={`https://drive.usercontent.google.com/download?id=${document.file}&export=download&authuser=0`}
+                                rel="noreferrer"
+                              >
+                                {t("Download")}
+                              </a>
+                            </div>
+                          </ListGroup.Item>
+                        ))}
+                      </ListGroup>
+                    </>
                   ) : (
                     <p className="text-light">{t("NoDocuments")}</p>
                   )}

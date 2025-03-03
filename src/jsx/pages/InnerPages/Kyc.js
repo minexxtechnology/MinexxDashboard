@@ -3,7 +3,7 @@ import { Tab, Nav, ListGroup,ProgressBar, Container, Row, Col } from 'react-boot
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { translations } from '../../pages/Locations/MinesTranslation';
-import { Turtle } from 'lucide-react';
+import { Turtle,CheckCircle,X, XCircle } from 'lucide-react';
 
 
 const Kyc = ({language}) => {
@@ -12,6 +12,7 @@ const Kyc = ({language}) => {
   const[progress, setProgress]=useState(0);
   const[totalDocuments, setTotalDocuments]=useState(0);
   const [companyDocs, setCompanyDocs] = useState([]);
+  const [missDocs, setmissDocs] = useState([]);
   const [shareholder, setShareholder] = useState([]);
   const [beneficial, setBeneficial] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,11 +76,14 @@ const Kyc = ({language}) => {
         throw new Error('Network response was not ok for documents');
       }
       const companyDocData = await companyDocResponse.json();
-      const { documents, progress, totalDocuments } = companyDocData.documents;
+      const { documents, progress, totalDocuments,missingDocuments } = companyDocData.documents;
+      // const { missingDocs }=companyDocData..documentsmissingDocuments;
       setCompanyDocs(documents);
       setProgress(progress);
+      setmissDocs(missingDocuments);
       setTotalDocuments(totalDocuments);
       setDocsLoading(false);
+       console.log("Missing Documents", missingDocuments);
       console.log("Company Document Data", companyDocData);
 
       // Fetch shareholders
@@ -219,7 +223,7 @@ const Kyc = ({language}) => {
                       
                     
                     
-                  ) : companyDocs.length > 0 ? (
+                  ) : companyDocs.length > 0 || missDocs.length > 0 ? (
                     <>
                     {/* for Future Features */}
                   
@@ -227,7 +231,7 @@ const Kyc = ({language}) => {
                   <Row className="align-items-center">
                     <Col xs="auto">
                       <div className="d-flex align-items-baseline">
-                      <span style={{fontSize: '2.5rem'}} className="fw-bold">KYc Progress: </span>
+                      <span style={{fontSize: '2.5rem'}} className="fw-bold">KYC Progress: </span>
                         <span style={{fontSize: '2.5rem'}} className="text-primary fw-bold">  {progress}</span>
                         <span style={{fontSize: '1.8rem'}} className="ms-1">%</span>
                       </div>
@@ -242,33 +246,63 @@ const Kyc = ({language}) => {
                   </Row>
 
                 </Container>
-                <div></div>
-                    
-                      <ListGroup>
-                        {companyDocs.map((document, index) => (
-                          <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
-                            <span className="accordion-body">{document.type}</span>
-                            <div className="mt-3 d-flex gap-2">
-                              <a
-                                target="_blank"
-                                className="btn btn-info"
-                                href={`https://drive.google.com/file/d/${document.file}/preview`}
-                                rel="noreferrer"
-                              >
-                                {t("View")}
-                              </a>
-                              <a
-                                target="_blank"
-                                className="btn btn-primary"
-                                href={`https://drive.usercontent.google.com/download?id=${document.file}&export=download&authuser=0`}
-                                rel="noreferrer"
-                              >
-                                {t("Download")}
-                              </a>
-                            </div>
-                          </ListGroup.Item>
-                        ))}
-                      </ListGroup>
+
+                {/* Completed Documents Section */}
+                {companyDocs.length > 0 && (
+                  <div className="mt-4">
+                  
+                    <ListGroup>
+                      {companyDocs.map((document, index) => (
+                        <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                          <span className="accordion-body">{document.type}<CheckCircle color="green" size={24} /></span>
+                          
+                          <div className="mt-3 d-flex gap-2">
+                            <a
+                              target="_blank"
+                              className="btn btn-info"
+                              href={`https://drive.google.com/file/d/${document.file}/preview`}
+                              rel="noreferrer"
+                            >
+                              {t("View")}
+                            </a>
+                            <a
+                              target="_blank"
+                              className="btn btn-primary"
+                              href={`https://drive.usercontent.google.com/download?id=${document.file}&export=download&authuser=0`}
+                              rel="noreferrer"
+                            >
+                              {t("Download")}
+                            </a>
+                           
+                          </div>
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  </div>
+                )}
+
+                {/* Missing Documents Section */}
+                {missDocs.length > 0 && (
+                  <div className="mt-4">
+                   
+                    <ListGroup>
+                      {missDocs.map((document, index) => (
+                        <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                          <span className="accordion-body">{document} <XCircle color="red" size={24} /></span>
+                          <div className="mt-3 d-flex gap-2">
+                           
+                          <a
+                              target="_blank"
+                              className="btn btn-danger"
+                            >
+                            Missing
+                            </a>
+                          </div>
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  </div>
+                )}
                     </>
                   ) : (
                     <p className="text-light">{t("NoDocuments")}</p>

@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import axiosInstance from '../../services/AxiosInstance';
 import ReactApexChart from 'react-apexcharts';
 import { translations } from './Reportstranslation';
+import { Select } from 'semantic-ui-react';
 
 
 const ticketData = [
@@ -32,9 +33,31 @@ const Reports = ({language,country}) => {
     const access = localStorage.getItem(`_dash`) || '3ts'
     const [attachment, setattachment] = useState()
     const [loading, setLoading] = useState(false);
-    const [companies, setcompanies] = useState([])
+    const [companies, setcompanies] = useState([]);
+    const [suppliers, setsuppliers] = useState([]);
     const [company, setcompany] = useState()
     const [mineral, setmineral] = useState();
+    const [suppliertrend,setsuppliertrend]=useState();
+    const [trendData, setTrendData] = useState({
+        Cassiterite: [],
+        Coltan: [],
+        Wolframite: []
+    });
+    //for Testing 
+    const [defaultTrendData, setDefaultTrendData] = useState({
+        Cassiterite: [],
+        Coltan: [],
+        Wolframite: [],
+        totalVolume: 0
+    });
+    const [filteredTrendData, setFilteredTrendData] = useState({
+        Cassiterite: [],
+        Coltan: [],
+        Wolframite: [],
+        totalVolume: 0
+    });
+    const [yearFilterApplied, setYearFilterApplied] = useState(false);
+    //end for Testing
     const [trace, settrace] = useState({
         production: [],
         bags: [],
@@ -47,6 +70,7 @@ const Reports = ({language,country}) => {
         processing: [],
         exports: []
     })
+
     const [sale,setSale]=useState({
         sale_Report:[]
     })
@@ -311,6 +335,50 @@ const Reports = ({language,country}) => {
             autoClose: true
         })
     }
+    // Your select onChange handler
+                const changesuppliertrends = (e) => {
+                    if (e.target.value === t("SelectCompanyShort")) {
+                    // Clear selection
+                    setsuppliertrend(null);
+                    return;
+                    }
+                    
+                    try {
+                    // Parse the JSON string back to an object
+                    const selectedSupplier = JSON.parse(e.target.value);
+                    //console.log("Selected supplier:", selectedSupplier);
+                    
+                    // Set the supplier trend with the parsed object
+                    setsuppliertrend(selectedSupplier);
+                    toast.info('Generating Sales report, please wait...', {
+                        delay: 100,
+                        autoClose: true
+                    })
+                    } catch (error) {
+                    console.error("Error parsing supplier data:", error);
+                    }
+                };
+               // Fetch default trend data
+    const fetchDefaultTrendData = async (supplierId) => {
+        try {
+            const response = await axiosInstance.get(`/report/trendgraph/${supplierId}`, {
+                params: { country: normalizedCountry(country) }
+            });
+
+            if (response.data.success) {
+                setDefaultTrendData({
+                    Cassiterite: response.data.trendgraph.Cassiterite || [],
+                    Coltan: response.data.trendgraph.Coltan || [],
+                    Wolframite: response.data.trendgraph.Wolframite || [],
+                    totalVolume: response.data.trendgraph.totalVolume
+                });
+                console.log("Total Volume By default",response.data.trendgraph.totalVolume)
+            }
+        } catch (error) {
+            console.error('Error fetching default trend data:', error);
+        }
+    };
+
     
     const loadCompanies =  ()=>{
         let normalizedCountry = country.trim();
@@ -333,6 +401,39 @@ const Reports = ({language,country}) => {
             setcompanies(response.data.companies)
         })
     }
+    //load suppliers companies trends
+    const loadSuppliers = ()=>
+        {
+            let normalizedCountry = country.trim();
+            
+        // Special handling for Rwanda
+        if (normalizedCountry.toLowerCase() === 'rwanda') {
+            // Randomly choose one of the three formats
+             normalizedCountry ='.Rwanda';
+            // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+        } else {
+            // For other countries, remove leading/trailing dots and spaces
+            normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+        }
+        axiosInstance.get(`/report/salestrend`,
+            {
+                params: {
+                    country: normalizedCountry,
+                }
+            }).then(response=>{
+            const totalVolume = response.data.salestrend.reduce((sum, item) => {
+                    // Convert string to number and add to sum
+                    return sum + parseFloat(item.volume || 0);
+                }, 0);
+            setsuppliers({
+                suppliers_data:response.data.salestrend,
+                // volume:response.data.salestrend.volume,
+                totalVolume:totalVolume.toFixed(3)});
+            
+            //console.log("Suppliers",response.data.salestrend);
+        })
+
+        }
     //Form apply filter
     
 
@@ -471,13 +572,20 @@ const Reports = ({language,country}) => {
                         // Convert string to number and add to sum
                         return sum + parseFloat(item.value || 0);
                     }, 0);
+                    const totalVolume = response.data.salereport.reduce((sum, item) => {
+                        // Convert string to number and add to sum
+                        return sum + parseFloat(item.volume || 0);
+                    }, 0);
+
                     setSale({
                         sale_Report: response.data.salereport,
-                        totalValue: totalValue.toFixed(3) // Round to 3 decimal places
+                        totalValue: totalValue.toFixed(3), 
+                        totalVolume:totalVolume.toFixed(3)
+                        // Round to 3 decimal places
                     });
                     toast.success(`${mineral} sales report generated successfully!`);
-                    console.log("Sale Report", response.data.salereport);
-                    console.log("Total Value:", totalValue.toFixed(3));
+                    //console.log("Sale Report", response.data.salereport);
+                    //console.log("Total Value:", totalValue.toFixed(3));
                 } else {
                     console.warn("Unexpected API response structure:", response.data);
                 }
@@ -540,7 +648,7 @@ const Reports = ({language,country}) => {
               sale_Report: response.data.salereport,
               totalValue: totalValue.toFixed(3)
             });
-            console.log("Sales Report After Apply:", response.data.salereport);
+            //console.log("Sales Report After Apply:", response.data.salereport);
             toast.success(`${mineral} sales report generated successfully!`);
           } else {
             toast.warn(response.data.message || "Failed to fetch sales data");
@@ -552,8 +660,51 @@ const Reports = ({language,country}) => {
             setLoading(false);
           }
       };
-    
+      // Apply year filter
+    const applyYearFilter = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setYearFilterApplied(true); // Indicate that the year filter is applied
 
+        const formData = new FormData(e.target);
+        const year = formData.get('year');
+
+        try {
+            const response = await axiosInstance.get(
+                `/report/trendgraphbyyear/${suppliertrend.id}`,
+                {
+                    params: {
+                        country: normalizedCountry(country),
+                        year: year
+                    }
+                }
+            );
+
+            if (response.data.success) {
+                setFilteredTrendData({
+                    Cassiterite: response.data.trendgraphbyyear.Cassiterite || [],
+                    Coltan: response.data.trendgraphbyyear.Coltan || [],
+                    Wolframite: response.data.trendgraphbyyear.Wolframite || [],
+                    totalVolume: response.data.trendgraphbyyear.totalVolume
+                });
+                toast.success(`Data for ${year} loaded successfully!`);
+            }
+        } catch (error) {
+            console.error('Error fetching trend data:', error);
+            toast.error(error?.response?.data?.message || "An error occurred while fetching data.");
+        } finally {
+            setLoading(false);
+        }
+    };
+    const normalizedCountry = (country) => {
+        let normalized = country.trim();
+        if (normalized.toLowerCase() === 'rwanda') {
+            normalized = '.Rwanda';
+        } else {
+            normalized = normalized.replace(/^\.+|\.+$/g, '');
+        }
+        return normalized;
+    };
     function paginate(array, page_number, page_size) {
         // human-readable page numbers usually start with 1, so we reduce 1 in the first argument
         return array ? array.slice((page_number - 1) * page_size, page_number * page_size) : []
@@ -564,12 +715,16 @@ const Reports = ({language,country}) => {
         changeTitle(`${t('Report')} | Minexx`)
         loadReport()
         loadMinerals()
+        loadSuppliers()
+        if (suppliertrend && !yearFilterApplied) {
+            fetchDefaultTrendData(suppliertrend.id);
+        }
         loadMonthlyData();
         loadMonthlyPurchase();
         if(type === 'trace'){
             loadCompanies()
         }
-    }, [type, company,language,country, mineral]);
+    }, [type, company,language,country, mineral,suppliers,suppliertrend]);
     
     const loadMonthlyData = () => {
         let normalizedCountry = country.trim();
@@ -595,20 +750,20 @@ const Reports = ({language,country}) => {
                 wolframite: response.data.wolframite.company[normalizedCountry]?.monthly || {} // This will default to empty object if path doesn't exist
             });
     
-            console.log('Monthly data:', {  
-                cassiterite: response.data.cassiterite.company[normalizedCountry]?.monthly || {}
-            });
+            //console.log('Monthly data:', {  
+             //   cassiterite: response.data.cassiterite.company[normalizedCountry]?.monthly || {}
+           // });
         })
         .catch(err => {
             try {
                 if (err.response?.code === 403) {
                     dispatch(Logout(navigate));
                 } else {
-                    console.log(err.response?.message);
+                    //console.log(err.response?.message);
                     //toast.warn(err.response.message);
                 }
             } catch (e) {
-                console.log(err.message);
+                //console.log(err.message);
                 //toast.error(err.message);
             }
         });
@@ -636,11 +791,11 @@ const Reports = ({language,country}) => {
                 wolframite: response.data.purchases?.wolframite?.company?.[normalizedCountry]?.monthly || {}
             });
     
-            console.log('MonthlyPurchase data:', {  
-                cassiterite: response.data.purchases?.cassiterite?.company?.[normalizedCountry]?.monthly || {},
-                coltan: response.data.purchases?.coltan?.company?.[normalizedCountry]?.monthly || {},
-                wolframite: response.data.purchases?.wolframite?.company?.[normalizedCountry]?.monthly || {}
-            });
+            //console.log('MonthlyPurchase data:', {  
+            //     cassiterite: response.data.purchases?.cassiterite?.company?.[normalizedCountry]?.monthly || {},
+            //     coltan: response.data.purchases?.coltan?.company?.[normalizedCountry]?.monthly || {},
+            //     wolframite: response.data.purchases?.wolframite?.company?.[normalizedCountry]?.monthly || {}
+            // });
         })
         .catch(err => {
             try {
@@ -994,6 +1149,123 @@ const chartOptions_Purchase = {
         },
     ],
 };
+//start graph for supplier trends
+ // Process trend data for the chart
+ const processTrendData = (data) => {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const cassiteriteData = months.map(month => {
+        const monthData = data.Cassiterite.find(d => d.month === month);
+        return monthData ? monthData.volume : 0;
+    });
+
+    const coltanData = months.map(month => {
+        const monthData = data.Coltan.find(d => d.month === month);
+        return monthData ? monthData.volume : 0;
+    });
+
+    const wolframiteData = months.map(month => {
+        const monthData = data.Wolframite.find(d => d.month === month);
+        return monthData ? monthData.volume : 0;
+    });
+
+    return {
+        cassiterite: cassiteriteData,
+        coltan: coltanData,
+        wolframite: wolframiteData
+    };
+};
+
+// Chart series for supplier trends
+const chartSeries_Trend = [
+    {
+        name: 'Cassiterite',
+        data: filteredTrendData.Cassiterite.length > 0 ? processTrendData(filteredTrendData).cassiterite : processTrendData(defaultTrendData).cassiterite
+    },
+    {
+        name: 'Coltan',
+        data: filteredTrendData.Coltan.length > 0 ? processTrendData(filteredTrendData).coltan : processTrendData(defaultTrendData).coltan
+    },
+    {
+        name: 'Wolframite',
+        data: filteredTrendData.Wolframite.length > 0 ? processTrendData(filteredTrendData).wolframite : processTrendData(defaultTrendData).wolframite
+    }
+];
+
+// Chart options for supplier trends
+const chartOptions_Trend = {
+    chart: {
+        type: 'bar',
+        height: 500,
+        stacked: false,
+    },
+    plotOptions: {
+        bar: {
+            horizontal: false,
+            columnWidth: '55%',
+            endingShape: 'rounded',
+        },
+    },
+    dataLabels: {
+        enabled: false,
+    },
+    stroke: {
+        show: true,
+        width: 1,
+        colors: ['#fff'],
+    },
+    xaxis: {
+        categories: [
+            t('January'), t('February'), t('March'), t('April'), t('May'), t('June'),
+            t('July'), t('August'), t('September'), t('October'), t('November'), t('December')
+        ],
+    },
+    yaxis: {
+        title: {
+            text: t('Volume (Kg)'),
+        },
+        labels: {
+            formatter: function (value) {
+                return value.toFixed(2);
+            },
+        },
+    },
+    tooltip: {
+        y: {
+            formatter: function (val) {
+                return val + ' Kg';
+            },
+        },
+    },
+    fill: {
+        opacity: 1,
+    },
+    legend: {
+        position: 'top',
+        horizontalAlign: 'left',
+        offsetX: 40,
+        labels: {
+            colors: ['#fff', '#fff', '#fff']
+        }
+    },
+    responsive: [
+        {
+            breakpoint: 1000,
+            options: {
+                plotOptions: {
+                    bar: {
+                        columnWidth: '70%',
+                    },
+                },
+                legend: {
+                    position: 'bottom',
+                    horizontalAlign: 'center',
+                    offsetX: 0,
+                },
+            },
+        },
+    ],
+};
 //end Purchase 
     return (
         <>
@@ -1132,7 +1404,7 @@ const chartOptions_Purchase = {
                                                 className="paginate_button next"
                                                 to="/reports"
                                                 onClick={() =>  {
-                                                    console.log("next")
+                                                    //console.log("next")
                                                         bagsPage < paggination(trace?.bags || []).length &&
                                                         onClick(()=>setbagsPage(bagsPage+1))
                                                     }
@@ -2777,7 +3049,7 @@ const chartOptions_Purchase = {
                                         </div>
                                         <div className='card-body'>
                                         <h3 className='text-center text-primary fs-40'>
-                                            {new Intl.NumberFormat('en-US', {
+                                        {new Intl.NumberFormat('en-US', {
                                                 style: 'currency',
                                                 currency: 'USD'
                                             }).format(!sale.totalValue || isNaN(sale.totalValue) ? 0 : sale.totalValue)}
@@ -2874,6 +3146,108 @@ const chartOptions_Purchase = {
                                 </div>
                             </div>
                         )}
+                    </div>
+                )
+                :
+                type === 'suppliertrends' ? (
+                   
+                    <div className='row'>
+                        <div className='col-md-5'>
+                        {access === "3ts"? (  
+                            // for prevent access of sale report to the gold 
+                            <div className='card'>
+                                <div className='card-header'>
+                                    <h5 className='card-title'>{t("SelectMineralstrends")}</h5>
+                                </div>
+                                <div className='card-body'>
+                                <select onChange={changesuppliertrends} className='form-control'>
+                <option>{t("SelectCompanyShort")}</option>
+                {access === '3ts' && suppliers && suppliers.suppliers_data && suppliers.suppliers_data.length > 0 ? (
+                    suppliers.suppliers_data.map(supplier => (
+                        <option 
+                            key={supplier.id} 
+                            value={JSON.stringify(supplier)}
+                        >
+                            {supplier.supplier}
+                        </option>
+                    ))
+                ) : (
+                    <option value=""></option>
+                )}
+            </select>
+                                </div>
+                            </div>
+                            ):
+                            (<div></div>
+                            //nothing show when it is gold 
+                                
+                            )}
+                        </div>
+                                    
+                        {suppliertrend && (
+                            <>
+                                <div className='col-md-4'>
+                                    <div className='card'>
+                                        <div className='card-header'>
+                                            <h5 className='card-title text-center'>{t("Volume")}</h5>
+                                        </div>
+                                        <div className='card-body'>
+                                        <h3 className='text-center text-primary fs-40'>
+                                        {yearFilterApplied
+                                                ? filteredTrendData.totalVolume.toFixed(2)
+                                                : defaultTrendData.totalVolume.toFixed(2)} Kg
+                                            </h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="col-md-3">
+                                    <div className="card">
+                                        <div className="card-header">
+                                            <h5 className="card-title text-center mb-0">{t('Sort By')}</h5>
+                                        </div>
+                                        <div className="card-body">
+                                            <form onSubmit={applyYearFilter}> 
+                                                <div className="row mb-3">
+                                                    
+                                                    <div className="col-6 ">
+                                                        <select className='form-control' name='year' >
+                                                            <option>Select Year</option>
+                                                            <option value="2025">2025</option>
+                                                            <option value='2024'>2024</option> 
+                                                            <option value='2023'>2023</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="mineral" value={mineral} />
+                                                <div className="d-grid">
+                                                    <button className="btn btn-primary btn-sm" disabled={loading}>
+                                                    {loading ? 'Loading...' : 'Apply'}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                             
+                            </>
+                        )}
+                         {suppliertrend && (
+                <div className='col-12 mt-4'>
+                    <div className="card">
+                        <div className="card-header">
+                            <h4 className="card-title">{t("SalesTrendOverview")}</h4>
+                        </div>
+                        <div className="card-body">
+                            <ReactApexChart
+                                options={chartOptions_Trend}
+                                series={chartSeries_Trend}
+                                type="bar"
+                                height={500}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
                     </div>
                 ) : (
                 <div></div>

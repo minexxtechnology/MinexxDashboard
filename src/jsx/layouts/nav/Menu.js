@@ -37,6 +37,10 @@ export const RootMenu = [
             title:'Supplier Sales Report',
             to:'reports/sale',
             },
+            // {
+            //     title:'Supplier Trends',
+            //     to:'reports/suppliertrends',
+            // }, 
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
@@ -109,7 +113,11 @@ export const RegulatorMenu = [
             {
                 title:'Supplier Sales Report',
                 to:'reports/sale',
-                },
+            },
+            // {
+            //     title:'Supplier Trends',
+            //     to:'reports/suppliertrends',
+            // },
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
@@ -193,7 +201,11 @@ export const IMenu = [
             {
                 title:'Supplier Sales Report',
                 to:'reports/sale',
-                },
+            },
+            {
+                title:'Supplier Trends',
+                to:'reports/suppliertrends',
+            },
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',

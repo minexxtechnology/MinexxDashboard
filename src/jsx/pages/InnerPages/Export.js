@@ -396,7 +396,11 @@ const Export = ({country,language}) => {
                                             <div className="card-body">
                                             {
                                                 uploads[document] ?
-                                                    <iframe title={`${documents[document]}`} src={`https://drive.google.com/file/d/${uploads[document]}/preview`} width="100%" height="700" allow="autoplay"></iframe>
+                                                 <iframe 
+                                                    title={`${documents[document]}`} 
+                                                    src={`https://docs.google.com/viewer?embedded=true&url=https://drive.google.com/uc?export=download%26id=${uploads[document]}`} 
+                                                    width="100%" 
+                                                    height="700"></iframe>
                                                 : <p>{t("NoDocumentToDisplay")}</p>
                                             }
                                             </div>

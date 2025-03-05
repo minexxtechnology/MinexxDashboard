@@ -66,8 +66,8 @@ const Company = ({ language }) => {
 
     const fetchDocuments = async () => {
         try {
-            const response = await axiosInstance.get(`${baseURL_}documents/${id}`);
-            setDocuments(response.data.documents);
+            const response = await axiosInstance.get(`${baseURL_}documentsnoAuth/${id}`);
+            setDocuments(response.data.documents.documents);
         } catch (err) {
             handleError(err);
         } finally {

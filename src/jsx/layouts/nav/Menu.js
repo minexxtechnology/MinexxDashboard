@@ -13,7 +13,7 @@ export const RootMenu = [
 
     
     {   
-        title:'Mines',
+        title:'Suppliers',
         iconStyle: <i className="flaticon-location"></i>,
         to: 'mines',
     },
@@ -37,10 +37,10 @@ export const RootMenu = [
             title:'Supplier Sales Report',
             to:'reports/sale',
             },
-            // {
-            //     title:'Supplier Trends',
-            //     to:'reports/suppliertrends',
-            // }, 
+            {
+                title:'Supplier Delivery Trend',
+                to:'reports/suppliertrends',
+            }, 
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
@@ -89,7 +89,7 @@ export const RegulatorMenu = [
 
     
     {   
-        title:'Mines',
+        title:'Suppliers',
         iconStyle: <i className="flaticon-location"></i>,
         to: 'mines',
     },
@@ -114,10 +114,10 @@ export const RegulatorMenu = [
                 title:'Supplier Sales Report',
                 to:'reports/sale',
             },
-            // {
-            //     title:'Supplier Trends',
-            //     to:'reports/suppliertrends',
-            // },
+            {
+                title:'Supplier Delivery Trend',
+                to:'reports/suppliertrends',
+            },
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
@@ -150,7 +150,7 @@ export const BMenu = [
 
     
     {   
-        title:'Mines',
+        title:'Suppliers',
         iconStyle: <i className="flaticon-location"></i>,
         to: 'mines',
     },
@@ -177,7 +177,7 @@ export const IMenu = [
 
     
     {   
-        title:'Mines',
+        title:'Suppliers',
         iconStyle: <i className="flaticon-location"></i>,
         to: 'mines',
     },
@@ -203,7 +203,7 @@ export const IMenu = [
                 to:'reports/sale',
             },
             {
-                title:'Supplier Trends',
+                title:'Supplier Delivery Trend',
                 to:'reports/suppliertrends',
             },
             {

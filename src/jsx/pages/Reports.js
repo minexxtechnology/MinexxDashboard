@@ -72,8 +72,15 @@ const Reports = ({language,country}) => {
     })
 
     const [sale,setSale]=useState({
-        sale_Report:[]
+        sale_Report:[],
+        totalValue:0,
     })
+    const [appliedsale,setAppliedSale]=useState({
+        sale_Report:[],
+        totalValue:0
+    })
+    const [rangeapplied,setRangeApplied]=useState(false);
+
     const [exportsPage, setexportsPage] = useState(1)
     const [drumsPage, setdrumsPage] = useState(1)
     const [prodPage, setprodPage] = useState(1)
@@ -583,7 +590,7 @@ const Reports = ({language,country}) => {
                         totalVolume:totalVolume.toFixed(3)
                         // Round to 3 decimal places
                     });
-                    toast.success(`${mineral} sales report generated successfully!`);
+                    //toast.success(`${mineral} sales report generated successfully!`);
                     //console.log("Sale Report", response.data.salereport);
                     //console.log("Total Value:", totalValue.toFixed(3));
                 } else {
@@ -607,6 +614,7 @@ const Reports = ({language,country}) => {
     const applyFilter = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setRangeApplied(true);
         const formData = new FormData(e.target);
         const startDate = formData.get('start');
         const endDate = formData.get('end');
@@ -644,12 +652,12 @@ const Reports = ({language,country}) => {
               sum + parseFloat(item.value || 0), 0
             );
     
-            setSale({
+            setAppliedSale({
               sale_Report: response.data.salereport,
               totalValue: totalValue.toFixed(3)
             });
             //console.log("Sales Report After Apply:", response.data.salereport);
-            toast.success(`${mineral} sales report generated successfully!`);
+           // toast.success(`${mineral} sales report generated successfully!`);
           } else {
             toast.warn(response.data.message || "Failed to fetch sales data");
           }
@@ -716,15 +724,16 @@ const Reports = ({language,country}) => {
         loadReport()
         loadMinerals()
         loadSuppliers()
-        if (suppliertrend && !yearFilterApplied) {
-            fetchDefaultTrendData(suppliertrend.id);
-        }
+        
         loadMonthlyData();
         loadMonthlyPurchase();
         if(type === 'trace'){
             loadCompanies()
         }
-    }, [type, company,language,country, mineral,suppliers,suppliertrend]);
+        if (suppliertrend && !yearFilterApplied) {
+            fetchDefaultTrendData(suppliertrend.id);
+        }
+    }, [type, company,language,country, mineral,suppliertrend]);
     
     const loadMonthlyData = () => {
         let normalizedCountry = country.trim();
@@ -3050,11 +3059,15 @@ const chartOptions_Trend = {
                                         <div className='card-body'>
                                         <h3 className='text-center text-primary fs-40'>
                                         {new Intl.NumberFormat('en-US', {
-                                                style: 'currency',
-                                                currency: 'USD'
-                                            }).format(!sale.totalValue || isNaN(sale.totalValue) ? 0 : sale.totalValue)}
-                                            </h3>
-                                        </div>
+                                            style: 'currency',
+                                            currency: 'USD'
+                                        }).format(
+                                            rangeapplied 
+                                                ? (!isNaN(appliedsale.totalValue) ? parseFloat(appliedsale.totalValue) : 0)
+                                                : (!isNaN(sale.totalValue) ? parseFloat(sale.totalValue) : 0)
+                                        )}
+                                    </h3>
+                                </div>
                                     </div>
                                 </div>
                                 <div className="col-md-3">
@@ -3091,35 +3104,40 @@ const chartOptions_Trend = {
                                 </div>
                                 <div className='card-body'>
                                     <div id="soldre-view" className="dataTables_wrapper no-footer">
-                                        <Table bordered striped hover responsive size='sm'>
-                                            <thead>
-                                                <tr>
-                                                    <th>{t("Supplier")}</th>
-                                                    <th className="text-center text-dark">{t("Volume")}</th>
-                                                    <th className="text-center text-dark">{t("Values")}</th>
+                                    <Table bordered striped hover responsive size='sm'>
+                                        <thead>
+                                            <tr>
+                                                <th>{t("Supplier")}</th>
+                                                <th className="text-center text-dark">{t("Volume")}</th>
+                                                <th className="text-center text-dark">{t("Values")}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {paginate(
+                                                rangeapplied ? appliedsale.sale_Report : sale.sale_Report, 
+                                                salesPage, 
+                                                20
+                                            ).map((sale, i) => (
+                                                <tr key={`sale${i}`}>
+                                                    <td>{sale.supplier}</td>
+                                                    <td>{sale.volume} Kg</td>
+                                                    <td>
+                                                        {new Intl.NumberFormat('en-US', {
+                                                            style: 'currency',
+                                                            currency: 'USD'
+                                                        }).format(!sale.value || isNaN(sale.value) ? 0 : sale.value)}
+                                                    </td>
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                {paginate(sale?.sale_Report || [], salesPage, 20).map((sale, i) => (
-                                                    <tr key={`sale${i}`}>
-                                                        <td>{sale.supplier}</td>
-                                                        <td>{sale.volume} Kg</td>
-                                                        <td>{new Intl.NumberFormat('en-US', {
-                                                                style: 'currency',
-                                                                currency: 'USD'
-                                                            }).format(!sale.value || isNaN(sale.value) ? 0 : sale.value)}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                                {sale?.sale_Report.length === 0 ? (
-                                                    <tr>
-                                                        <td colSpan={14}>{t("NoSelectedMineral")}</td>
-                                                    </tr>
-                                                ) : (
-                                                    <tr></tr>
-                                                )}
-                                            </tbody>
-                                        </Table>
+                                            ))}
+                                            {(rangeapplied ? appliedsale.sale_Report : sale.sale_Report).length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={14}>{t("NoSelectedMineral")}</td>
+                                                </tr>
+                                            ) : (
+                                                <tr></tr>
+                                            )}
+                                        </tbody>
+                                    </Table>
                                         <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
                                             <div className="dataTables_info">
                                                 {t("Showing")} {(salesPage-1) * sort + 1} {t("To")}{" "}
@@ -3211,7 +3229,6 @@ const chartOptions_Trend = {
                                                     
                                                     <div className="col-6 ">
                                                         <select className='form-control' name='year' >
-                                                            <option>Select Year</option>
                                                             <option value="2025">2025</option>
                                                             <option value='2024'>2024</option> 
                                                             <option value='2023'>2023</option>

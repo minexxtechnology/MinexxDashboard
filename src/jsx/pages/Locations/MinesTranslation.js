@@ -2,7 +2,7 @@ export const translations = {
     
         en: {
           Dashboard: "Dashboard",
-          Mines: "Mines",
+          Mines: "Suppliers",
           Kyc:"Kyc",
           Search: "Search",
           nomine: "There are no mine sites associated with",
@@ -76,7 +76,7 @@ export const translations = {
         },
         fr: {
           Dashboard: "Tableau de bord",
-          Mines: "Les mines",
+          Mines: "Fournisseurs",
           Kyc:"Kyc",
           Search: "Recherche",
           nomine: "Il n'y a aucun site minier associé à",

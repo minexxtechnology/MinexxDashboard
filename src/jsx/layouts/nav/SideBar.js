@@ -187,7 +187,7 @@ const SideBar = ({ language }) => {
                   {data.content && (
                     <Collapse in={state.active === data.title}>
                       <ul className={`${menuClass === "mm-collapse" && data.content ? "mm-show" : ""}`}>
-                        {data.content && data.content.filter(c => access === `gold` ? !["reports/daily", "reports/mtd", "reports/deliveries","reports/sale"].includes(c.to) : c !== null).map((subData, subIndex) => {									
+                        {data.content && data.content.filter(c => access === `gold` ? !["reports/daily", "reports/mtd", "reports/deliveries","reports/sale","reports/suppliertrends"].includes(c.to) : c !== null).map((subData, subIndex) => {									
                           return (
                             <li key={subIndex}
                               className={`${path === subData.to || window.location.pathname.includes(subData.to) ? "mm-active" : ""}`}

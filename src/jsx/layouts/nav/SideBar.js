@@ -28,7 +28,9 @@ const menuTranslations = {
     "Get System Report Now": "Get System Report Now",
     "All Rights Reserved": "All Rights Reserved",
     "Developed with": "Developed with",
-    "by": "by"
+    "by": "by",
+    "Supplier Sales Report": "Supplier Sale Report",
+    "Supplier Delivery Trend": "Supplier Delivery Trend",
   },
   fr: {
     Overview: "Vue d'ensemble",
@@ -46,7 +48,9 @@ const menuTranslations = {
     "Get System Report Now": "Obtenir le rapport système maintenant",
     "All Rights Reserved": "Tous droits réservés",
     "Developed with": "Développé avec",
-    "by": "par"
+    "by": "par",
+    "Supplier Sales Report": "Rapport de vente de fournisseur",
+    "Supplier Delivery Trend": "Tendance de livraison de fournisseur",
   }
 };
 

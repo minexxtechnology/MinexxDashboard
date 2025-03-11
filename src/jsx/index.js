@@ -143,6 +143,7 @@ import Miners from "./pages/Locations/Miners";
 import SummaryReport from "./pages/SummaryReport";
 import Company from "./pages/Company";
 import Exports from "./pages/Events/Exports";
+import Tracking from "./pages/Events/Tracking";
 import ProductionSummary from "./pages/ProductionSummary";
 import Companies from "./pages/Companies";
 import Suppliers from "./pages/Suppliers";
@@ -177,6 +178,7 @@ const Markup = (props) => {
     { url: 'users', component: <Users/> },
 	  { url: 'incidents', component: <Incidents/> },
 	  { url: 'exports', component: <Exports key={language} language={language} country={country}/> },
+    { url: 'time-tracking', component: <Tracking key={language} language={language} country={country}/> },
 	  { url: 'exports/:id', component: <Export key={language} language={language} country={country}/> },
     { url: 'exportsauth/:id', component: <ExportA/> },
 	  { url: 'mines', component: <Mines key={language} language={language} country={country}/> },

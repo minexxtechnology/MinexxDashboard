@@ -19,6 +19,7 @@ const Export = ({country,language}) => {
     const [ export_ , setexport_] = useState()
     const [loading, setLoading] = useState(true);
     const [document, setdocument] = useState(0)
+    const [documentLoading, setDocumentLoading] = useState(false);
     const [uploads, setuploads] = useState(access === "3ts" ?[
         null,
         null,
@@ -144,6 +145,16 @@ const Export = ({country,language}) => {
     useEffect(() => {
         getExport()
     }, [id,country,language])
+
+    const handleDocumentChange = (index) => {
+        setDocumentLoading(true);
+        setdocument(index);
+        
+        // Simulate loading delay when changing documents
+        setTimeout(() => {
+            setDocumentLoading(false);
+        }, 1000);
+    };
 
     return (
         <div>
@@ -380,7 +391,7 @@ const Export = ({country,language}) => {
                                     <div className="col-xl-3">
                                     <ListGroup className="mb-4" id="list-tab">
                                     {documents.map((item, i) => (
-                                        <ListGroup.Item key={i} onClick={() => { setdocument(i); }} action href={`#${i}`}>
+                                        <ListGroup.Item key={i} onClick={() => handleDocumentChange(i)} action href={`#${i}`}>
                                             {item}
                                         </ListGroup.Item>
                                     ))}
@@ -395,13 +406,22 @@ const Export = ({country,language}) => {
                                             </div>
                                             <div className="card-body">
                                             {
-                                                uploads[document] ?
-                                                 <iframe 
-                                                    title={`${documents[document]}`} 
-                                                    src={`https://docs.google.com/viewer?embedded=true&url=https://drive.google.com/uc?export=download%26id=${uploads[document]}`} 
-                                                    width="100%" 
-                                                    height="700"></iframe>
-                                                : <p>{t("NoDocumentToDisplay")}</p>
+                                                documentLoading ? (
+                                                    <div className="text-center py-5">
+                                                        <div className="spinner-border text-primary" role="status">
+                                                            <span className="sr-only">Loading document...</span>
+                                                        </div>
+                                                        <p className="mt-2">{t("LoadingDocument")}...</p>
+                                                    </div>
+                                                ) : uploads[document] ? (
+                                                    <iframe 
+                                                        title={`${documents[document]}`} 
+                                                        src={`https://docs.google.com/viewer?embedded=true&url=https://drive.google.com/uc?export=download%26id=${uploads[document]}`} 
+                                                        width="100%" 
+                                                        height="700"></iframe>
+                                                ) : (
+                                                    <p>{t("NoDocumentToDisplay")}</p>
+                                                )
                                             }
                                             </div>
                                         </div>

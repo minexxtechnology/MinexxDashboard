@@ -3025,7 +3025,7 @@ const chartOptions_Trend = {
                             // for prevent access of sale report to the gold 
                             <div className='card'>
                                 <div className='card-header'>
-                                    <h5 className='card-title'>{t("SelectMinerals")}</h5>
+                                    <h5 className='card-title'>{t("SelectMinerals")}</h5> 
                                 </div>
                                 <div className='card-body'>
                                     <select onChange={changeMineral} className='form-control'>
@@ -3079,10 +3079,10 @@ const chartOptions_Trend = {
                                             <form onSubmit={applyFilter}> 
                                                 <div className="row mb-3">
                                                     <div className="col-6 ps-2 pe-1">
-                                                        <input type="date" name="start" className="form-control form-control-sm" />
+                                                        <input type="date" name="start" className="form-control form-control-sm" defaultValue="2023-01-01" />
                                                     </div>
                                                     <div className="col-6 ps-1 pe-2">
-                                                        <input type="date" name="end" className="form-control form-control-sm" />
+                                                        <input type="date" name="end" className="form-control form-control-sm"   defaultValue={new Date().toISOString().split('T')[0]} />
                                                     </div>
                                                 </div>
                                                 <input type="hidden" name="mineral" value={mineral} />
@@ -3210,11 +3210,21 @@ const chartOptions_Trend = {
                                             <h5 className='card-title text-center'>{t("Volume")}</h5>
                                         </div>
                                         <div className='card-body'>
-                                        <h3 className='text-center text-primary fs-40'>
-                                        {yearFilterApplied
-                                                ? filteredTrendData.totalVolume.toFixed(2)
-                                                : defaultTrendData.totalVolume.toFixed(2)} Kg
-                                            </h3>
+                                        <h3 className="text-center text-primary fs-40">
+                                            {yearFilterApplied
+                                                ? (filteredTrendData.totalVolume > 0 
+                                                    ? filteredTrendData.totalVolume.toFixed(2) + " Kg" 
+                                                    : <>
+                                                        0.00 Kg <br /> No data found
+                                                    </>)
+                                                : (defaultTrendData.totalVolume > 0 
+                                                    ? defaultTrendData.totalVolume.toFixed(2) + " Kg" 
+                                                    : <>
+                                                        0.00 Kg <br /> No data found
+                                                    </>)
+                                            }
+                                        </h3>
+
                                         </div>
                                     </div>
                                 </div>
@@ -3255,12 +3265,28 @@ const chartOptions_Trend = {
                             <h4 className="card-title">{t("SalesTrendOverview")}</h4>
                         </div>
                         <div className="card-body">
+                        {yearFilterApplied
+                        ? (filteredTrendData.totalVolume > 0 ? (
                             <ReactApexChart
                                 options={chartOptions_Trend}
                                 series={chartSeries_Trend}
                                 type="bar"
                                 height={500}
                             />
+                        ) : (
+                            <p className="text-center">No data found</p>
+                        ))
+                        : (defaultTrendData.totalVolume > 0 ? (
+                            <ReactApexChart
+                                options={chartOptions_Trend}
+                                series={chartSeries_Trend}
+                                type="bar"
+                                height={500}
+                            />
+                        ) : (
+                            <p className="text-center">No data found</p>
+                        ))
+                    }
                         </div>
                     </div>
                 </div>

@@ -25,7 +25,7 @@ export function login(email, password) {
         password,
         returnSecureToken: true,
     };
-    return axios.post(
+    return axios.post( 
         `https://minexxapi-db-p7n5ing2cq-uc.a.run.app/login`,
         postData,
     );

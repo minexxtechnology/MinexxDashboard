@@ -40,6 +40,10 @@ export const RootMenu = [
             {
                 title:'Supplier Delivery Trend',
                 to:'reports/suppliertrends',
+            },
+            {
+                title:'Trade Time Report',
+                to:'reports/timetracking',
             }, 
             {
                 title: 'Total Stock Delivery',
@@ -118,6 +122,10 @@ export const RegulatorMenu = [
                 title:'Supplier Delivery Trend',
                 to:'reports/suppliertrends',
             },
+            {
+                title:'Trade Time Report',
+                to:'reports/timetracking',
+            }, 
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
@@ -206,6 +214,10 @@ export const IMenu = [
                 title:'Supplier Delivery Trend',
                 to:'reports/suppliertrends',
             },
+            {
+                title:'Trade Time Report',
+                to:'reports/timetracking',
+            }, 
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',

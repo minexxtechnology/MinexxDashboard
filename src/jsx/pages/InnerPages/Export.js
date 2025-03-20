@@ -1,26 +1,27 @@
-import React,{useState, useEffect, useContext} from 'react';
-import {Link, useNavigate, useParams} from 'react-router-dom';
-import {Accordion, ListGroup, Nav, Tab} from 'react-bootstrap';
-import {baseURL_ } from '../../../config'
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Accordion, ListGroup, Nav, Tab } from 'react-bootstrap';
+import { baseURL_ } from '../../../config'
 import { toast } from 'react-toastify';
 import { ThemeContext } from '../../../context/ThemeContext';
 import { Logout } from '../../../store/actions/AuthActions';
 import { useDispatch } from 'react-redux';
 import axiosInstance from '../../../services/AxiosInstance';
+import { Turtle,CheckCircle,X, XCircle } from 'lucide-react';
 import { translations } from '../Events/Exporttranslation';
 
-const Export = ({country,language}) => { 
+const Export = ({ country, language }) => { 
 
     const { id } = useParams()
     const navigate = useNavigate()
-	const dispatch = useDispatch()
+    const dispatch = useDispatch()
     const { changeTitle } = useContext(ThemeContext)
     const access = localStorage.getItem(`_dash`) || '3ts'
     const [ export_ , setexport_] = useState()
     const [loading, setLoading] = useState(true);
     const [document, setdocument] = useState(0)
-    const [documentLoading, setDocumentLoading] = useState(false);
-    const [uploads, setuploads] = useState(access === "3ts" ?[
+    const [documentLoading, setDocumentLoading] = useState({});
+    const [uploads, setuploads] = useState(access === "3ts" ? [
         null,
         null,
         null,
@@ -49,19 +50,21 @@ const Export = ({country,language}) => {
         null,
         null
     ])
-	const user = JSON.parse(localStorage.getItem(`_authUsr`))
+    const user = JSON.parse(localStorage.getItem(`_authUsr`))
     const t = (key) => {
         if (!translations[language]) {
           console.warn(`Translation for language "${language}" not found`);
           return key;
         }
         return translations[language][key] || key;
-      };
+    };
 
     const documents = access === "3ts" ? [
         t("ProvisionalInvoice"),
         t("FreightForwarderCargoReceipt"),
-        t("ExporterSheet"),
+        // t("ExporterSheet"),
+        t("OtherExporterDocuments"),
+        t("OtherScannedExporterDocuments"),
         t("AlexStewartCertificateOfAssay"),
         t("AlexStewartPackingReport"),
         t("CertificateOfOrigin"),
@@ -75,8 +78,6 @@ const Export = ({country,language}) => {
         t("ProcessingSheets"),
         t("RRACustomsDeclaration"),
         t("TagList"),
-        t("OtherScannedExporterDocuments"),
-        t("OtherExporterDocuments"),
         t("OtherTransporterDocument"),
     ] : [
         t("ExporterInvoice"),
@@ -100,7 +101,9 @@ const Export = ({country,language}) => {
             setuploads(access === "3ts" ? [
                 response.data.export.provisionalInvoice,
                 response.data.export.cargoReceipt,
-                response.data.export.itsciForms,
+                // response.data.export.itsciForms,
+                response.data.export.exporterApplicationDocument,
+                response.data.export.scannedExportDocuments,
                 response.data.export.asiDocument,
                 response.data.export.packingReport,
                 response.data.export.rraExportDocument,
@@ -113,9 +116,7 @@ const Export = ({country,language}) => {
                 response.data.export.mineSheets,
                 response.data.export.processingSheets,
                 response.data.export.customsDeclaration,
-                response.data.export.tagList,
-                response.data.export.scannedExportDocuments,
-                response.data.export.exporterApplicationDocument,
+                response.data.export.tagList,           
                 response.data.export.transporterDocument
             ] : [
                 response.data.export.provisionalInvoice,
@@ -144,16 +145,33 @@ const Export = ({country,language}) => {
     
     useEffect(() => {
         getExport()
-    }, [id,country,language])
+    }, [id, country, language])
 
     const handleDocumentChange = (index) => {
-        setDocumentLoading(true);
+        // Set loading state only for the selected document
+        setDocumentLoading(prev => ({
+            ...prev,
+            [index]: true
+        }));
+        
         setdocument(index);
         
-        // Simulate loading delay when changing documents
+        // If there's no document to load, clear loading immediately
+        if (!uploads[index]) {
+            setDocumentLoading(prev => ({
+                ...prev,
+                [index]: false
+            }));
+            return;
+        }
+        
+        // Set a timeout to ensure loading state clears even if there's an issue
         setTimeout(() => {
-            setDocumentLoading(false);
-        }, 1000);
+            setDocumentLoading(prev => ({
+                ...prev,
+                [index]: false
+            }));
+        }, 5000);
     };
 
     return (
@@ -386,45 +404,61 @@ const Export = ({country,language}) => {
                                     </div>
                                 </div>
                             </Tab.Pane>
+                            
+                            
                             <Tab.Pane eventKey="documents" id='documents'>
-                                <div className="row">
-                                    <div className="col-xl-3">
-                                    <ListGroup className="mb-4" id="list-tab">
-                                    {documents.map((item, i) => (
-                                        <ListGroup.Item key={i} onClick={() => handleDocumentChange(i)} action href={`#${i}`}>
-                                            {item}
-                                        </ListGroup.Item>
-                                    ))}
-                                </ListGroup>
-                                    </div>
-                                    <div className="col-xl-9">
-                                        <div className="card">
-                                            <div className="card-header">
-                                                <h4 className="card-title">{documents[document]}</h4>
-                                                { uploads[document] ?<a target='_blank' className='btn btn-primary' href={`https://drive.usercontent.google.com/download?id=${uploads[document]}&export=download&authuser=0`} rel="noreferrer">Download</a>
-                                                : <></> }
+                                <div className="card">
+                                    <div className="card-body">
+                                        {loading ? (
+                                            <div className="text-center py-5">
+                                                <div className="spinner-border text-primary" role="status">
+                                                    <span className="sr-only">Loading...</span>
+                                                </div>
                                             </div>
-                                            <div className="card-body">
-                                            {
-                                                documentLoading ? (
-                                                    <div className="text-center py-5">
-                                                        <div className="spinner-border text-primary" role="status">
-                                                            <span className="sr-only">Loading document...</span>
-                                                        </div>
-                                                        <p className="mt-2">{t("LoadingDocument")}...</p>
-                                                    </div>
-                                                ) : uploads[document] ? (
-                                                    <iframe 
-                                                        title={`${documents[document]}`} 
-                                                        src={`https://docs.google.com/viewer?embedded=true&url=https://drive.google.com/uc?export=download%26id=${uploads[document]}`} 
-                                                        width="100%" 
-                                                        height="700"></iframe>
-                                                ) : (
-                                                    <p>{t("NoDocumentToDisplay")}</p>
-                                                )
-                                            }
-                                            </div>
-                                        </div>
+                                        ) : (
+                                            <>
+                                                <h4 className="mb-4">{t("Documents")}</h4>
+                                                <ListGroup>
+                                                    {documents.map((document, index) => (
+                                                        <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                                                            <span className="accordion-body">
+                                                                {document}
+                                                                {uploads[index] ? 
+                                                                    <CheckCircle color="green" size={24} className="ms-2" /> : 
+                                                                    <XCircle color="red" size={24} className="ms-2" />
+                                                                }
+                                                            </span>
+                                                            <div className="mt-3 d-flex gap-2">
+                                                                {uploads[index] ? (
+                                                                    <>
+                                                                        <a
+                                                                            target="_blank"
+                                                                            className="btn btn-info"
+                                                                            href={`https://drive.google.com/file/d/${uploads[index]}/preview`}
+                                                                            rel="noreferrer"
+                                                                        >
+                                                                            {t("View")}
+                                                                        </a>
+                                                                        <a
+                                                                            target="_blank"
+                                                                            className="btn btn-primary"
+                                                                            href={`https://drive.usercontent.google.com/download?id=${uploads[index]}&export=download&authuser=0`}
+                                                                            rel="noreferrer"
+                                                                        >
+                                                                            {t("Download")}
+                                                                        </a>
+                                                                    </>
+                                                                ) : (
+                                                                    <a className="btn btn-danger">
+                                                                        {t("Missing")}
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        </ListGroup.Item>
+                                                    ))}
+                                                </ListGroup>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </Tab.Pane>
@@ -441,6 +475,5 @@ const Export = ({country,language}) => {
         </div>
     );
 };
-
 
 export default Export;

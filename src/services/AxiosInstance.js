@@ -17,5 +17,5 @@ axiosInstance.interceptors.request.use((config) => {
     config.headers['x-platform'] = dash;
     return config;
 });
-
+ 
 export default axiosInstance;

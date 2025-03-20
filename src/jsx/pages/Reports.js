@@ -1,5 +1,5 @@
 import React,{useState, useEffect, useContext, useRef} from 'react';
-import { Button, Modal, Dropdown, Nav, Tab, Table } from 'react-bootstrap';
+import { Button, Modal, Dropdown, Nav, Tab, Table, ListGroup } from 'react-bootstrap';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import { ThemeContext } from '../../context/ThemeContext';
 import { baseURL_ } from '../../config'
@@ -37,8 +37,13 @@ const Reports = ({language,country}) => {
     const [suppliers, setsuppliers] = useState([]);
     const [company, setcompany] = useState()
     const [mineral, setmineral] = useState();
+    const [exportationid,setExportationid]=useState([]);
+    const [timeData, setTimeData] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const [suppliertrend,setsuppliertrend]=useState();
+    const [timePage, setTimePage] = useState(1);
     const [trendData, setTrendData] = useState({
+
         Cassiterite: [],
         Coltan: [],
         Wolframite: []
@@ -87,6 +92,7 @@ const Reports = ({language,country}) => {
     const [procPage, setprocPage] = useState(1)
     const [bagsPage, setbagsPage] = useState(1)
     const [salesPage, setsalesPage] = useState(1)
+    
     const [bagsProcPage, setbagsProcPage] = useState(1)
     const { changeTitle } = useContext(ThemeContext)
     const [data, setData] = useState(
@@ -365,7 +371,126 @@ const Reports = ({language,country}) => {
                     console.error("Error parsing supplier data:", error);
                     }
                 };
-               // Fetch default trend data
+                // Updated handler for exportation ID selection
+ // Define your fixed categories
+const categories = [
+    'Admin Tasks',
+    'Ground Crew Tasks',
+    'Mineral labs tasks',
+    'Operations supervisor tasks',
+    'Comptoir Trade manager Tasks',
+    'Comptoir Director Tasks',
+    'Operations Manager Tasks',
+    'Finance Tasks',
+    'Mining Board Regulator Agent Tasks', 
+    'Transporter tasks',
+  ]; 
+  
+  // Function to get tasks for a specific category
+  const getTasksForCategory = (category) => {
+    if (!timeData || !timeData.tasks || timeData.tasks.length === 0) {
+      return [];
+    }
+    
+    return timeData.tasks
+      .filter(task => task.task.startsWith(category))
+      .map(task => {
+        // Extract the subcategory part (removing the category prefix)
+        const taskName = task.task.replace(`${category} `, '');
+        return {
+          ...task,
+          taskName: taskName || task.task // If replacement didn't work, use original
+        };
+      });
+  };
+  
+  // Function to handle exportation ID change
+  const changeExportationId = (e) => {
+    if (e.target.value === t("SelectExport")) {
+      setTimeData(null);
+      setSelectedCategory(null);
+      return;
+    }
+    
+    try {
+      const selectedExportation = JSON.parse(e.target.value);
+      
+      // Set loading state
+      setLoading(true);
+      
+      // Show toast notification
+      toast.info('Generating Exportation report, please wait...', {
+        delay: 100,
+        autoClose: true
+      });
+      
+      // Fetch timestamp data using the exportation ID
+      axiosInstance.get('/report/timestamp', {
+        params: {
+          Exportid: selectedExportation.exportationid
+        }
+      }).then(response => {
+        // Process the timestamp data
+        console.log("Result after selecting", response.data.timestamp);
+        
+        if (response.data.success && response.data.timestamp) {
+          // Set the time data in state
+          setTimeData(response.data.timestamp);
+          
+          // Find the first category that has tasks
+          for (const category of categories) {
+            const categoryTasks = response.data.timestamp.tasks
+              ? response.data.timestamp.tasks.filter(task => task.task.startsWith(category))
+              : [];
+              
+            if (categoryTasks.length > 0) {
+              setSelectedCategory(category);
+              break;
+            }
+          }
+          
+          // If no tasks were found in any category, just select the first category
+          if (!selectedCategory && categories.length > 0) {
+            setSelectedCategory(categories[0]);
+          }
+        } else {
+          toast.warning('No timestamp data available for this exportation ID', {
+            autoClose: 3000
+          });
+        }
+        
+        // Clear loading state
+        setLoading(false);
+        
+        // Show success notification
+        toast.success('Exportation report generated successfully!', {
+          autoClose: 3000
+        });
+        
+      }).catch(error => {
+        console.error("Error fetching timestamp data:", error);
+        setLoading(false);
+        toast.error('Failed to generate report. Please try again.', {
+          autoClose: 3000
+        });
+      });
+      
+    } catch (error) {
+      console.error("Error parsing exportation data:", error);
+      setLoading(false);
+    }
+  };
+  
+//   const categories = getCategories();
+// if (categories.length > 0) {
+//   setSelectedCategory(categories[0]);
+// }
+
+//   // Function to paginate tasks
+//   const paginate = (items, page, perPage) => {
+//     const offset = perPage * (page - 1);
+//     return items.slice(offset, offset + perPage);
+//   };               // Fetch default trend data
     const fetchDefaultTrendData = async (supplierId) => {
         try {
             const response = await axiosInstance.get(`/report/trendgraph/${supplierId}`, {
@@ -441,6 +566,30 @@ const Reports = ({language,country}) => {
         })
 
         }
+        const loadExoprtationID=()=>
+            {
+                let normalizedCountry = country.trim();
+            
+                // Special handling for Rwanda
+                if (normalizedCountry.toLowerCase() === 'rwanda') {
+                    // Randomly choose one of the three formats
+                     normalizedCountry ='.Rwanda';
+                    // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+                } else {
+                    // For other countries, remove leading/trailing dots and spaces
+                    normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+                }
+
+                axiosInstance.get(`/report/exportation`,
+                    {
+                        params: {
+                            country:normalizedCountry,
+                        }
+                    }).then(response=>{
+                        setExportationid(response.data.exportation)
+                    console.log("Exportation ID",response.data.exportation);
+                    })
+            }
     //Form apply filter
     
 
@@ -724,6 +873,13 @@ const Reports = ({language,country}) => {
         loadReport()
         loadMinerals()
         loadSuppliers()
+        loadExoprtationID();
+        // if (timeData) {
+        //     const categories = getCategories();
+        //     if (categories.length > 0 && !selectedCategory) {
+        //       setSelectedCategory(categories[0]);
+        //     }
+        //   }
         
         loadMonthlyData();
         loadMonthlyPurchase();
@@ -3292,7 +3448,175 @@ const chartOptions_Trend = {
                 </div>
             )}
                     </div>
-                ) : (
+                )
+                :
+                type === 'timetracking' ? (
+                   
+                    <div className='row'>
+                        <div className='col-md-5'>
+                        {access === "3ts"? (  
+                            // for prevent access of sale report to the gold 
+                            <div className='card'>
+                                <div className='card-header'>
+                                    <h5 className='card-title'>{t("SelectExportID")}</h5>
+                                </div>
+                                <div className='card-body'>
+                                <select onChange={changeExportationId} className='form-control'>
+                                    <option>{t("SelectExport")}</option>
+                                    {access === '3ts' && exportationid && exportationid.length > 0 ? (
+                                        exportationid.map(export_item => (
+                                            <option 
+                                                key={export_item.exportationid} 
+                                                value={JSON.stringify(export_item)}
+                                            >
+                                                {export_item.exportationid}
+                                            </option>
+                                        ))
+                                    ) : (
+                                        <option value="">{t("NoExportationData")}</option>
+                                    )}
+                                </select>
+                                </div>
+                            </div>
+                            ):
+                            ( <div className='card'>
+                                <div className='card-header'>
+                                    <h5 className='card-title'>{t("SelectExportID")}</h5>
+                                </div>
+                                <div className='card-body'>
+                                <select onChange={changeExportationId} className='form-control'>
+                                    <option>{t("SelectExport")}</option>
+                                    {access === 'gold' && exportationid && exportationid.length > 0 ? (
+                                        exportationid.map(export_item => (
+                                            <option 
+                                                key={export_item.exportationid} 
+                                                value={JSON.stringify(export_item)}
+                                            >
+                                                {export_item.exportationid}
+                                            </option>
+                                        ))
+                                    ) : (
+                                        <option value="">{t("NoExportationData")}</option>
+                                    )}
+                                </select>
+                                </div>
+                            </div>
+                                
+                            )}
+                        </div>
+                                    
+                        {timeData && (
+            <>
+                <div className='col-md-4'>
+                    <div className='card'>
+                        <div className='card-header'>
+                            <h5 className='card-title text-center'>{t("Duration")}</h5>
+                        </div>
+                        <div className='card-body'>
+                        <h3 className="text-center text-primary fs-40">
+                            {loading ? (
+                                <span>Loading...</span>
+                            ) : (
+                                timeData.duration ? (
+                                    timeData.duration + " Days"
+                                ) : (
+                                    <>
+                                        <h4 className='text text-danger'>Not Completed</h4>
+                                    </>
+                                )
+                            )}
+                        </h3>
+                        </div>
+                    </div>
+                </div>
+            </>
+        )}
+       {timeData && (
+  <div className="row">
+    <div className="col-xl-3">
+      <ListGroup className="mb-4">
+        {categories.map((category, i) => {
+          // Only show categories that have tasks
+          const hasTasks = timeData.tasks 
+            ? timeData.tasks.some(task => task.task.startsWith(category))
+            : false;
+            
+          // Optionally, you can hide empty categories
+          if (!hasTasks) return null;
+          
+          return (
+            <ListGroup.Item 
+              key={i} 
+              onClick={() => setSelectedCategory(category)} 
+              action 
+              active={selectedCategory === category}
+              className="d-flex align-items-center"
+            >
+              {t(category)}
+            </ListGroup.Item>
+          );
+        })}
+      </ListGroup>
+    </div>
+
+    <div className="col-xl-9">
+      {/* Rest of the component remains the same */}
+      <div className="card">
+        <div className="card-header">
+            <h4 className="card-title">{timeData.exportationId} {t("Tradetimelinereport")}</h4>
+            {selectedCategory && <h5>{t(selectedCategory)}</h5>}
+        </div>
+        <div className="card-header border-top">
+            <h5 className="card-title">{t("Blending ID ")}{timeData.exportationId} </h5>
+            <h5>{timeData.blendingid}</h5>
+        </div>
+        <div className="card-body">
+          <div id="soldre-view" className="dataTables_wrapper no-footer">
+            {selectedCategory && (
+              <div className="row">
+                {paginate(
+                  getTasksForCategory(selectedCategory),
+                  timePage,
+                  sort
+                ).map((task, i) => (
+                  <div key={i} className="col-12 mb-3">
+                    <div className="p-3 border rounded d-flex justify-content-between align-items-center">
+                      <span>{task.taskName}</span>
+                      {task.timestamp 
+                            ? <span className="badge bg-primary">
+                                {new Date(task.timestamp).toLocaleString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                                </span>
+                            : <span className="badge bg-danger">
+                                No Date
+                                </span>
+                            }
+                    </div>
+                  </div>
+                ))}
+                
+                {getTasksForCategory(selectedCategory).length === 0 && (
+                  <div className="col-12 text-center">
+                    <p>{t("No tasks available for this category")}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Pagination section remains the same */}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}      </div>
+                )
+                 : (
                 <div></div>
                 )}
             </div>

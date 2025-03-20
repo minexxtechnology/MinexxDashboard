@@ -33,7 +33,7 @@ const Kyc = ({language}) => {
       };
 
   useEffect(() => {
-    if (id) {
+    if (id) { 
       fetchCompanyData(id);
     }
   }, [id,language]);

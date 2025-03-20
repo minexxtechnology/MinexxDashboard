@@ -35,7 +35,7 @@ const Tracking = ({ language, country }) => {
     'Finance Tasks',
     'Mining Board Regulator Agent Tasks', 
     'Transporter Tasks',
-  ]; 
+  ];
 
   const timeTracking = async (id) => {
     try {
@@ -66,7 +66,7 @@ const Tracking = ({ language, country }) => {
       }
     } catch (error) {
       console.error("Error fetching data: ", error);
-      toast.error("Error fetching data");
+      //toast.error("Error fetching data");
     } finally {
       setLoading(false);
     }
@@ -83,7 +83,6 @@ const Tracking = ({ language, country }) => {
       'created at', 
       'updated at',
       'Percentage',
-      // Add any other non-task properties here
     ];
     
     let totalTasks = 0;

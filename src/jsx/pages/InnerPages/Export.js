@@ -7,11 +7,335 @@ import { ThemeContext } from '../../../context/ThemeContext';
 import { Logout } from '../../../store/actions/AuthActions';
 import { useDispatch } from 'react-redux';
 import axiosInstance from '../../../services/AxiosInstance';
-import { Turtle,CheckCircle,X, XCircle } from 'lucide-react';
+import { Turtle, CheckCircle, X, XCircle } from 'lucide-react';
 import { translations } from '../Events/Exporttranslation';
 
-const Export = ({ country, language }) => { 
+// Updated DocumentsList component with document availability checking
+const DocumentsList = ({ documents, dashboard, exportId, language, country }) => {
+    // Individual loading states for each document
+    const [documentLoading, setDocumentLoading] = useState({});
+    // Store file IDs separately, only fetch when needed
+    const [fileIds, setFileIds] = useState({});
+    // Store available documents information
+    const [availableDocuments, setAvailableDocuments] = useState([]);
+    // Loading state for initial available documents fetch
+    const [loadingAvailability, setLoadingAvailability] = useState(true);
+    
+    const t = (key) => {
+      if (!translations[language]) {
+        console.warn(`Translation for language "${language}" not found`);
+        return key;
+      }
+      return translations[language][key] || key;
+    };
+  
+    // Create a normalized country value at component level
+    const normalizedCountry = React.useMemo(() => {
+      let result = country.trim();
+      
+      if (result.toLowerCase() === 'rwanda') {
+          return '.Rwanda';
+      } else {
+          return result.replace(/^\.+|\.+$/g, '');
+      }
+    }, [country]);
+  
+    // Map field names based on document index
+    const getFieldName = (index) => {
+      // This should match your uploads array mapping in the main component
+      const fieldNames = dashboard === '3ts' ? [
+        'provisionalInvoice',
+        'cargoReceipt',
+        'exporterApplicationDocument',
+        'scannedExportDocuments',
+        'asiDocument',
+        'packingReport',
+        'rraExportDocument',
+        'rmbExportDocument',
+        'otherDocument',
+        'warehouseCert',
+        'insuranceCert',
+        'billOfLanding',
+        'c2',
+        'mineSheets',
+        'processingSheets',
+        'customsDeclaration',
+        'tagList',           
+        'transporterDocument'
+      ] : [
+        'provisionalInvoice',
+        'packingReport',
+        'note',
+        'scannedExportDocuments',
+        'otherDocument',
+        'customsDeclaration',
+        'exporterApplicationDocument',
+      ];
+      
+      return fieldNames[index] || null;
+    };
+    
+    // Map field names to dbFieldNames for better matching with available documents
+    const getDbFieldName = (fieldName) => {
+      const mappings = {
+        'provisionalInvoice': 'ProvisionalInvoice',
+        'cargoReceipt': 'CargoReceipt',
+        'exporterApplicationDocument': 'ExporterApplicationDocument',
+        'scannedExportDocuments': 'ScannedExportDocuments',
+        'asiDocument': 'AsiDocument',
+        'packingReport': 'PackingReport',
+        'rraExportDocument': 'RraExportDocument',
+        'rmbExportDocument': 'RmbExportDocument',
+        'otherDocument': 'OtherDocument',
+        'warehouseCert': 'WarehouseCert',
+        'insuranceCert': 'InsuranceCert',
+        'billOfLanding': 'BillOfLanding',
+        'c2': 'C2',
+        'mineSheets': 'MineSheets',
+        'processingSheets': 'ProcessingSheets',
+        'customsDeclaration': 'CustomsDeclaration',
+        'tagList': 'TagList',
+        'transporterDocument': 'TransporterDocument',
+        'note': 'Note'
+      };
+      
+      return mappings[fieldName] || fieldName;
+    };
+  
+    // Fetch available documents when component mounts
+    useEffect(() => {
+      const fetchAvailableDocuments = async () => {
+        setLoadingAvailability(true);
+        try {
+          console.log(`Fetching available documents for export ID ${exportId}`);
+          const response = await axiosInstance.get(`/exports/available/${exportId}`, {
+            params: { 
+              country: normalizedCountry
+            }
+          });
+          
+          if (response.data.success && response.data.document && response.data.document.availableDocuments) {
+            console.log('Available documents:', response.data.document.availableDocuments);
+            setAvailableDocuments(response.data.document.availableDocuments);
+            
+            // Create a map of all field names we use in our component
+            const allFieldNames = Array.from({ length: documents.length }, (_, i) => getFieldName(i));
+            const initialFileIds = {};
+            
+            // For each field name we care about, check if it exists in the available documents
+            allFieldNames.forEach(fieldName => {
+              if (!fieldName) return;
+              
+              const dbFieldName = getDbFieldName(fieldName);
+              const docExists = response.data.document.availableDocuments.some(doc => 
+                doc.fieldName === fieldName || 
+                doc.fieldName === dbFieldName || 
+                doc.dbFieldName === fieldName || 
+                doc.dbFieldName === dbFieldName
+              );
+              
+              // Set as undefined if exists (to be fetched later) or null if doesn't exist
+              initialFileIds[fieldName] = docExists ? undefined : null;
+            });
+            
+            console.log('Initial document availability map:', initialFileIds);
+            setFileIds(initialFileIds);
+          } else {
+            console.warn('No available documents found or unexpected response format:', response.data);
+          }
+        } catch (error) {
+          console.error('Error fetching available documents:', error);
+          toast.error(error.response?.data?.message || `${t("ErrorFetchingDocuments")}`);
+        } finally {
+          setLoadingAvailability(false);
+        }
+      };
+      
+      if (exportId) {
+        fetchAvailableDocuments();
+      }
+    }, [exportId, normalizedCountry, documents]);
+  
+    // Check if a document exists in the available documents list
+    const isDocumentAvailable = (fieldName) => {
+      // First check if we've directly set it in fileIds already
+      if (fileIds[fieldName] !== undefined) {
+        return fileIds[fieldName] !== null;
+      }
+      
+      // Otherwise check in the availableDocuments list
+      return availableDocuments.some(doc => 
+        doc.fieldName === fieldName || doc.dbFieldName === fieldName
+      );
+    };
+  
+    // Get file ID for a document - always use /exportsfield endpoint
+    const getFileId = async (index, fieldName) => {
+      console.log(`getFileId called for index ${index}, fieldName ${fieldName}, exportId ${exportId}`);
+      
+      // If we already have the file ID from a previous call, use it
+      if (fileIds[fieldName] && fileIds[fieldName] !== undefined) {
+        console.log(`Using cached fileId for ${fieldName}: ${fileIds[fieldName]}`);
+        return fileIds[fieldName];
+      }
+      
+      // If document doesn't exist according to availability check, don't fetch
+      if (fileIds[fieldName] === null) {
+        console.log(`Document ${fieldName} already known to not exist`);
+        return null;
+      }
+      
+      // If document availability is unknown or we know it exists but need the ID,
+      // make the API call to /exportsfield to get the actual file ID
+      
+      // If not found in available documents, need to fetch from API
+      setDocumentLoading(prev => ({
+        ...prev,
+        [index]: true
+      }));
+      
+      try {
+        console.log(`Making API request to: /exportsfield/${exportId}`);
+        const response = await axiosInstance.get(`/exportsfield/${exportId}`, {
+          params: { 
+            field: fieldName,
+            country: normalizedCountry
+          }
+        });
+        
+        console.log(`API response received:`, response.data);
+        
+        if (response.data.success && response.data.export && 
+            response.data.export.fileId) {
+          
+          const fileContent = response.data.export.fileContent;
+          console.log(`File content found: ${fileContent}`);
+          
+          setFileIds(prev => ({
+            ...prev,
+            [fieldName]: fileContent
+          }));
+          
+          return fileContent;
+        } else {
+          console.warn(`Document not found for ${fieldName}:`, response.data);
+          toast.error(`${t("DocumentNotFound")}: ${documents[index]}`);
+          
+          setFileIds(prev => ({
+            ...prev,
+            [fieldName]: null
+          }));
+          
+          return null;
+        }
+      } catch (error) {
+        console.error('Error fetching file ID:', error);
+        
+        toast.error(error.response?.data?.message || `${t("ErrorFetchingDocument")}`);
+        
+        setFileIds(prev => ({
+          ...prev,
+          [fieldName]: null
+        }));
+        
+        return null;
+      } finally {
+        setDocumentLoading(prev => ({
+          ...prev,
+          [index]: false
+        }));
+      }
+    };
+    
+    // Handle view document action
+    const handleViewDocument = async (index) => {
+      const fieldName = getFieldName(index);
+      if (!fieldName) return;
+      
+      try {
+        const fileId = await getFileId(index, fieldName);
+        
+        if (fileId) {
+          window.open(`https://drive.google.com/file/d/${fileId}/preview`, '_blank');
+        }
+      } catch (error) {
+        console.error(`Error in handleViewDocument for ${fieldName}:`, error);
+      }
+    };
+    
+    // Handle download document action
+    const handleDownloadDocument = async (index) => {
+      const fieldName = getFieldName(index);
+      if (!fieldName) return;
+      
+      const fileId = await getFileId(index, fieldName);
+      if (fileId) {
+        window.open(`https://drive.usercontent.google.com/download?id=${fileId}&export=download&authuser=0`, '_blank');
+      }
+    };
+  
+    if (loadingAvailability) {
+      return (
+        <div className="text-center py-4">
+          <div className="spinner-border text-primary" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <p className="mt-2">{t("CheckingDocumentAvailability")}</p>
+        </div>
+      );
+    }
+  
+    return (
+      <ListGroup>
+        {documents.map((document, index) => {
+          const fieldName = getFieldName(index);
+          const documentAvailable = isDocumentAvailable(fieldName);
+          
+          return (
+            <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+              <span className="accordion-body">
+                {document}
+                {fileIds[fieldName]  !== null && <CheckCircle color="green" size={24} className="ms-2" />}
+                {fileIds[fieldName] === null && <XCircle color="red" size={24} className="ms-2" />}
+              </span>
+              <div className="mt-3 d-flex gap-2">
+                {documentLoading[index] ? (
+                  <div className="spinner-border spinner-border-sm text-primary" role="status">
+                    <span className="sr-only">Loading...</span>
+                  </div>
+                ) : documentAvailable ? (
+                  <>
+                    <button
+                      className="btn btn-info"
+                      onClick={() => handleViewDocument(index)}
+                    >
+                      {t("View")}
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => handleDownloadDocument(index)}
+                    >
+                      {t("Download")}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="btn btn-danger"
+                    disabled
+                  >
+                    {t("Missing")}
+                  </button>
+                )}
+              </div>
+            </ListGroup.Item>
+          );
+        })}
+      </ListGroup>
+    );
+  };
 
+// Main Export component
+const Export = ({ country, language }) => { 
     const { id } = useParams()
     const navigate = useNavigate()
     const dispatch = useDispatch()
@@ -20,37 +344,8 @@ const Export = ({ country, language }) => {
     const [ export_ , setexport_] = useState()
     const [loading, setLoading] = useState(true);
     const [document, setdocument] = useState(0)
-    const [documentLoading, setDocumentLoading] = useState({});
-    const [uploads, setuploads] = useState(access === "3ts" ? [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-    ] : [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-    ])
     const user = JSON.parse(localStorage.getItem(`_authUsr`))
+    
     const t = (key) => {
         if (!translations[language]) {
           console.warn(`Translation for language "${language}" not found`);
@@ -59,10 +354,20 @@ const Export = ({ country, language }) => {
         return translations[language][key] || key;
     };
 
+    // Move normalizedCountry calculation to component level using useMemo
+    const normalizedCountry = React.useMemo(() => {
+        let result = country.trim();
+        
+        if (result.toLowerCase() === 'rwanda') {
+            return '.Rwanda';
+        } else {
+            return result.replace(/^\.+|\.+$/g, '');
+        }
+    }, [country]);
+
     const documents = access === "3ts" ? [
         t("ProvisionalInvoice"),
         t("FreightForwarderCargoReceipt"),
-        // t("ExporterSheet"),
         t("OtherExporterDocuments"),
         t("OtherScannedExporterDocuments"),
         t("AlexStewartCertificateOfAssay"),
@@ -89,89 +394,45 @@ const Export = ({ country, language }) => {
         t("ExportApproval")
     ];
     
-    let eid = null
+    let eid = null;
+    
     const getExport = async () => {
         if (eid == null) {
            // toast.info("Getting Export details...")
         }
-        eid = id
+        eid = id;
+        
         try {
-            const response = await axiosInstance.get(`exports/${id}`)
-            setexport_(response.data.export)
-            setuploads(access === "3ts" ? [
-                response.data.export.provisionalInvoice,
-                response.data.export.cargoReceipt,
-                // response.data.export.itsciForms,
-                response.data.export.exporterApplicationDocument,
-                response.data.export.scannedExportDocuments,
-                response.data.export.asiDocument,
-                response.data.export.packingReport,
-                response.data.export.rraExportDocument,
-                response.data.export.rmbExportDocument,
-                response.data.export.otherDocument,
-                response.data.export.warehouseCert,
-                response.data.export.insuranceCert,
-                response.data.export.billOfLanding,
-                response.data.export.c2,
-                response.data.export.mineSheets,
-                response.data.export.processingSheets,
-                response.data.export.customsDeclaration,
-                response.data.export.tagList,           
-                response.data.export.transporterDocument
-            ] : [
-                response.data.export.provisionalInvoice,
-                response.data.export.packingReport,
-                response.data.export.note,
-                response.data.export.scannedExportDocuments,
-                response.data.export.otherDocument,
-                response.data.export.customsDeclaration,
-                response.data.export.exporterApplicationDocument,
-            ])
-            changeTitle(`Shipment: ${response.data.export?.exportationID || "--"}`)
+            const response = await axiosInstance.get(`exports/${id}`,
+                {
+                    params:
+                    {
+                        country: normalizedCountry
+                    }
+                });
+            setexport_(response.data.export);
+            changeTitle(`Shipment: ${response.data.export?.exportationID || "--"}`);
         } catch (err) {
             try {
                 if (err.response.code === 403) {
-                    dispatch(Logout(navigate))
+                    dispatch(Logout(navigate));
                 } else {
-                    toast.warn(err.response.message)
+                    toast.warn(err.response.message);
                 }
             } catch (e) {
-                toast.error(err.message)
+                toast.error(err.message);
             }
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     };
     
     useEffect(() => {
-        getExport()
-    }, [id, country, language])
+        getExport();
+    }, [id, country, language, normalizedCountry]);
 
     const handleDocumentChange = (index) => {
-        // Set loading state only for the selected document
-        setDocumentLoading(prev => ({
-            ...prev,
-            [index]: true
-        }));
-        
         setdocument(index);
-        
-        // If there's no document to load, clear loading immediately
-        if (!uploads[index]) {
-            setDocumentLoading(prev => ({
-                ...prev,
-                [index]: false
-            }));
-            return;
-        }
-        
-        // Set a timeout to ensure loading state clears even if there's an issue
-        setTimeout(() => {
-            setDocumentLoading(prev => ({
-                ...prev,
-                [index]: false
-            }));
-        }, 5000);
     };
 
     return (
@@ -215,6 +476,7 @@ const Export = ({ country, language }) => {
                                                     {t("Documents")}
                                                 </Nav.Link>
                                             </Nav.Item>
+                                           
                                         </Nav>
                                     </div>
                                 </div>
@@ -405,7 +667,6 @@ const Export = ({ country, language }) => {
                                 </div>
                             </Tab.Pane>
                             
-                            
                             <Tab.Pane eventKey="documents" id='documents'>
                                 <div className="card">
                                     <div className="card-body">
@@ -418,55 +679,20 @@ const Export = ({ country, language }) => {
                                         ) : (
                                             <>
                                                 <h4 className="mb-4">{t("Documents")}</h4>
-                                                <ListGroup>
-                                                    {documents.map((document, index) => (
-                                                        <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
-                                                            <span className="accordion-body">
-                                                                {document}
-                                                                {uploads[index] ? 
-                                                                    <CheckCircle color="green" size={24} className="ms-2" /> : 
-                                                                    <XCircle color="red" size={24} className="ms-2" />
-                                                                }
-                                                            </span>
-                                                            <div className="mt-3 d-flex gap-2">
-                                                                {uploads[index] ? (
-                                                                    <>
-                                                                        <a
-                                                                            target="_blank"
-                                                                            className="btn btn-info"
-                                                                            href={`https://drive.google.com/file/d/${uploads[index]}/preview`}
-                                                                            rel="noreferrer"
-                                                                        >
-                                                                            {t("View")}
-                                                                        </a>
-                                                                        <a
-                                                                            target="_blank"
-                                                                            className="btn btn-primary"
-                                                                            href={`https://drive.usercontent.google.com/download?id=${uploads[index]}&export=download&authuser=0`}
-                                                                            rel="noreferrer"
-                                                                        >
-                                                                            {t("Download")}
-                                                                        </a>
-                                                                    </>
-                                                                ) : (
-                                                                    <a className="btn btn-danger">
-                                                                        {t("Missing")}
-                                                                    </a>
-                                                                )}
-                                                            </div>
-                                                        </ListGroup.Item>
-                                                    ))}
-                                                </ListGroup>
+                                                <DocumentsList 
+                                                    documents={documents} 
+                                                    dashboard={access} 
+                                                    exportId={id} 
+                                                    language={language}
+                                                    country={country}
+                                                />
                                             </>
                                         )}
                                     </div>
                                 </div>
                             </Tab.Pane>
-                            <Tab.Pane eventKey="track" id='track'>
-                                <div className="card">
-                                    <iframe title={export_?.trackingID} src={export_?.link} width="100%" height="700" allow="autoplay"></iframe>
-                                </div>
-                            </Tab.Pane>
+                            
+                           
                         </Tab.Content>
                     </div>
                 </Tab.Container>

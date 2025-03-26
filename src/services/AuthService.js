@@ -18,7 +18,7 @@ export function signUp(email, password) {
         postData,
     );
 }
-
+ 
 export function login(email, password) {
     const postData = {
         email,
@@ -26,7 +26,7 @@ export function login(email, password) {
         returnSecureToken: true,
     };
     return axios.post( 
-        `https://minexxapi-testing-p7n5ing2cq-uc.a.run.app/login`,
+        `https://minexxapi-db-p7n5ing2cq-uc.a.run.app/login`,
         postData,
     );
 }

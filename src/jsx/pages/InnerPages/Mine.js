@@ -105,24 +105,42 @@ const Mine = ({ language }) => {
         }
     };
 
-    const fetchGallery = async () => {
-        if (loadedTabs.has('gallery')) return;
+// Fix the fetchGallery function to handle the new response format
+const fetchGallery = async () => {
+    if (loadedTabs.has('gallery')) return;
+    
+    setTabLoading('gallery', true);
+    try {
+        const [imagesResponse, videosResponse] = await Promise.all([
+            axiosInstance.get(`${baseURL_}mines/images/${id}`),
+            axiosInstance.get(`${baseURL_}mines/videos/${id}`)
+        ]);
         
-        setTabLoading('gallery', true);
-        try {
-            const [imagesResponse, videosResponse] = await Promise.all([
-                axiosInstance.get(`${baseURL_}mines/images/${id}`),
-                axiosInstance.get(`${baseURL_}mines/videos/${id}`)
-            ]);
-            setgallery(imagesResponse.data.images);
-            setvideos(videosResponse.data.videos);
-            setLoadedTabs(prev => new Set(prev).add('gallery'));
-        } catch (err) {
-            handleError(err);
-        } finally {
-            setTabLoading('gallery', false);
-        }
-    };
+        // Handle the new response format that includes objects with id, thumbnail, and fullSize
+        const imageData = imagesResponse.data.images || [];
+        const videoData = videosResponse.data.videos || [];
+
+        console.log("Images id is",imageData);
+        
+        // Extract image IDs or full image objects based on the response format
+        const processedImages = Array.isArray(imageData) 
+            ? imageData.map(img => typeof img === 'object' ? img : { id: img })
+            : [];
+            
+        // Extract video IDs or full video objects based on the response format
+        const processedVideos = Array.isArray(videoData)
+            ? videoData.map(vid => typeof vid === 'object' ? vid : { id: vid })
+            : [];
+        
+        setgallery(processedImages);
+        setvideos(processedVideos);
+        setLoadedTabs(prev => new Set(prev).add('gallery'));
+    } catch (err) {
+        handleError(err);
+    } finally {
+        setTabLoading('gallery', false);
+    }
+};
 
     const fetchAssessments = async () => {
         if (loadedTabs.has('assessments')) return;
@@ -449,72 +467,100 @@ const Mine = ({ language }) => {
                                 )}
                             </Tab.Pane>
 
-                            <Tab.Pane eventKey="gallery" id='gallery'>
-                                {loadingStates.gallery ? <LoadingSpinner /> : (
-                                    <div className="col-lg-12">
-                                        <div className="card">
-                                            <div className="card-header">
-                                                <h4 className="card-title">{t("Pictures")}</h4>
-                                            </div>
-                                            <div className="card-body pb-1">
-                                                {gallery.length === 0 ? (
-                                                    <div>
-                                                        <h5 className="mt-0 mb-0">{t("NoPictures")}</h5>
-                                                        <p className="fs-12 font-w200">{t("Therearenopictures")}</p>
-                                                    </div>
-                                                ) : (
-                                                    <LightGallery
-                                                        speed={500}
-                                                        plugins={[lgThumbnail, lgZoom]}
-                                                        elementClassNames="row"
-                                                    >
-                                                        {gallery.map((item, index) => (
-                                                            <div data-src={`https://lh3.googleusercontent.com/d/${item}=w2160?authuser=0`} className="col-lg-3 col-md-6 mb-4" key={index}>
-                                                                <img 
-                                                                    src={`https://lh3.googleusercontent.com/d/${item}=w2160?authuser=0`}
-                                                                    style={{ width: "100%", objectFit: 'cover' }}
-                                                                    height={300}
-                                                                    alt={mine?.name}
-                                                                    className='cursor-pointer rounded'
-                                                                />
-                                                            </div>
-                                                        ))}
-                                                    </LightGallery>
-                                                )}
-                                            </div>
-                                        </div>
+                           
+<Tab.Pane eventKey="gallery" id='gallery'>
+    {loadingStates.gallery ? <LoadingSpinner /> : (
+        <div className="col-lg-12">
+            <div className="card">
+                <div className="card-header">
+                    <h4 className="card-title">{t("Pictures")}</h4>
+                </div>
+                <div className="card-body pb-1">
+                    {gallery.length === 0 ? (
+                        <div>
+                            <h5 className="mt-0 mb-0">{t("NoPictures")}</h5>
+                            <p className="fs-12 font-w200">{t("Therearenopictures")}</p>
+                        </div>
+                    ) : (
+                        <LightGallery
+                            speed={500}
+                            plugins={[lgThumbnail, lgZoom]}
+                            elementClassNames="row"
+                        >
+                            {gallery.map((item, index) => {
+                                // Handle both old format (string ID) and new format (object with properties)
+                                const imageId = typeof item === 'string' ? item : item.id;
+                                const thumbnailUrl = item.thumbnail || `https://lh3.googleusercontent.com/d/${imageId}=w400?authuser=0`;
+                                const fullSizeUrl = item.fullSize || `https://lh3.googleusercontent.com/d/${imageId}=w2160?authuser=0`;
+                                
+                                return (
+                                    <div data-src={fullSizeUrl} className="col-lg-3 col-md-6 mb-4" key={index}>
+                                        <img 
+                                            src={thumbnailUrl}
+                                            style={{ width: "100%", objectFit: 'cover' }}
+                                            height={300}
+                                            alt={mine?.name}
+                                            className='cursor-pointer rounded'
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </LightGallery>
+                    )}
+                </div>
+            </div>
 
-                                        <div className="card">
-                                            <div className="card-header">
-                                                <h4 className="card-title">Videos</h4>
-                                            </div>
-                                            <div className="card-body pb-1">
-                                                <div className='row'>
-                                                    {videos.length === 0 ? (
-                                                        <div>
-                                                            <h5 className="mt-0 mb-0">No Videos</h5>
-                                                            <p className="fs-12 font-w200">{t("Therearenovideos")}</p>
-                                                        </div>
-                                                    ) : (
-                                                        videos.map((item, index) => (
-                                                            <div data-src={`https://lh3.googleusercontent.com/d/${item}=w2160?authuser=0`} className="col-lg-3 col-md-6 mb-4" key={index}>
-                                                                <iframe
-                                                                    className='rounded'
-                                                                    title={mine?.name}
-                                                                    src={`https://drive.google.com/file/d/${item}/preview`}
-                                                                    width="100%"
-                                                                    height={300}
-                                                                    allow="autoplay, fullscreen"
-                                                                ></iframe>
-                                                            </div>
-                                                        ))
-                                                    )}
+            <div className="card">
+                <div className="card-header">
+                    <h4 className="card-title">Videos</h4>
+                </div>
+                <div className="card-body pb-1">
+                    <div className='row'>
+                        {videos.length === 0 ? (
+                            <div>
+                                <h5 className="mt-0 mb-0">No Videos</h5>
+                                <p className="fs-12 font-w200">{t("Therearenovideos")}</p>
+                            </div>
+                        ) : (
+                            videos.map((item, index) => {
+                                // Handle both old format (string ID) and new format (object with properties)
+                                const videoId = typeof item === 'string' ? item : item.id;
+                                const thumbnailUrl = item.thumbnailUrl || null;
+                                
+                                return (
+                                    <div className="col-lg-3 col-md-6 mb-4" key={index}>
+                                        {thumbnailUrl && (
+                                            <div className="video-thumbnail-container position-relative mb-2">
+                                                <img 
+                                                    src={thumbnailUrl}
+                                                    style={{ width: "100%", objectFit: 'cover' }}
+                                                    height={180}
+                                                    alt={`Video thumbnail ${index + 1}`}
+                                                    className='rounded'
+                                                />
+                                                <div className="play-button-overlay">
+                                                    <i className="fa fa-play-circle fa-3x text-white"></i>
                                                 </div>
                                             </div>
-                                        </div>
+                                        )}
+                                        <iframe
+                                            className='rounded'
+                                            title={mine?.name}
+                                            src={`https://drive.google.com/file/d/${videoId}/preview`}
+                                            width="100%"
+                                            height={thumbnailUrl ? 120 : 300}
+                                            allow="autoplay, fullscreen"
+                                        ></iframe>
                                     </div>
-                                )}
-                            </Tab.Pane>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )}
+</Tab.Pane>
 
                             {location && (
                                 <Tab.Pane id='map' eventKey='map'>

@@ -31,7 +31,8 @@ const countryLanguageDefaults = {
   'Ghana': 'en',
   'DRC': 'fr',
   'France': 'fr',
-  'Gabon': 'fr'
+  'Gabon': 'fr',
+  'Ethiopia':'en'
 };
 
 const Header = ({ onLanguageChange, onCountryChange }) => {
@@ -46,11 +47,12 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
     'DRC': 'https://flagcdn.com/w320/cd.png',
     'Gabon': 'https://flagcdn.com/w320/ga.png',
     'Ghana': 'https://flagcdn.com/w320/gh.png',
-    'France': 'https://flagcdn.com/w320/fr.png'
+    'France': 'https://flagcdn.com/w320/fr.png',
+    'Ethiopia':'https://flagcdn.com/w320/et.png'
   };
 
   // Filter available countries based on user type
-  const availableCountries = user?.type === 'buyer' 
+  const availableCountries = user?.type === 'buyer' ||  user?.type === 'buyers'
     ? { 'Rwanda': countries['Rwanda'], 'DRC': countries['DRC'] }
     : countries;
 
@@ -73,6 +75,7 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
     switch (selectedCountry) {
       case 'Rwanda':
       case 'DRC':
+      case 'Ethiopia':
         newAccess = '3ts';
         newView = '3ts';
         break;

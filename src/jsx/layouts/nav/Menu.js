@@ -34,6 +34,10 @@ export const RootMenu = [
                 to: 'reports/trace',
             },
             {
+                title:'Kyc Summary',
+                to:'reports/kycsummary'
+            },
+            {
             title:'Supplier Sales Report',
             to:'reports/sale',
             },
@@ -113,6 +117,10 @@ export const RegulatorMenu = [
             {
                 title: 'Trace Reports',
                 to: 'reports/trace',
+            },
+            {
+                title:'Kyc Summary',
+                to:'reports/kycsummary'
             },
             {
                 title:'Supplier Sales Report',
@@ -205,6 +213,10 @@ export const IMenu = [
             {
                 title: 'Trace Report',
                 to: 'reports/trace',
+            },
+            {
+                title:'Kyc Summary',
+                to:'reports/kycsummary'
             },
             {
                 title:'Supplier Sales Report',

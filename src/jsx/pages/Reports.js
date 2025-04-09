@@ -1,5 +1,6 @@
 import React,{useState, useEffect, useContext, useRef} from 'react';
 import { Button, Modal, Dropdown, Nav, Tab, Table, ListGroup } from 'react-bootstrap';
+import { Card, Form, InputGroup } from 'react-bootstrap';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import { ThemeContext } from '../../context/ThemeContext';
 import { baseURL_ } from '../../config'
@@ -42,6 +43,11 @@ const Reports = ({language,country}) => {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [suppliertrend,setsuppliertrend]=useState();
     const [timePage, setTimePage] = useState(1);
+    const [kycSummary, setKycSummary] = useState({});
+    const [kycLoading, setKycLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentKycPage, setCurrentKycPage] = useState(1);
+    const kycItemsPerPage = 5; // Display 5 items per page
     const [trendData, setTrendData] = useState({
 
         Cassiterite: [],
@@ -591,7 +597,7 @@ const categories = [
                     })
             }
     //Form apply filter
-    
+    // Add this function to load KYC summary data
 
     const loadReport = ()=>{
         if(type === `trace`){
@@ -759,6 +765,56 @@ const categories = [
             });
         }
     };
+    const loadKycSummary = () => {
+        if (type !== 'kycsummary') return;
+        
+        setKycLoading(true);
+        
+        // Format country parameter properly
+        let normalizedCountry = country.trim();
+        
+        // Special handling for Rwanda
+        if (normalizedCountry.toLowerCase() === 'rwanda') {
+          normalizedCountry = '.Rwanda';
+        } else {
+          // For other countries, remove leading/trailing dots and spaces
+          normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+        }
+        
+        axiosInstance.get(`/Kycsummary`, {
+          params: {
+            country: normalizedCountry,
+            platform: access
+          }
+        })
+        .then(response => {
+          // Important: Access the nested 'data' property 
+          // Check if response has the expected structure
+          if (response.data && response.data.data) {
+            // Set state to the inner data object that contains the companies
+            setKycSummary(response.data.data);
+          } else {
+            setKycSummary({});
+            toast.warn("No KYC data available or invalid response format");
+          }
+          setKycLoading(false);
+        })
+        .catch(err => {
+          setKycLoading(false);
+          try {
+            if (err.response?.code === 403) {
+              dispatch(Logout(navigate));
+            } else {
+              toast.warn(err.response?.message || "Failed to load KYC summary");
+            }
+          } catch (e) {
+            toast.error(err.message || "An error occurred");
+          }
+        });
+      };
+      
+        
+    
     //apply filter 
     const applyFilter = async (e) => {
         e.preventDefault();
@@ -886,6 +942,9 @@ const categories = [
         if(type === 'trace'){
             loadCompanies()
         }
+        if (type === 'kycsummary') {
+            loadKycSummary();
+          }
         if (suppliertrend && !yearFilterApplied) {
             fetchDefaultTrendData(suppliertrend.id);
         }
@@ -933,6 +992,41 @@ const categories = [
             }
         });
     };
+    // Filter companies based on search term
+// Add these pagination helper functions
+const paginateKycData = (data, page) => {
+    const startIndex = (page - 1) * kycItemsPerPage;
+    const endIndex = startIndex + kycItemsPerPage;
+    return data.slice(startIndex, endIndex);
+  };
+  
+  // Updated filteredCompanies function
+  const filteredCompanies = () => {
+    if (!kycSummary) return [];
+    
+    // Filter companies based on search term
+    return Object.entries(kycSummary).filter(([companyName]) => 
+      companyName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+  
+  // Get paginated companies
+  const getPaginatedCompanies = () => {
+    const filtered = filteredCompanies();
+    return paginateKycData(filtered, currentKycPage);
+  };
+  
+  // Calculate total pages
+  const totalKycPages = () => {
+    return Math.ceil(filteredCompanies().length / kycItemsPerPage);
+  };
+  
+  // Handle page changes
+  const handleKycPageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalKycPages()) {
+      setCurrentKycPage(newPage);
+    }
+  };
     const loadMonthlyPurchase = () => {
         let normalizedCountry = country.trim();
             
@@ -1431,6 +1525,48 @@ const chartOptions_Trend = {
         },
     ],
 };
+// Create helper components for the KYC summary UI
+const YesNoButton = ({ value }) => (
+    <div className={`d-flex justify-content-center`}>
+      <span 
+        className={`btn ${value === 'Yes' ? 'btn-info' : 'btn-danger'} btn-sm px-3`}
+        style={{ 
+          width: '60px',
+          fontWeight: 'bold', 
+          pointerEvents: 'none'
+        }}
+      >
+        {value === 'Yes' ? 'YES' : 'NO'}
+      </span>
+    </div>
+  );
+  
+  const ProgressBar = ({ percentage }) => {
+    const numPercentage = parseInt(percentage, 10);
+    return (
+      <div className="d-flex align-items-center">
+        <div 
+          className="progress" 
+          style={{ 
+            height: '12px', 
+            width: '100px',
+            backgroundColor: '#333'
+          }}
+        >
+          <div 
+            className={`progress-bar ${numPercentage < 50 ? 'bg-danger' : 'bg-info'}`}
+            role="progressbar" 
+            style={{ width: `${numPercentage}%` }} 
+            aria-valuenow={numPercentage} 
+            aria-valuemin="0" 
+            aria-valuemax="100"
+          />
+        </div>
+        <span className="ms-2">{percentage}</span>
+      </div>
+    );
+  };
+  
 //end Purchase 
     return (
         <>
@@ -1457,6 +1593,8 @@ const chartOptions_Trend = {
                             ? t('SaleReport')
                             : type === 'daily' 
                             ? t('TotalStockDelivery')
+                            :type ==='kycsummary'
+                            ? t('Kyc Summary')
                             : type === 'mtd' 
                                 ? t('InStockCountryBalance')
                                 : t('TotalPurchase')}
@@ -3202,7 +3340,7 @@ const chartOptions_Trend = {
                             (<div></div>
                             //nothing show when it is gold 
                                 
-                            )}
+                            )} 
                         </div>
                                     
                         {mineral && (
@@ -3615,10 +3753,280 @@ const chartOptions_Trend = {
     </div>
   </div>
 )}      </div>
-                )
-                 : (
-                <div></div>
-                )}
+                ):
+                type === 'kycsummary' ? (
+                    <div className="row">
+                      <div className="col-12">
+                        <Card className="bg-dark text-white" style={{ borderRadius: '6px' }}>
+                          <Card.Header className="d-flex justify-content-between align-items-center" style={{ borderBottom: '1px solid #444' }}>
+                            <h4 className="card-title text-white mb-0">{t("KYC Upload Summary")}</h4>
+                            <div style={{ width: '250px' }}>
+                              <InputGroup>
+                                <Form.Control
+                                  type="text"
+                                  placeholder={t("Search")}
+                                  value={searchTerm}
+                                  onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setCurrentKycPage(1); // Reset to first page when searching
+                                  }}
+                                  className="bg-dark text-white"
+                                  style={{ 
+                                    border: '1px solid #555',
+                                    borderRadius: '5px',
+                                    height: '40px'
+                                  }}
+                                />
+                              </InputGroup>
+                            </div>
+                          </Card.Header>
+                          <Card.Body className="p-0">
+                            {kycLoading ? (
+                              <div className="text-center p-4">
+                                <div className="spinner-border text-info" role="status">
+                                  <span className="visually-hidden">{t("Loading...")}</span>
+                                </div>
+                                <p className="mt-2">{t("Loading KYC summary data...")}</p>
+                              </div>
+                            ) : (
+                              <div style={{ overflowX: 'auto' }}>
+                                {filteredCompanies().length > 0 ? (
+                                  <>
+                                    <table className="table table-dark table-bordered mb-0">
+                                      <thead>
+                                        <tr>
+                                          <th style={{ 
+                                            position: 'sticky',
+                                            left: 0,
+                                            zIndex: 2,
+                                            width: '250px', 
+                                            backgroundColor: '#37a3d3', 
+                                            padding: '15px',
+                                            color: 'white',
+                                            boxShadow: '2px 0 5px rgba(0, 0, 0, 0.3)'
+                                          }}>
+                                            {t("Supplier")}
+                                          </th>
+                                          <th style={{ 
+                                            backgroundColor: '#37a3d3', 
+                                            borderRight: '1px solid #444',
+                                            padding: '15px',
+                                            color: 'white',
+                                            textAlign: 'center',
+                                            minWidth: '150px'
+                                          }}>
+                                            {t("Basic Info")}
+                                            <div className="small">
+                                              {t("(Company Name, Address, Reg Num, Company Country)")}
+                                            </div>
+                                          </th>
+                                          <th style={{ 
+                                            backgroundColor: '#37a3d3', 
+                                            borderRight: '1px solid #444',
+                                            padding: '15px',
+                                            color: 'white',
+                                            textAlign: 'center',
+                                            minWidth: '150px'
+                                          }}>
+                                            {t("KYC Signed Form")}
+                                          </th>
+                                          <th style={{ 
+                                            backgroundColor: '#37a3d3', 
+                                            borderRight: '1px solid #444',
+                                            padding: '15px',
+                                            color: 'white',
+                                            textAlign: 'center',
+                                            minWidth: '150px'
+                                          }}>
+                                            {t("Certificate of Incorporation")}
+                                          </th>
+                                          <th style={{ 
+                                            backgroundColor: '#37a3d3', 
+                                            borderRight: '1px solid #444',
+                                            padding: '15px',
+                                            color: 'white',
+                                            textAlign: 'center',
+                                            minWidth: '150px'
+                                          }}>
+                                            {t("Certificate of conformity")}
+                                          </th>
+                                          <th style={{ 
+                                            backgroundColor: '#37a3d3', 
+                                            borderRight: '1px solid #444',
+                                            padding: '15px',
+                                            color: 'white',
+                                            textAlign: 'center',
+                                            minWidth: '150px'
+                                          }}>
+                                            {t("Tax Register")}
+                                          </th>
+                                          <th style={{ 
+                                            backgroundColor: '#37a3d3', 
+                                            borderRight: '1px solid #444',
+                                            padding: '15px',
+                                            color: 'white',
+                                            textAlign: 'center',
+                                            minWidth: '150px'
+                                          }}>
+                                            {t("Organigramme")}
+                                          </th>
+                                          <th style={{ 
+                                            backgroundColor: '#37a3d3', 
+                                            borderRight: '1px solid #444',
+                                            padding: '15px',
+                                            color: 'white',
+                                            textAlign: 'center',
+                                            minWidth: '150px'
+                                          }}>
+                                            {t("Document")}
+                                          </th>
+                                          <th style={{ 
+                                            backgroundColor: '#37a3d3', 
+                                            padding: '15px',
+                                            color: 'white',
+                                            textAlign: 'center',
+                                            minWidth: '150px'
+                                          }}>
+                                            {t("Completion")}
+                                          </th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {getPaginatedCompanies().map(([companyName, data], index) => (
+                                          <tr key={companyName} className={index % 2 === 0 ? 'bg-dark' : ''}>
+                                            <td style={{ 
+                                              position: 'sticky',
+                                              left: 0,
+                                              zIndex: 1,
+                                              padding: '15px', 
+                                              fontWeight: 'bold',
+                                              backgroundColor: index % 2 === 0 ? '#222' : '#2a2a2a',
+                                              borderRight: '2px solid #37a3d3',
+                                              boxShadow: '2px 0 5px rgba(0, 0, 0, 0.3)'
+                                            }}>
+                                              {companyName}
+                                            </td>
+                                            <td style={{ 
+                                              padding: '10px', 
+                                              borderRight: '1px solid #444',
+                                              textAlign: 'center'
+                                            }}>
+                                              <YesNoButton value={data.basicInfo} />
+                                            </td>
+                                            <td style={{ 
+                                              padding: '10px', 
+                                              borderRight: '1px solid #444',
+                                              textAlign: 'center'
+                                            }}>
+                                              <YesNoButton value={data["KYC"]} />
+                                            </td>
+                                            <td style={{ 
+                                              padding: '10px', 
+                                              borderRight: '1px solid #444',
+                                              textAlign: 'center'
+                                            }}>
+                                              <YesNoButton value={data["Certificate of Incorporation"]} />
+                                            </td>
+                                            <td style={{ 
+                                              padding: '10px', 
+                                              borderRight: '1px solid #444',
+                                              textAlign: 'center'
+                                            }}>
+                                              <YesNoButton value={data["Certificate of conformity"]} />
+                                            </td>
+                                            <td style={{ 
+                                              padding: '10px', 
+                                              borderRight: '1px solid #444',
+                                              textAlign: 'center'
+                                            }}>
+                                              <YesNoButton value={data["Tax Register"]} />
+                                            </td>
+                                            <td style={{ 
+                                              padding: '10px', 
+                                              borderRight: '1px solid #444',
+                                              textAlign: 'center'
+                                            }}>
+                                              <YesNoButton value={data["Organigramme"]} />
+                                            </td>
+                                            <td style={{ 
+                                              padding: '10px', 
+                                              borderRight: '1px solid #444',
+                                              textAlign: 'center'
+                                            }}>
+                                              <YesNoButton value={data["Document"]} />
+                                            </td>
+                                            <td style={{ 
+                                              padding: '10px', 
+                                              textAlign: 'center',
+                                              verticalAlign: 'middle'
+                                            }}>
+                                              <ProgressBar percentage={data.progress} />
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                    
+                                    {/* Pagination controls */}
+                                    <div className="d-sm-flex text-center justify-content-between align-items-center mt-3 p-3 bg-dark">
+                                      <div className="dataTables_info text-white">
+                                        {t("Showing")} {(currentKycPage - 1) * kycItemsPerPage + 1} {t("To")}{" "}
+                                        {Math.min(currentKycPage * kycItemsPerPage, filteredCompanies().length)} {t("Of")}{" "}
+                                        {filteredCompanies().length} {t("Entries")}
+                                      </div>
+                                      <div className="dataTables_paginate paging_simple_numbers">
+                                        <button
+                                            className={`btn ${currentKycPage === 1 ? 'btn-secondary' : 'btn-primary'}`}
+                                            style={{
+                                            minWidth: '120px',
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            padding: '8px 12px',
+                                            marginRight: '10px'
+                                            }}
+                                            onClick={() => handleKycPageChange(currentKycPage - 1)}
+                                            disabled={currentKycPage === 1}
+                                        >
+                                            {t("Previous")}
+                                        </button>
+                                        <span className="mx-2 text-white">
+                                            {currentKycPage} / {totalKycPages()}
+                                        </span>
+                                        <button
+                                            className={`btn ${currentKycPage === totalKycPages() ? 'btn-secondary' : 'btn-primary'}`}
+                                            style={{
+                                            minWidth: '120px',
+                                            whiteSpace: 'nowrap',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            padding: '8px 12px',
+                                            marginLeft: '10px'
+                                            }}
+                                            onClick={() => handleKycPageChange(currentKycPage + 1)}
+                                            disabled={currentKycPage === totalKycPages()}
+                                        >
+                                            {t("Next")}
+                                        </button>
+                                        </div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="text-center p-4">
+                                    <p>
+                                      {searchTerm 
+                                        ? t("No companies found matching your search")
+                                        : t("No KYC data available for the selected country")}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </Card.Body>
+                        </Card>
+                      </div>
+                    </div>
+                  ) : null}
             </div>
         </>
     );

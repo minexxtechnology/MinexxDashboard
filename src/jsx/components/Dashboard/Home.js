@@ -12,6 +12,7 @@ import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { translations } from './Hometranslations';
 import { LanguageContext, LanguageProvider } from './LanguageContext';
+import MineVolumeChart from './MineVolumeChart';
 
  import ChatBot from './Chatbot';     //for Future 
  
@@ -304,7 +305,17 @@ function Home({ language ,country}) {
             </div>
           </div>
         </div>
-        <div className='col-md-9'>	
+
+        {user.type === 'minexx'|| user.type ==='investor' ?(
+           <div className='col-md-9'>	
+           <div className="card" id="sales_revenue" style={{ height: '400px' }}>
+             <div className="card-body p-0">
+               <MineVolumeChart country={country} height={400} />
+             </div>
+           </div>
+         </div>
+        ):(
+          <div className='col-md-9'>	
           <div className="card" id="sales_revenue">
             <div className="card-header border-0 pb-0 d-sm-flex d-block">
               <div>
@@ -349,6 +360,8 @@ function Home({ language ,country}) {
             </div>
           </div>
         </div>
+        
+       )}
         {user.type === 'minexx' ?
         <div className={`col-md-3`}>
           <div className="card">

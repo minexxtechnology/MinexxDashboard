@@ -29,7 +29,7 @@ export function login(email, password) {
         `https://minexxapi-db-p7n5ing2cq-uc.a.run.app/login`,
         postData,
     );
-}
+} 
 
 export function formatError(errorResponse) {
     return errorResponse.message

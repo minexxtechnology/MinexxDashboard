@@ -54,6 +54,10 @@ export const RootMenu = [
                 to: 'reports/daily',
             },
             {
+                title:'Shipped Report',
+                to:'reports/shipped'
+            },
+            {
                 title: 'In-Stock Country Balance',
                 to: 'reports/mtd',
             },
@@ -134,6 +138,10 @@ export const RegulatorMenu = [
                 title:'Trade Time Report',
                 to:'reports/timetracking',
             }, 
+            {
+                title:'Shipped Report',
+                to:'reports/shipped'
+            },
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
@@ -231,6 +239,10 @@ export const IMenu = [
                 to:'reports/timetracking',
             }, 
             {
+                title:'Shipped Report',
+                to:'reports/shipped'
+            },
+            {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
             },
@@ -245,4 +257,4 @@ export const IMenu = [
         ]
 
     }
-]
+] 

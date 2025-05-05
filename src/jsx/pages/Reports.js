@@ -43,6 +43,7 @@ const Reports = ({language,country}) => {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [suppliertrend,setsuppliertrend]=useState();
     const [timePage, setTimePage] = useState(1);
+    const [shippedData, setShippedData] = useState([]);
     const [kycSummary, setKycSummary] = useState({});
     const [kycLoading, setKycLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -346,6 +347,20 @@ const Reports = ({language,country}) => {
         if(input === 'Select Mineral'){
             setmineral(null)
             return toast.warn("Please select a Mineral to generate Sales report for.")
+        }
+        const selected = input;
+        setmineral(selected)
+        toast.info('Generating Sales report, please wait...', {
+            delay: 100,
+            autoClose: true
+        })
+    }
+    //change the minerals for shipper report
+    const changeMineralShipped = (e)=>{
+        const input = e.currentTarget.value
+        if(input === 'Select Mineral'){
+            setmineral(null)
+            return toast.warn("Please select a Mineral to generate Shipped report for.")
         }
         const selected = input;
         setmineral(selected)
@@ -764,6 +779,48 @@ const categories = [
                 }
             });
         }
+        if (type === 'shipped' && mineral) {
+            let normalizedCountry = country.trim();
+    
+            // Special handling for Rwanda
+            if (normalizedCountry.toLowerCase() === 'rwanda') {
+                normalizedCountry = '.Rwanda';
+            } else {
+                // For other countries, remove leading/trailing dots and spaces
+                normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+            }
+    
+            axiosInstance.get(`/report/shipped`, {
+                params: {
+                    country: normalizedCountry,
+                    mineral:mineral
+                }
+            })
+            .then(response => {
+                // Ensure the response structure matches what you expect
+                if (response.data && Array.isArray(response.data.data)) {
+                    const latest = response.data.data[response.data.data.length - 1]; // or pick another item as needed
+                    setShippedData(response.data.data);
+                
+                    console.log("Shipped Report", response.data.data);
+                } else {
+                    console.warn("Unexpected API response structure:", response.data);
+                }
+                
+            })
+            .catch(err => {
+                if (err.response) {
+                    if (err.response.status === 403) {
+                        dispatch(Logout(navigate));
+                    } else {
+                        toast.warn(err.response.data.message || "An error occurred");
+                    }
+                } else {
+                    toast.error(err.message || "An error occurred");
+                }
+            });
+        }
+
     };
     const loadKycSummary = () => {
         if (type !== 'kycsummary') return;
@@ -812,6 +869,14 @@ const categories = [
           }
         });
       };
+      const sorts = 5;
+      const getMonthName = (monthNumber) => {
+        const date = new Date();
+        date.setMonth(monthNumber - 1);
+        return date.toLocaleString('default', { month: 'long' });
+    };
+    
+
       
         
     
@@ -1593,6 +1658,8 @@ const YesNoButton = ({ value }) => (
                             ? t('SaleReport')
                             : type === 'daily' 
                             ? t('TotalStockDelivery')
+                            : type ==='shipped'
+                            ? t('Shipped Report')
                             :type ==='kycsummary'
                             ? t('Kyc Summary')
                             : type === 'mtd' 
@@ -1791,6 +1858,14 @@ const YesNoButton = ({ value }) => (
                                                         </div>
                                                     </td>
                                                 </tr>
+                                                <tr key="ct7">     
+                                                    <td className="sorting_1">{t("Shipped Volume")}</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{((daily.cassiterite.shipped/1000)).toFixed(2)}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                             </tbody>                                        
                                         </table>
                                     </div>
@@ -1862,6 +1937,14 @@ const YesNoButton = ({ value }) => (
                                                         </div>
                                                     </td>
                                                 </tr>
+                                                <tr key="ct7">     
+                                                    <td className="sorting_1">{t("Shipped Volume")}</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{((daily.coltan.shipped/1000)).toFixed(2)}</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                             </tbody>                                        
                                         </table>
                                     </div>
@@ -1930,6 +2013,14 @@ const YesNoButton = ({ value }) => (
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">{((daily.wolframite.mtdActual/1000)/(0.19*days)*100).toFixed(2)}%</Link>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr key="ct7">     
+                                                    <td className="sorting_1">{t("Shipped Volume")}</td>
+                                                    <td>						
+                                                        <div>
+                                                            <Link to={"#"} className="h5">{((daily.wolframite.shipped/1000)).toFixed(2)}</Link>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -3460,6 +3551,106 @@ const YesNoButton = ({ value }) => (
                         )}
                     </div>
                 )
+                :
+                //shipped report start
+                type === 'shipped' ? (
+                   
+                    <div className='row'>
+                        <div className='col-md-5'>
+                        {access === "3ts"? (  
+                            // for prevent access of sale report to the gold 
+                            <div className='card'>
+                                <div className='card-header'>
+                                    <h5 className='card-title'>{t("SelectMineralsS")}</h5> 
+                                </div>
+                                <div className='card-body'>
+                                    <select onChange={changeMineralShipped} className='form-control'>
+                                        <option>{t("SelectMineralShort")}</option>
+                                        {access === '3ts' ? (
+                                            <>
+                                                <option value="Cassiterite">Cassiterite/Tin</option>
+                                                <option value="Coltan">Coltan/Tantalum</option>
+                                                <option value="Wolframite">Wolframite</option>
+                                            </>
+                                        ) : (
+                                            <option value="Gold">Gold</option>
+                                        )}
+                                    </select>
+                                </div>
+                            </div>
+                            ):
+                            (<div></div>
+                            //nothing show when it is gold 
+                                
+                            )} 
+                        </div>
+                                    
+                        
+                        {mineral  && (
+    <div className='card'>
+        <div className='card-header'>
+            <h4 className='card-title'>{mineral} {t("CassiteriteShippedReport")}</h4>
+        </div>
+        <div className='card-body'>
+            <div id="shipped-view" className="dataTables_wrapper no-footer">
+                <Table bordered striped hover responsive size='sm'>
+                    <thead>
+                        <tr>
+                            <th className="text-center text-dark">{t("Volume")}</th>
+                            <th className="text-center text-dark">{t("Month")}</th>
+                            <th className="text-center text-dark">{t("Year")}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {paginate(shippedData, salesPage, 20).map((record, i) => (
+                        <tr key={`shipped${i}`}>
+                            <td>{record.Volume} Kg</td>
+                            <td>{getMonthName(record.Month)}</td>
+                            <td>{record.Year}</td>
+                        </tr>
+                    ))}
+                    {shippedData.length === 0 && (
+                        <tr>
+                            <td colSpan={3}>{t("NoSelectedMineralShipped")}</td>
+                        </tr>
+                    )}
+                </tbody>
+
+                </Table>
+                <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
+                <div className="dataTables_info">
+                {t("Showing")} {(salesPage - 1) * sort + 1} {t("To")}{" "}
+                {shippedData.length > salesPage * sort ? salesPage * sort : shippedData.length}{" "}
+                {t("Of")} {shippedData.length} {t("Entries")}
+            </div>
+            <div className="dataTables_paginate paging_simple_numbers">
+                <Link
+                    className="paginate_button previous"
+                    onClick={() => salesPage > 1 && setsalesPage(salesPage - 1)}
+                >
+                    {t("Previous")}
+                </Link>
+                <Link
+                    className="paginate_button next mx-4"
+                    onClick={() =>
+                        salesPage < paggination(shippedData || []).length &&
+                        setsalesPage(salesPage + 1)
+                    }
+                >
+                    {t("Next")}
+                </Link>
+            </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+)}
+
+                    </div>
+                )
+                //end of the Shipped report
+                
                 :
                 type === 'suppliertrends' ? (
                    

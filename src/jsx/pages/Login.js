@@ -152,6 +152,14 @@ function Login (props) {
                                     </Link>
                                   </p>
                                 </div>
+                                <div>
+                                  {/* <p>
+                                  <Link className="text-primary" to="/kyc-login">
+                                     Click Here to Upload Kyc Document
+                                  </Link>
+                                  </p> */}
+
+                                </div>
                               </div>
                             </div>
                           </div>

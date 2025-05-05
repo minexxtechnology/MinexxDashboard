@@ -16,7 +16,7 @@ export function signUp(email, password) {
     return axios.post(
         `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyD3RPAp3nuETDn9OQimqn_YF6zdzqWITII`,
         postData,
-    ); 
+    );
 }
  
 export function login(email, password) {
@@ -29,7 +29,7 @@ export function login(email, password) {
         `https://minexxapi-db-p7n5ing2cq-uc.a.run.app/login`,
         postData,
     );
-} 
+}
 
 export function formatError(errorResponse) {
     return errorResponse.message

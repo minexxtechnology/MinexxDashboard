@@ -4,29 +4,19 @@ import axiosInstance from '../../../services/AxiosInstance';
 import { baseURL_ } from '../../../config';
 import { toast } from 'react-toastify';
 
-const MineVolumeChart = ({ country, height = 350 }) => {
+const MineVolumeChart = ({ country, height = 220 }) => {
   const [salesData, setSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMineral, setSelectedMineral] = useState('');
+  const [selectedMineral, setSelectedMineral] = useState('Cassiterite');
   const [error, setError] = useState(null);
-  const [access, setAccess] = useState(localStorage.getItem(`_dash`) || '3ts');
   
-  // Define minerals based on access type
-  const minerals = access === '3ts' 
-    ? [
-        { id: 'Cassiterite', label: 'Cassiterite', color: '#4dc9f6' },
-        { id: 'Coltan', label: 'Coltan', color: '#f67019' },
-      ]
-    : [
-        { id: 'Gold', label: 'Gold', color: '#acc236' },
-        { id: 'Diamond', label: 'Diamond', color: '#537bc4' },
-      ];
-
-  // Set default selected mineral based on access type
-  useEffect(() => {
-    setAccess(localStorage.getItem(`_dash`) || '3ts');
-    setSelectedMineral(access === '3ts' ? 'Cassiterite' : 'Gold');
-  }, [access]);
+  const minerals = [
+    { id: 'Cassiterite', label: 'Cassiterite', color: '#4dc9f6' },
+    { id: 'Coltan', label: 'Coltan', color: '#f67019' },
+    // { id: 'Tantalum', label: 'Tantalum', color: '#f53794' },
+    // { id: 'Tungsten', label: 'Tungsten', color: '#537bc4' },
+    // { id: 'Gold', label: 'Gold', color: '#acc236' }
+  ];
 
   const fetchSalesData = async (mineral) => {
     setLoading(true);
@@ -57,12 +47,12 @@ const MineVolumeChart = ({ country, height = 350 }) => {
         
         setSalesData(sortedData);
       } else {
-       // setError('Invalid data format received from API');
-        // toast.error('Failed to load mine volume data');
+        setError('Invalid data format received from API');
+        toast.error('Failed to load mine volume data');
       }
     } catch (err) {
-      //setError(err.message || 'Error fetching sales data');
-      // toast.error('Failed to load mine volume data');
+      setError(err.message || 'Error fetching sales data');
+      toast.error('Failed to load mine volume data');
       console.error('Error fetching sales data:', err);
     } finally {
       setLoading(false);
@@ -70,9 +60,7 @@ const MineVolumeChart = ({ country, height = 350 }) => {
   };
 
   useEffect(() => {
-    if (selectedMineral) {
-      fetchSalesData(selectedMineral);
-    }
+    fetchSalesData(selectedMineral);
   }, [selectedMineral, country]);
 
   const handleMineralChange = (mineral) => {
@@ -114,9 +102,9 @@ const MineVolumeChart = ({ country, height = 350 }) => {
   const chartHeight = height - 70; // Subtract header height
 
   return (
-    <div style={{ height: '100%', width: '100%' }}>
-      <div className="d-flex justify-content-between align-items-center py-2 px-3">
-        <h4 className="mb-0" style={{ fontSize: '16px' }}>Supplier Delivery Performance</h4>
+    <div className="card" style={{ height: `${height}px`, overflow: 'hidden' }}>
+      <div className="card-header d-flex justify-content-between align-items-center py-2">
+        <h4 className="card-title mb-0" style={{ fontSize: '14px' }}>Minerals Performance Overview</h4>
         <div className="d-flex mineral-filters">
           {minerals.map(mineral => (
             <button
@@ -136,9 +124,9 @@ const MineVolumeChart = ({ country, height = 350 }) => {
           ))}
         </div>
       </div>
-      <div className="px-2" style={{ height: `calc(100% - 50px)` }}>
+      <div className="card-body p-0">
         {loading ? (
-          <div className="d-flex justify-content-center align-items-center" style={{ height: '100%' }}>
+          <div className="d-flex justify-content-center align-items-center" style={{ height: `${chartHeight}px` }}>
             <div className="spinner-border spinner-border-sm text-primary" role="status">
               <span className="visually-hidden">Loading...</span>
             </div>
@@ -146,12 +134,12 @@ const MineVolumeChart = ({ country, height = 350 }) => {
         ) : error ? (
           <div className="alert alert-danger p-1" style={{ fontSize: '11px' }}>{error}</div>
         ) : salesData.length === 0 ? (
-          <div className="alert alert-info p-1" style={{ fontSize: '11px' }}>No data available </div>
+          <div className="alert alert-info p-1" style={{ fontSize: '11px' }}>No data available for the selected mineral.</div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart
               data={salesData}
-              margin={{ top: 5, right: 10, left: 40, bottom: 40 }} 
+              margin={{ top: 5, right: 10, left: 40, bottom: 40 }}
               barSize={30}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -159,7 +147,7 @@ const MineVolumeChart = ({ country, height = 350 }) => {
                 dataKey="supplier" 
                 angle={-25} 
                 textAnchor="end"
-                height={50}
+                height={15}
                 interval={0}
                 tick={{ fontSize: 10 }}
               />

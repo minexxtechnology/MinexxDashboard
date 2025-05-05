@@ -124,6 +124,7 @@ import FormValidation from "./components/Forms/FormValidation/FormValidation";
 /// Pages
 import Registration from "./pages/Registration";
 import Login from "./pages/Login";
+import KycLogin from "./pages/KycLogin";
 import ForgotPassword from "./pages/ForgotPassword";
 import LockScreen from "./pages/LockScreen";
 import Error400 from "./pages/Error400";

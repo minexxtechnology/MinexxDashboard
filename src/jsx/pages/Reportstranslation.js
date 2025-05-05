@@ -6,9 +6,11 @@ export const translations = {
         TraceReport: "Trace Report",
         SaleReport:"Sale Report",
         CassiteriteSaleReport:"Sale Report",
+        CassiteriteShippedReport:"Shipped Report",
         SelectCompany: "Please select company to generate trace report",
         SelectMineralstrends:"Please select Company to generate Sales trends",
         SelectMinerals:"Select Minerals to generate Sale Report",
+        SelectMineralsS:"Select Minerals to generate Shipped Report",
         SelectExportID:"Please Select Export ID to Generate Report",
         SelectMineralShort:"Select Mineral",
         SelectExport:"Select Export ID",
@@ -164,6 +166,7 @@ export const translations = {
         //drum tab
         Drums: "Drums",
         NoSelectedMineral:"The selected Mineral does not have any Sale Report to show.",
+        NoSelectedMineralShipped:"The selected Mineral does not have any Shipped Report to show.",
         DrumNumber: "Drum Number",
         GrossWeight: "Gross Weight",
         NetWeight: "Net Weight",
@@ -309,11 +312,15 @@ export const translations = {
         Sales:"Sales",
         Viewby:"View By",
         Tradetimelinereport:"Trade Timeline Report",
+        Month:"Month",
+        Year:"Year"
         
     },
     fr: {
         Dashboard: "Tableau de bord",
         Report:"Rapport",
+        Month:"mois",
+        Year:"année",
         Sales:"Vente",
         Viewby: "Voir par",
         Duration:"Durée",
@@ -321,7 +328,9 @@ export const translations = {
         TraceReport: "Rapport de traçage",
         SaleReport: "Rapport de vente",
         CassiteriteSaleReport:"Rapport de vente ",
+        CassiteriteShippedReport:"Rapport de Ship ",
         SelectMinerals: "Veuillez sélectionner des minéraux pour générer le rapport de vente",
+        SelectMineralsS:"Veuillez sélectionner des minéraux pour générer le rapport de ship",
         SelectMineralstrends:"Veuillez sélectionner une entreprise pour générer les tendances des ventes.",
         SelectMineralShort: "Sélectionner un minéral",
         SelectExportID:"Veuillez sélectionner l'identifiant d'exportation pour générer un rapport",
@@ -373,6 +382,7 @@ export const translations = {
         November: "novembre",
         December: "Décembre",
         NoSelectedMineral:"Le minéral sélectionné n'a aucun rapport de vente à afficher.",
+        NoSelectedMineralShipped:"Le minéral sélectionné n'a aucun rapport d'expédition à afficher.",
         //production Tab
         ProductionWeight: "Poids de production (Kg)",
         BusinessLocation: "Lieu d'activité",

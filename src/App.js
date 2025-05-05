@@ -14,7 +14,9 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 const SignUp = lazy(() => import('./jsx/pages/Registration'));
+const KycUpload=lazy(()=>import('./jsx/pages/KycUpload'));
 const ForgotPassword = lazy(() => import('./jsx/pages/ForgotPassword'));
+const KycLogin=lazy(()=>import ('./jsx/pages/KycLogin'));
 const Login = lazy(() => {
     return new Promise(resolve => {
     setTimeout(() => resolve(import('./jsx/pages/Login')), 500);
@@ -53,8 +55,12 @@ function App (props) {
         
       <Routes>
         <Route path='login' element={<Login />} />
-        <Route path='*' element={<Login />} />
+        {/* <Route path='*' element={<Login />} /> */}
         <Route path='forgot-password' element={<ForgotPassword />} />
+        <Route path='kyc-login' element={<KycLogin />} />
+        <Route path='kyc_upload/:id' element={<KycUpload/>}/>
+
+
       </Routes> 
     );
     if (props.isAuthenticated) {

@@ -9,7 +9,7 @@ import { ThemeContext } from '../../../context/ThemeContext';
 import { Logout } from '../../../store/actions/AuthActions';
 import axiosInstance from '../../../services/AxiosInstance';
 import { useDispatch } from 'react-redux';
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify'; 
 import { translations } from './Hometranslations';
 import { LanguageContext, LanguageProvider } from './LanguageContext';
 import MetalPricesChart from './MetalPricesChart';

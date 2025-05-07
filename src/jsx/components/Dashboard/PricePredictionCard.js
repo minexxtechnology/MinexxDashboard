@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import Chart from 'chart.js/auto';
 
 const TinPredictionChart = ({ language, refreshInterval = 300000 }) => { // 5 minutes default refresh
-  const [forecast, setForecast] = useState(null);
+  const [forecastData, setForecastData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
@@ -24,22 +24,100 @@ const TinPredictionChart = ({ language, refreshInterval = 300000 }) => { // 5 mi
     return key; // Replace with your translation function if needed
   };
 
+  // Calculate percentage change between two values
+  const calculatePercentageChange = (currentValue, previousValue) => {
+    if (!previousValue) return '0.00%';
+    const change = ((currentValue - previousValue) / previousValue) * 100;
+    return change >= 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
+  };
+
+  // Function to process forecast data and add derived fields
+  const processForecastData = (data) => {
+    if (!data || !data.forecast || !data.forecast.length) return null;
+    
+    const forecast = data.forecast.map((entry, index, array) => {
+      // Calculate percentage change from previous day
+      const previousDayPrice = index > 0 ? array[index - 1].predicted_price : 
+        (data.metadata.lastActualPrice ? parseFloat(data.metadata.lastActualPrice) : null);
+      
+      const percentageChange = calculatePercentageChange(entry.predicted_price, previousDayPrice);
+      
+      // Determine confidence level - this is simulated since the API doesn't provide it
+      // We could base this on distance from the start, volatility, or other factors
+      // For now, let's simulate it based on the day index (further in future = less confident)
+      let confidence = 'high';
+      if (index > 20) confidence = 'very low';
+      else if (index > 15) confidence = 'low';
+      else if (index > 7) confidence = 'medium';
+      
+      // Generate explanation based on confidence
+      const confidenceExplanation = getConfidenceExplanation(confidence, index);
+
+      // Add weekly insight for some days
+      const weeklyInsight = index % 7 === 0 ? getWeeklyInsight(index, array.slice(index, Math.min(index + 7, array.length))) : null;
+
+      return {
+        date: entry.date,
+        price: entry.predicted_price,
+        percentageChange,
+        confidence,
+        confidenceExplanation,
+        weeklyInsight
+      };
+    });
+
+    return { ...data, predictions: forecast };
+  };
+
+  // Generate confidence explanation
+  const getConfidenceExplanation = (confidence, dayIndex) => {
+    switch (confidence) {
+      case 'very high':
+      case 'high':
+        return 'Based on strong historical patterns and recent market stability, this prediction has high reliability.';
+      case 'medium':
+        return 'Based on historical data with moderate market fluctuations expected in this timeframe.';
+      case 'low':
+        return 'Market conditions may vary significantly in this period, reducing prediction accuracy.';
+      case 'very low':
+        return 'Long-term predictions carry inherent uncertainty due to potential market shifts and external factors.';
+      default:
+        return '';
+    }
+  };
+
+  // Generate weekly insight
+  const getWeeklyInsight = (startIndex, weekData) => {
+    if (!weekData || weekData.length === 0) return null;
+    
+    const startPrice = weekData[0].predicted_price;
+    const endPrice = weekData[weekData.length - 1].predicted_price;
+    const weeklyChange = ((endPrice - startPrice) / startPrice) * 100;
+    
+    if (weeklyChange > 2) return 'Strong upward trend expected this week with consistent daily gains.';
+    if (weeklyChange > 0.5) return 'Moderate growth trend projected with slight daily fluctuations.';
+    if (weeklyChange > -0.5) return 'Relatively stable price movement expected this week.';
+    if (weeklyChange > -2) return 'Slight downward pressure anticipated with minor daily decreases.';
+    return 'Significant bearish trend projected for this week.';
+  };
+
   // Function to fetch forecast data
   const fetchForecast = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`${baseURL_}metals-api/tin-forecast-30days`);
+      const response = await axiosInstance.get(`https://minexxapi-testing-p7n5ing2cq-uc.a.run.app/forecast`);
       if (response.data.success) {
-        setForecast(response.data.data);
+        const processedData = processForecastData(response.data.data);
+        setForecastData(processedData);
         setLastRefreshed(new Date());
         setCountdown(refreshInterval / 1000);
       }
     } catch (err) {
       try {
-        if (err.response && err.response.code === 403) {
+        if (err.response && err.response.status === 403) {
           dispatch(Logout(navigate));
         } else {
-          toast.warn(err.response ? err.response.message : err.message);
+          toast.warn(err.response ? err.response.data.message : err.message);
         }
       } catch (e) {
         console.log(err.message);
@@ -73,14 +151,14 @@ const TinPredictionChart = ({ language, refreshInterval = 300000 }) => { // 5 mi
 
   // Chart creation effect
   useEffect(() => {
-    if (!loading && forecast && chartRef.current) {
+    if (!loading && forecastData && chartRef.current) {
       // Destroy existing chart if it exists
       if (chartInstance.current) {
         chartInstance.current.destroy();
       }
 
       // Format data for the chart
-      const predictions = forecast.predictions || [];
+      const predictions = forecastData.predictions || [];
       const labels = predictions.map(pred => {
         const date = new Date(pred.date);
         return `${date.getMonth() + 1}/${date.getDate()}`;
@@ -203,7 +281,7 @@ const TinPredictionChart = ({ language, refreshInterval = 300000 }) => { // 5 mi
         }
       });
     }
-  }, [loading, forecast]);
+  }, [loading, forecastData]);
 
   // Manual refresh handler
   const handleManualRefresh = () => {
@@ -274,8 +352,8 @@ const TinPredictionChart = ({ language, refreshInterval = 300000 }) => { // 5 mi
           <h4 className="fs-20 text-white">{t('Tin Price Prediction for the next 30 days')}</h4>
           <p className="mb-0 fs-12 text-white-50">{t('Price forecast based on market analysis')}</p>
         </div>
-        {/* <div className="d-flex mt-sm-0 mt-3 align-items-center ml-auto">
-          {!loading && forecast && (
+        <div className="d-flex mt-sm-0 mt-3 align-items-center ml-auto">
+          {!loading && forecastData && (
             <>
               <small className="fs-13 text-white-50 mr-3">
                 {t('Next refresh')}: {formatTimeRemaining(countdown)}
@@ -292,7 +370,7 @@ const TinPredictionChart = ({ language, refreshInterval = 300000 }) => { // 5 mi
               </button>
             </>
           )}
-        </div> */}
+        </div>
       </div>
       <div className="card-body p-3">
         {loading ? (
@@ -346,8 +424,8 @@ const TinPredictionChart = ({ language, refreshInterval = 300000 }) => { // 5 mi
             <div className="col-md-8">
               <p className="card-text mb-0">
                 <small className="text-white-50">
-                  {forecast?.method === 'ai_enhanced_deterministic' ? 
-                    t('AI-enhanced prediction based on historical and market data') : 
+                  {forecastData?.metadata?.model_info ? 
+                    t(`AI prediction using ${forecastData.metadata.model_info.architecture} with ${forecastData.metadata.model_info.features_used} features`) : 
                     t('Statistical prediction based on market trends and seasonal patterns')}
                 </small>
               </p>

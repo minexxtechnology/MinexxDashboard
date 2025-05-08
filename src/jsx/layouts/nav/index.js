@@ -29,6 +29,7 @@ const JobieNav = ({ title, onClick: ClickToAddEvent, onClick2, onClick3, onCount
            onClick={() => onClick2()} 
            onClick3={() => onClick3()} 
            language={language}
+           country={country}
          />
          <Header
             onNote={() => onClick("chatbox")}

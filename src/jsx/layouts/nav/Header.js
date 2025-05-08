@@ -25,14 +25,15 @@ const translations = {
     changeCountry: "Changer de Pays"
   }
 };
-
+ 
 const countryLanguageDefaults = {
   'Rwanda': 'en',
   'Ghana': 'en',
   'DRC': 'fr',
   'France': 'fr',
   'Gabon': 'fr',
-  'Ethiopia':'en'
+  'Ethiopia':'en',
+  'Libya':'en',
 };
 
 const Header = ({ onLanguageChange, onCountryChange }) => {
@@ -48,7 +49,8 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
     'Gabon': 'https://flagcdn.com/w320/ga.png',
     'Ghana': 'https://flagcdn.com/w320/gh.png',
     'France': 'https://flagcdn.com/w320/fr.png',
-    'Ethiopia':'https://flagcdn.com/w320/et.png'
+    'Ethiopia':'https://flagcdn.com/w320/et.png',
+    'Libya':'https://flagcdn.com/w320/ly.png'
   };
 
   // Filter available countries based on user type
@@ -75,6 +77,7 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
     switch (selectedCountry) {
       case 'Rwanda':
       case 'DRC':
+      case 'Libya':
       case 'Ethiopia':
         newAccess = '3ts';
         newView = '3ts';

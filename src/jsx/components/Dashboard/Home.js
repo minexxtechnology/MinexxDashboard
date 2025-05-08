@@ -9,7 +9,7 @@ import { ThemeContext } from '../../../context/ThemeContext';
 import { Logout } from '../../../store/actions/AuthActions';
 import axiosInstance from '../../../services/AxiosInstance';
 import { useDispatch } from 'react-redux';
-import { toast } from 'react-toastify'; 
+import { toast } from 'react-toastify';
 import { translations } from './Hometranslations';
 import { LanguageContext, LanguageProvider } from './LanguageContext';
 import MetalPricesChart from './MetalPricesChart';
@@ -305,10 +305,15 @@ function Home({ language, country }) {
             </div>
           </div>
         </div>
+        { country === 'Libya' ?
+        <div className="col-md-8">
+
+        </div>:
         <div className="col-md-8">
           {/* Pass height prop to MineVolumeChart to make it consistent with other card */}
           <MineVolumeChart country={country} height={firstRowHeight} />
         </div>
+        }
       </div>
       
       {/* Second row: Market Status and Minerals Price */}

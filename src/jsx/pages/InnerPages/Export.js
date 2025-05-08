@@ -43,63 +43,100 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
     // Map field names based on document index
     const getFieldName = (index) => {
       // This should match your uploads array mapping in the main component
-      const fieldNames = dashboard === '3ts' ? [
-        'provisionalInvoice',
-        'cargoReceipt',
-        'exporterApplicationDocument',
-        'scannedExportDocuments',
-        'asiDocument',
-        'packingReport',
-        'rraExportDocument',
-        'rmbExportDocument',
-        'otherDocument',
-        'warehouseCert',
-        'insuranceCert',
-        'billOfLanding',
-        'c2',
-        'mineSheets',
-        'processingSheets',
-        'customsDeclaration',
-        'tagList',           
-        'transporterDocument'
-      ] : [
-        'provisionalInvoice',
-        'packingReport',
-        'note',
-        'scannedExportDocuments',
-        'otherDocument',
-        'customsDeclaration',
-        'exporterApplicationDocument',
-      ];
-      
-      return fieldNames[index] || null;
+      if (dashboard === '3ts' && country === 'Libya') {
+        const fieldNames = [
+          'invoice',
+          'loadingPermission',
+          'assayReport',
+          'loadingCertificate',
+          'slopCertificate',
+          'ullageReport',
+          'obqReport',
+          'bunkerReport',
+          'bol',
+          'cargoManifest',
+          'certificateOfOrigin',
+          'veritas'
+        ];
+        return fieldNames[index] || null;
+      } else if (dashboard === '3ts') {
+        const fieldNames = [
+          'provisionalInvoice',
+          'cargoReceipt',
+          'exporterApplicationDocument',
+          'scannedExportDocuments',
+          'asiDocument',
+          'packingReport',
+          'rraExportDocument',
+          'rmbExportDocument',
+          'otherDocument',
+          'warehouseCert',
+          'insuranceCert',
+          'billOfLanding',
+          'c2',
+          'mineSheets',
+          'processingSheets',
+          'customsDeclaration',
+          'tagList',           
+          'transporterDocument'
+        ];
+        return fieldNames[index] || null;
+      } else {
+        const fieldNames = [
+          'provisionalInvoice',
+          'packingReport',
+          'note',
+          'scannedExportDocuments',
+          'otherDocument',
+          'customsDeclaration',
+          'exporterApplicationDocument',
+        ];
+        return fieldNames[index] || null;
+      }
     };
     
     // Map field names to dbFieldNames for better matching with available documents
     const getDbFieldName = (fieldName) => {
-      const mappings = {
-        'provisionalInvoice': 'ProvisionalInvoice',
-        'cargoReceipt': 'CargoReceipt',
-        'exporterApplicationDocument': 'ExporterApplicationDocument',
-        'scannedExportDocuments': 'ScannedExportDocuments',
-        'asiDocument': 'AsiDocument',
-        'packingReport': 'PackingReport',
-        'rraExportDocument': 'RraExportDocument',
-        'rmbExportDocument': 'RmbExportDocument',
-        'otherDocument': 'OtherDocument',
-        'warehouseCert': 'WarehouseCert',
-        'insuranceCert': 'InsuranceCert',
-        'billOfLanding': 'BillOfLanding',
-        'c2': 'C2',
-        'mineSheets': 'MineSheets',
-        'processingSheets': 'ProcessingSheets',
-        'customsDeclaration': 'CustomsDeclaration',
-        'tagList': 'TagList',
-        'transporterDocument': 'TransporterDocument',
-        'note': 'Note'
-      };
-      
-      return mappings[fieldName] || fieldName;
+      if (country === 'Libya' && dashboard === '3ts') {
+        const mappings = {
+          'invoice': 'Invoice',
+          'loadingPermission': 'Loading Permission',
+          'assayReport': 'Assay Report from Refinery',
+          'loadingCertificate': 'Loading Certificate',
+          'slopCertificate': 'Slop Certificate',
+          'ullageReport': 'Ullage Report',
+          'obqReport': 'OBQ Report',
+          'bunkerReport': 'Bunker inspection Report',
+          'bol': 'BOL',
+          'cargoManifest': 'Cargo Manifest',
+          'certificateOfOrigin': 'Certificate of Origin',
+          'veritas': 'Testing report from Veritas'
+        };
+        return mappings[fieldName] || fieldName;
+      } else {
+        const mappings = {
+          'provisionalInvoice': 'ProvisionalInvoice',
+          'cargoReceipt': 'CargoReceipt',
+          'exporterApplicationDocument': 'ExporterApplicationDocument',
+          'scannedExportDocuments': 'ScannedExportDocuments',
+          'asiDocument': 'AsiDocument',
+          'packingReport': 'PackingReport',
+          'rraExportDocument': 'RraExportDocument',
+          'rmbExportDocument': 'RmbExportDocument',
+          'otherDocument': 'OtherDocument',
+          'warehouseCert': 'WarehouseCert',
+          'insuranceCert': 'InsuranceCert',
+          'billOfLanding': 'BillOfLanding',
+          'c2': 'C2',
+          'mineSheets': 'MineSheets',
+          'processingSheets': 'ProcessingSheets',
+          'customsDeclaration': 'CustomsDeclaration',
+          'tagList': 'TagList',
+          'transporterDocument': 'TransporterDocument',
+          'note': 'Note'
+        };
+        return mappings[fieldName] || fieldName;
+      }
     };
   
     // Fetch available documents when component mounts
@@ -365,7 +402,21 @@ const Export = ({ country, language }) => {
         }
     }, [country]);
 
-    const documents = access === "3ts" ? [
+    const documents = access === "3ts" ? (
+      country === "Libya" ? [
+        t("Invoice"),
+        t("LoadingPermission"),
+        t("AssayReportFromRefinery"),
+        t("LoadingCertificate"),
+        t("SlopCertificate"),
+        t("UllageReport"),
+        t("OBQReport"),
+        t("BunkerInspectionReport"),
+        t("BillOfLading"),
+        t("CargoManifest"),
+        t("CertificateOfOrigin"),
+        t("TestingReportFromVeritas")
+      ] : [
         t("ProvisionalInvoice"),
         t("FreightForwarderCargoReceipt"),
         t("OtherExporterDocuments"),
@@ -384,14 +435,15 @@ const Export = ({ country, language }) => {
         t("RRACustomsDeclaration"),
         t("TagList"),
         t("OtherTransporterDocument"),
-    ] : [
-        t("ExporterInvoice"),
-        t("PackingList"),
-        t("NonNarcoticsNote"),
-        t("EssayReport"),
-        t("ProofOfPayment"),
-        t("CopyOfCustomsDeclaration"),
-        t("ExportApproval")
+      ]
+    ) : [
+      t("ExporterInvoice"),
+      t("PackingList"),
+      t("NonNarcoticsNote"),
+      t("EssayReport"),
+      t("ProofOfPayment"),
+      t("CopyOfCustomsDeclaration"),
+      t("ExportApproval")
     ];
     
     let eid = null;

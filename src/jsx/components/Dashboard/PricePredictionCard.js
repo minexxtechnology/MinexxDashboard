@@ -105,7 +105,7 @@ const TinPredictionChart = ({ language, refreshInterval = 300000 }) => { // 5 mi
   const fetchForecast = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`https://minexxapi-testing-p7n5ing2cq-uc.a.run.app/forecast`);
+      const response = await axiosInstance.get(`${baseURL_}forecast`);
       if (response.data.success) {
         const processedData = processForecastData(response.data.data);
         setForecastData(processedData);

@@ -191,7 +191,7 @@ const Markup = (props) => {
 	  { url: 'villages', component: <Villages/> },
 	  { url: 'miners', component: <Miners/> },
 	  { url: 'suppliers', component: <Suppliers/> },
-	  { url: 'knowledge', component: <DDSystems key={language} language={language}/> },
+	  { url: 'knowledge', component: <DDSystems key={language} language={language} country={country}/> },
     { url: 'dashboard-light', component: <DashboardLight/> },
 	  { url: 'event-list', component: <EventList/> },
 	  { url: 'event', component: <EventPage/> },

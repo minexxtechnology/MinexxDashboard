@@ -93,10 +93,29 @@ const DDSystems = ({language, country}) => {
             title: 'SupplierCodeofConduct',
             to: 'code-of-conduct',
         },
+        // {
+        //     title: 'RwandaInternalSupplement',
+        //     to: 'internal-supplement-rw',
+        // }
+    ];
+      const buyerKnowledgeBaseDrc = [
         {
-            title: 'RwandaInternalSupplement',
-            to: 'internal-supplement-rw',
-        }
+            title: 'KYCForm',
+            to: 'kyc',
+        },
+        {
+            title: 'PlatformGrievanceMechanisms',
+            to: 'grievance',
+        },
+        {
+            title: 'TraceabilityGuidefor3TGOperators',
+            to: 'traceability-guide',
+        },
+        {
+            title: 'SupplierCodeofConduct',
+            to: 'code-of-conduct',
+        },
+        
     ];
     
     // Standard knowledge base for other user types
@@ -137,19 +156,24 @@ const DDSystems = ({language, country}) => {
             title: 'TraceDueDiligenceProgrammeIntroduction',
             to: 'trace-due-diligence',
         },
-        {
-            title: 'RwandaInternalSupplement',
-            to: 'internal-supplement-rw',
-        }
+        // {
+        //     title: 'RwandaInternalSupplement',
+        //     to: 'internal-supplement-rw',
+        // }
     ];
 
     // Determine which knowledge base to use
     let knowledgeBase;
     if (country === 'Libya') {
+        
         knowledgeBase = libyaKnowledgeBase;
     } else if (user.type === 'buyer' || user.type === 'investor') {
         knowledgeBase = buyerKnowledgeBase;
-    } else {
+    }
+    else if (user.type === 'buyers_drc' || user.type === 'investor_drc') {
+        knowledgeBase = buyerKnowledgeBaseDrc;
+    }
+     else { 
         knowledgeBase = standardKnowledgeBase;
     }
 

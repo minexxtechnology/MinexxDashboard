@@ -26,10 +26,10 @@ export function login(email, password) {
         returnSecureToken: true,
     };
     return axios.post( 
-        `https://minexxapi-testing-p7n5ing2cq-uc.a.run.app/login`,
+        `https://minexxapi-drc-p7n5ing2cq-uc.a.run.app/login`,
         postData,
     );
-}
+} 
 
 export function formatError(errorResponse) {
     return errorResponse.message

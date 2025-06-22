@@ -94,9 +94,17 @@ const SideBar = ({ language, country }) => {
       {
         menu = BMenu;
       }
+      else if (user.type === 'buyers_drc') 
+      {
+        menu = BMenu;
+      }
      else if (user.type === 'investor') {
       menu = IMenu;
-    } else if (user.type === 'minexx') {
+    }
+    else if (user.type === 'investor_drc') {
+      menu = IMenu;
+    }
+     else if (user.type === 'minexx') {
       menu = RootMenu;
     } else {
       menu = RegulatorMenu;

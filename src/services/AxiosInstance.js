@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: `https://minexxapi-testing-p7n5ing2cq-uc.a.run.app`,
+    baseURL: `https://minexxapi-drc-p7n5ing2cq-uc.a.run.app`,
     headers: {
         'Access-Control-Allow-Origin': '*'
     }

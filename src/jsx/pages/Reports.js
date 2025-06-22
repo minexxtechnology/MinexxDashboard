@@ -136,7 +136,13 @@ const Reports = ({language,country}) => {
             dailyActual: 0,
             mtdTarget: 4,
             mtdActual: 0,
-          }
+          },
+        copper: {
+            dailyTarget: 0.19,
+            dailyActual: 0,
+            mtdTarget: 4,
+            mtdActual: 0,
+          },
     })
     // const t = (key) => {
     //     if (!translations[language]) {
@@ -177,6 +183,21 @@ const Reports = ({language,country}) => {
 
         },
         wolframite: {
+            january:0,
+            february:0,
+            march:0,
+            april:0,
+            may:0,
+            june:0,
+            july:0,
+            august:0,
+            september:0,
+            october:0,
+            november:0,
+            december:0,
+
+        },
+        copper: {
             january:0,
             february:0,
             march:0,
@@ -239,6 +260,21 @@ const Reports = ({language,country}) => {
             november:0,
             december:0,
 
+        },
+         copper: {
+            january:0,
+            february:0,
+            march:0,
+            april:0,
+            may:0,
+            june:0,
+            july:0,
+            august:0,
+            september:0,
+            october:0,
+            november:0,
+            december:0,
+
         }
 
 
@@ -273,6 +309,16 @@ const Reports = ({language,country}) => {
             pending: 0,
             rmr: 0,
             
+        },
+         copper: {
+           
+            minexx: 0,
+            supplier: 0,
+            buyer: 0,
+            shipped: 0,
+            pending: 0,
+            rmr: 0,
+            
         }
     })
 
@@ -291,7 +337,12 @@ const Reports = ({language,country}) => {
             daily: 0,
             weekly: 0,
             monthly: 0,
-        }
+        },
+            copper: {
+                daily: 0,
+                weekly: 0,
+                monthly: 0,
+            }
     })
 	const sort = 20;
 	const activePag = useRef(0);
@@ -667,6 +718,11 @@ const categories = [
                     wolframite: {
                         ...prevDaily.wolframite,
                         ...response.data.wolframite?.company?.[normalizedCountry]
+                    },
+                    copper:
+                    {
+                        ...prevDaily.copper,
+                        ...response.data.copper?.company?.[normalizedCountry]
                     }
                 }));
             }
@@ -683,7 +739,11 @@ const categories = [
                   wolframite: {
                     ...prevBalance.wolframite,
                     ...response.data.wolframite.company[normalizedCountry]
-                  }
+                  },
+                    copper: {
+                        ...prevBalance.copper,
+                        ...response.data.copper.company[normalizedCountry]
+                    }
                 }));
               }
             if(type === `deliveries`){
@@ -701,7 +761,12 @@ const categories = [
                       wolframite: {
                         ...prevDeliveries.wolframite,
                         ...response.data.wolframite.company[normalizedCountry]
-                      }
+                      },
+                        copper: {
+                            ...prevDeliveries.copper,
+                            ...response.data.copper.company[normalizedCountry]
+                        }
+
 
                 })
 
@@ -862,7 +927,7 @@ const categories = [
             if (err.response?.code === 403) {
               dispatch(Logout(navigate));
             } else {
-              toast.warn(err.response?.message || "Failed to load KYC summary");
+            //   toast.warn(err.response?.message || "Failed to load KYC summary");
             }
           } catch (e) {
             toast.error(err.message || "An error occurred");
@@ -1036,7 +1101,8 @@ const categories = [
             setMonthly({
                 cassiterite: response.data.cassiterite.company[normalizedCountry]?.monthly || {},
                 coltan: response.data.coltan.company[normalizedCountry]?.monthly || {},
-                wolframite: response.data.wolframite.company[normalizedCountry]?.monthly || {} // This will default to empty object if path doesn't exist
+                wolframite: response.data.wolframite.company[normalizedCountry]?.monthly || {}, // This will default to empty object if path doesn't exist
+                copper: response.data.copper.company[normalizedCountry]?.monthly || {}
             });
     
             //console.log('Monthly data:', {  
@@ -1112,7 +1178,8 @@ const paginateKycData = (data, page) => {
             setMonthlyPurchase({
                 cassiterite: response.data.purchases?.cassiterite?.company?.[normalizedCountry]?.monthly || {},
                 coltan: response.data.purchases?.coltan?.company?.[normalizedCountry]?.monthly || {},
-                wolframite: response.data.purchases?.wolframite?.company?.[normalizedCountry]?.monthly || {}
+                wolframite: response.data.purchases?.wolframite?.company?.[normalizedCountry]?.monthly || {},
+                copper: response.data.purchases?.copper?.company?.[normalizedCountry]?.monthly || {}
             });
     
             //console.log('MonthlyPurchase data:', {  
@@ -1163,6 +1230,10 @@ const paginateKycData = (data, page) => {
        name: 'Wolframite',
        data: months.map(month => (monthly.wolframite[month] || 0) / 1000),
      },
+        {
+            name: 'Copper',
+            data: months.map(month => (monthly.copper[month] || 0) / 1000),
+        }
    ];
 
 const chartOptions = {
@@ -1227,7 +1298,7 @@ const chartOptions = {
         horizontalAlign: 'left',
         offsetX: 40,
         labels: {
-            colors: ['#fff','#fff','#fff']
+            colors: ['#fff','#fff','#fff','#fff']
         }
     },
     responsive: [
@@ -1258,6 +1329,7 @@ const chartOptions = {
                 ((balance.cassiterite.rmr || 0) / 1000).toFixed(2),
                 ((balance.coltan.rmr || 0) / 1000).toFixed(2),
                 ((balance.wolframite.rmr || 0)/ 1000).toFixed(2),
+                ((balance.copper.rmr || 0) / 1000).toFixed(2),
             ],
             
             
@@ -1268,6 +1340,7 @@ const chartOptions = {
                 ((balance.cassiterite.minexx || 0)/ 1000).toFixed(2),
                 ((balance.coltan.minexx || 0)/ 1000).toFixed(2),
                 ((balance.wolframite.minexx || 0)/ 1000).toFixed(2),
+                ((balance.copper.minexx || 0)/ 1000).toFixed(2),
             ],
         },
         {
@@ -1276,6 +1349,7 @@ const chartOptions = {
                 ((balance.cassiterite.pending || 0) /  1000).toFixed(2),
                 ((balance.coltan.pending || 0 )/ 1000).toFixed(2),
                 ((balance.wolframite.pending || 0)/ 1000).toFixed(2),
+                ((balance.copper.pending || 0) / 1000).toFixed(2),
             ],
         },
         {
@@ -1284,6 +1358,7 @@ const chartOptions = {
                 ((balance.cassiterite.shipped || 0) / 1000).toFixed(2),
                 ((balance.coltan.shipped || 0 )/ 1000).toFixed(2),
                 ((balance.wolframite.shipped || 0 )/1000).toFixed(2),
+                ((balance.copper.shipped || 0) / 1000).toFixed(2),
             ],
         },
         {
@@ -1292,6 +1367,7 @@ const chartOptions = {
                 ((balance.cassiterite.buyer || 0) / 1000).toFixed(2),
                 ((balance.coltan.buyer || 0 )/ 1000).toFixed(2),
                 ((balance.wolframite.buyer || 0) / 1000).toFixed(2),
+                ((balance.copper.buyer || 0) / 1000).toFixed(2),
             ],
         },
         
@@ -1319,7 +1395,7 @@ const chartOptions = {
             colors: ['#fff'],
         },
         xaxis: {
-            categories: ['Cassiterite', 'Coltan', 'Wolframite'],
+            categories: ['Cassiterite', 'Coltan', 'Wolframite','Copper'],
         },
         yaxis: {
             title: {
@@ -1389,6 +1465,10 @@ const chartSeries_Purchase = [
     name: 'Wolframite',
     data: monthss.map(month => monthlypurchase.wolframite[month] || 0),
   },
+  {
+    name:'Copper',
+    data: monthss.map(month => monthlypurchase.copper[month] || 0),
+  }
 ];
 const chartOptions_Purchase = {
     chart: {
@@ -1452,7 +1532,7 @@ const chartOptions_Purchase = {
         horizontalAlign: 'left',
         offsetX: 40,
         labels: {
-            colors: ['#fff','#fff','#fff']
+            colors: ['#fff','#fff','#fff','#fff'] // Change these colors as needed
         }
     },
     responsive: [
@@ -1492,11 +1572,16 @@ const chartOptions_Purchase = {
         const monthData = data.Wolframite.find(d => d.month === month);
         return monthData ? monthData.volume : 0;
     });
+    // const copperData= months.map(month => {
+    //     const monthData = data.Copper.find(d => d.month === month);
+    //     return monthData ? monthData.volume : 0;
+    // });
 
     return {
         cassiterite: cassiteriteData,
         coltan: coltanData,
-        wolframite: wolframiteData
+        wolframite: wolframiteData,
+        // copper: copperData
     };
 };
 
@@ -1513,7 +1598,11 @@ const chartSeries_Trend = [
     {
         name: 'Wolframite',
         data: filteredTrendData.Wolframite.length > 0 ? processTrendData(filteredTrendData).wolframite : processTrendData(defaultTrendData).wolframite
-    }
+    },
+    // {
+    //     name: 'Copper',
+    //     data: filteredTrendData.Copper.length > 0 ? processTrendData(filteredTrendData).copper : processTrendData(defaultTrendData).copper
+    // }
 ];
 
 // Chart options for supplier trends
@@ -1952,85 +2041,115 @@ const YesNoButton = ({ value }) => (
                             </div>
                         </div>
                     </div>
-                    <div className="col-md-4">
-                        <div className="card">
-                            <div className="card-header">
-                                <h4 className="card-title">Wolframite</h4>
-                            </div>
-                            <div className="card-body">
-                                <div className="table-responsive">
-                                    <div className="dataTables_wrapper no-footer">
-                                        <table id="wolframiteTargets" className="display dataTablesCard table-responsive-sm dataTable no-footer">
-                                            <thead>
-                                                <tr>                                               	                                            
-                                                    <th>{t("Date")}</th>
-                                                    <th>{new Date().toUTCString().substring(0, 16)}</th>                                          
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr key="wt1">     
-                                                    <td className="sorting_1">{t("DailyTarget")}</td>
-                                                    <td>						
-                                                        <div>
-                                                            <Link to={"#"} className="h5">{(daily.wolframite.dailyTarget/1000).toFixed(2)}</Link>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr key="wt2">     
-                                                    <td className="sorting_1">{t("DailyActuals")}</td>
-                                                    <td>						
-                                                        <div>
-                                                            <Link to={"#"} className="h5">{(daily.wolframite.dailyActual/1000).toFixed(2)}</Link>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr key="wt3">     
-                                                    <td className="sorting_1">{t("MonthlyTarget")}</td>
-                                                    <td>						
-                                                        <div>
-                                                            <Link to={"#"} className="h5">{(daily.wolframite.mtdTarget/1000).toFixed(2)}</Link>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr key="wt4">
-                                                    <td className="sorting_1">{t("MTDTarget")}</td>
-                                                    <td>						
-                                                        <div>
-                                                            <Link to={"#"} className="h5">{(0.19*days).toFixed(2)}</Link>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr key="wt5">     
-                                                    <td className="sorting_1">{t("MTDActuals")}</td>
-                                                    <td>						
-                                                        <div>
-                                                            <Link to={"#"} className="h5">{(daily.wolframite.mtdActual/1000).toFixed(2)}</Link>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr key="wt6">     
-                                                    <td className="sorting_1">{t("MTDActualsVsTarget")}</td>
-                                                    <td>						
-                                                        <div>
-                                                            <Link to={"#"} className="h5">{((daily.wolframite.mtdActual/1000)/(0.19*days)*100).toFixed(2)}%</Link>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr key="ct7">     
-                                                    <td className="sorting_1">{t("Shipped Volume")}</td>
-                                                    <td>						
-                                                        <div>
-                                                            <Link to={"#"} className="h5">{((daily.wolframite.shipped/1000)).toFixed(2)}</Link>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>                                        
-                                        </table>
+                  <div className="col-md-4">
+    <div className="card">
+        <div className="card-header">
+            <h4 className="card-title">{user.type === 'investor_drc' ? 'Copper-Cobalt' : 'Wolframite'}</h4>
+        </div>
+        <div className="card-body">
+            <div className="table-responsive">
+                <div className="dataTables_wrapper no-footer">
+                    <table id="wolframiteTargets" className="display dataTablesCard table-responsive-sm dataTable no-footer">
+                        <thead>
+                            <tr>                                               	                                            
+                                <th>{t("Date")}</th>
+                                <th>{new Date().toUTCString().substring(0, 16)}</th>                                          
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr key="wt1">     
+                                <td className="sorting_1">{t("DailyTarget")}</td>
+                                <td>						
+                                    <div>
+                                        <Link to={"#"} className="h5">
+                                            {user.type === 'investor_drc' 
+                                                ? (daily.copper.dailyTarget/1000).toFixed(2)
+                                                : (daily.wolframite.dailyTarget/1000).toFixed(2)
+                                            }
+                                        </Link>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                </td>
+                            </tr>
+                            <tr key="wt2">     
+                                <td className="sorting_1">{t("DailyActuals")}</td>
+                                <td>						
+                                    <div>
+                                        <Link to={"#"} className="h5">
+                                            {user.type === 'investor_drc' 
+                                                ? (daily.copper.dailyActual/1000).toFixed(2)
+                                                : (daily.wolframite.dailyActual/1000).toFixed(2)
+                                            }
+                                        </Link>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr key="wt3">     
+                                <td className="sorting_1">{t("MonthlyTarget")}</td>
+                                <td>						
+                                    <div>
+                                        <Link to={"#"} className="h5">
+                                            {user.type === 'investor_drc' 
+                                                ? (daily.copper.mtdTarget/1000).toFixed(2)
+                                                : (daily.wolframite.mtdTarget/1000).toFixed(2)
+                                            }
+                                        </Link>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr key="wt4">
+                                <td className="sorting_1">{t("MTDTarget")}</td>
+                                <td>						
+                                    <div>
+                                        <Link to={"#"} className="h5">{(0.19*days).toFixed(2)}</Link>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr key="wt5">     
+                                <td className="sorting_1">{t("MTDActuals")}</td>
+                                <td>						
+                                    <div>
+                                        <Link to={"#"} className="h5">
+                                            {user.type === 'investor_drc' 
+                                                ? (daily.copper.mtdActual/1000).toFixed(2)
+                                                : (daily.wolframite.mtdActual/1000).toFixed(2)
+                                            }
+                                        </Link>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr key="wt6">     
+                                <td className="sorting_1">{t("MTDActualsVsTarget")}</td>
+                                <td>						
+                                    <div>
+                                        <Link to={"#"} className="h5">
+                                            {user.type === 'investor_drc' 
+                                                ? ((daily.copper.mtdActual/1000)/(0.19*days)*100).toFixed(2)
+                                                : ((daily.wolframite.mtdActual/1000)/(0.19*days)*100).toFixed(2)
+                                            }%
+                                        </Link>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr key="ct7">     
+                                <td className="sorting_1">{t("Shipped Volume")}</td>
+                                <td>						
+                                    <div>
+                                        <Link to={"#"} className="h5">
+                                            {user.type === 'investor_drc' 
+                                                ? ((daily.copper.shipped/1000)).toFixed(2)
+                                                : ((daily.wolframite.shipped/1000)).toFixed(2)
+                                            }
+                                        </Link>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>                                        
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
                     <div className='col-12 mt-4'>
                         <div className="card">
                             <div className="card-header">
@@ -2181,7 +2300,7 @@ const YesNoButton = ({ value }) => (
                     <div className="col-md-4">
                         <div className="card">
                             <div className="card-header">
-                                <h4 className="card-title">Wolframite</h4>
+                                <h4 className="card-title">{user.type === 'investor_drc' ? 'Copper-Cobalt' : 'Wolframite'}</h4>
                             </div>
                             <div className="card-body">
                                 <div className="table-responsive">
@@ -2198,7 +2317,12 @@ const YesNoButton = ({ value }) => (
                                                     <td className="sorting_1">{t("WithRMR")}</td>
                                                     <td>						
                                                         <div>
-                                                            <Link to={"#"} className="h5">{(balance.wolframite.rmr/1000).toFixed(2)}</Link>
+                                                            <Link to={"#"} className="h5">
+                                                                {user.type === 'investor_drc' 
+                                                                    ? (balance.copper.rmr/1000).toFixed(2)
+                                                                    : (balance.wolframite.rmr/1000).toFixed(2)
+                                                                }
+                                                            </Link>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -2206,7 +2330,12 @@ const YesNoButton = ({ value }) => (
                                                     <td className="sorting_1">{t("WithMinexx")}</td>
                                                     <td>						
                                                         <div>
-                                                            <Link to={"#"} className="h5">{(balance.wolframite.minexx/1000).toFixed(2)}</Link>
+                                                            <Link to={"#"} className="h5">
+                                                                {user.type === 'investor_drc' 
+                                                                    ? (balance.copper.minexx/1000).toFixed(2)
+                                                                    : (balance.wolframite.minexx/1000).toFixed(2)
+                                                                }
+                                                            </Link>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -2214,7 +2343,12 @@ const YesNoButton = ({ value }) => (
                                                     <td className="sorting_1">{t("PendingShipment")}</td>
                                                     <td>						
                                                         <div>
-                                                            <Link to={"#"} className="h5">{(balance.wolframite.pending/1000).toFixed(2)}</Link>
+                                                            <Link to={"#"} className="h5">
+                                                                {user.type === 'investor_drc' 
+                                                                    ? (balance.copper.pending/1000).toFixed(2)
+                                                                    : (balance.wolframite.pending/1000).toFixed(2)
+                                                                }
+                                                            </Link>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -2222,7 +2356,12 @@ const YesNoButton = ({ value }) => (
                                                     <td className="sorting_1">{t("Shipped")}</td>
                                                     <td>						
                                                         <div>
-                                                            <Link to={"#"} className="h5">{(balance.wolframite.shipped/1000).toFixed(2)}</Link>
+                                                            <Link to={"#"} className="h5">
+                                                                {user.type === 'investor_drc' 
+                                                                    ? (balance.copper.shipped/1000).toFixed(2)
+                                                                    : (balance.wolframite.shipped/1000).toFixed(2)
+                                                                }
+                                                            </Link>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -2230,7 +2369,12 @@ const YesNoButton = ({ value }) => (
                                                     <td className="sorting_1">{t("WithBuyer")}</td>
                                                     <td>						
                                                         <div>
-                                                            <Link to={"#"} className="h5">{(balance.wolframite.buyer/1000).toFixed(2)}</Link>
+                                                            <Link to={"#"} className="h5">
+                                                                {user.type === 'investor_drc' 
+                                                                    ? (balance.copper.buyer/1000).toFixed(2)
+                                                                    : (balance.wolframite.buyer/1000).toFixed(2)
+                                                                }
+                                                            </Link>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -2328,7 +2472,8 @@ const YesNoButton = ({ value }) => (
                                                     <td className="sorting_1">{new Date().toUTCString().substring(0, 16)}</td>
                                                     <td>						
                                                         <div>
-                                                            <Link to={"#"} className="h5">${(deliveries.coltan.daily).toFixed(2)}</Link>
+                                                            <Link to={"#"} className="h5">
+                                                            ${(deliveries.coltan.daily).toFixed(2)}</Link>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -2358,7 +2503,7 @@ const YesNoButton = ({ value }) => (
                     <div className="col-md-4">
                         <div className="card">
                             <div className="card-header">
-                                <h4 className="card-title">Wolframite</h4>
+                                <h4 className="card-title">{user.type ==='investor_drc'?'Copper-Cobalt':'Wolframite'}</h4>
                             </div>
                             <div className="card-body">
                                 <div className="table-responsive">
@@ -2375,7 +2520,11 @@ const YesNoButton = ({ value }) => (
                                                     <td className="sorting_1">{new Date().toUTCString().substring(0, 16)}</td>
                                                     <td>						
                                                         <div>
-                                                            <Link to={"#"} className="h5">${(deliveries.wolframite.daily).toFixed(2)}</Link>
+                                                            <Link to={"#"} className="h5">
+                                                            {user.type === 'investor_drc'?
+                                                            (deliveries.copper.daily).toFixed(2):
+                                                            (deliveries.wolframite.daily).toFixed(2)
+                                                            }</Link>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -2383,7 +2532,12 @@ const YesNoButton = ({ value }) => (
                                                     <td className="sorting_1">{t("ThisWeek")}</td>
                                                     <td>						
                                                         <div>
-                                                            <Link to={"#"} className="h5">${(deliveries.wolframite.weekly).toFixed(2)}</Link>
+                                                            <Link to={"#"} className="h5">
+                                                             {user.type === 'investor_drc'?
+                                                             (deliveries.copper.weekly).toFixed(2)
+                                                             :
+                                                             (deliveries.wolframite.weekly).toFixed(2)
+                                                            }</Link>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -2391,7 +2545,11 @@ const YesNoButton = ({ value }) => (
                                                     <td className="sorting_1">{t("ThisMonth")}</td>
                                                     <td>						
                                                         <div>
-                                                            <Link to={"#"} className="h5">${(deliveries.wolframite.monthly).toFixed(2)}</Link>
+                                                            <Link to={"#"} className="h5">
+                                                            {user.type === 'investor_drc'?
+                                                            (deliveries.copper.monthly).toFixed(2)
+                                                            :(deliveries.wolframite.monthly).toFixed(2)
+                                                            }</Link>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -3420,6 +3578,7 @@ const YesNoButton = ({ value }) => (
                                                 <option value="Cassiterite">Cassiterite/Tin</option>
                                                 <option value="Coltan">Coltan/Tantalum</option>
                                                 <option value="Wolframite">Wolframite</option>
+                                                <option value="Copper">Copper-Cobalt</option>
                                             </>
                                         ) : (
                                             <option value="Gold">Gold</option>
@@ -3571,6 +3730,7 @@ const YesNoButton = ({ value }) => (
                                                 <option value="Cassiterite">Cassiterite/Tin</option>
                                                 <option value="Coltan">Coltan/Tantalum</option>
                                                 <option value="Wolframite">Wolframite</option>
+                                                <option value="Copper">Copper-Cobalt</option>
                                             </>
                                         ) : (
                                             <option value="Gold">Gold</option>

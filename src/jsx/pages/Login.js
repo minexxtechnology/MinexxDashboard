@@ -144,14 +144,14 @@ function Login (props) {
                                       </button>
                                     </div>
                                 </form>
-                                <div className="new-account mt-2">
+                                {/* <div className="new-account mt-2">
                                   <p className="">
                                     Forgot your password?{" "}
                                     <Link className="text-primary" to="/forgot-password">
                                       Reset Password
                                     </Link>
                                   </p>
-                                </div>
+                                </div> */}
                                 <div>
                                   {/* <p>
                                   <Link className="text-primary" to="/kyc-login">

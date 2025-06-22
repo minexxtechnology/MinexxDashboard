@@ -54,9 +54,17 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
   };
 
   // Filter available countries based on user type
-  const availableCountries = user?.type === 'buyer' ||  user?.type === 'buyers'
-    ? { 'Rwanda': countries['Rwanda'], 'DRC': countries['DRC'] }
-    : countries;
+  const getAvailableCountries = () => {
+    if (user?.type === 'investor_drc' || user?.type === 'buyers_drc') {
+      return { 'DRC': countries['DRC'] };
+    } else if (user?.type === 'buyer' || user?.type === 'buyers') {
+      return { 'Rwanda': countries['Rwanda'], 'DRC': countries['DRC'] };
+    } else {
+      return countries;
+    }
+  }; 
+
+  const availableCountries = getAvailableCountries();
 
   useEffect(() => {
     // If current country is not in available countries, reset to first available

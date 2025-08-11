@@ -5,7 +5,7 @@ const axiosInstance = axios.create({
     headers: {
         'Access-Control-Allow-Origin': '*'
     }
-});
+}); 
 
 axiosInstance.interceptors.request.use((config) => {
     const token = localStorage.getItem(`_authTkn`)

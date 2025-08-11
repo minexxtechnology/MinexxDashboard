@@ -36,12 +36,16 @@ const Reports = ({language,country}) => {
     const [loading, setLoading] = useState(false);
     const [companies, setcompanies] = useState([]);
     const [suppliers, setsuppliers] = useState([]);
+    const [suppliersgrade,setsuppliersgrade] = useState([]);
     const [company, setcompany] = useState()
     const [mineral, setmineral] = useState();
     const [exportationid,setExportationid]=useState([]);
     const [timeData, setTimeData] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [appliedChemicalComposition, SetAppliedChemicalComposition] = useState([]);
+const [chemicalComposition, setChemicalComposition] = useState([]);
     const [suppliertrend,setsuppliertrend]=useState();
+    const [suppliergradetrends, setsuppliergradetrends] = useState();
     const [timePage, setTimePage] = useState(1);
     const [shippedData, setShippedData] = useState([]);
     const [kycSummary, setKycSummary] = useState({});
@@ -68,6 +72,20 @@ const Reports = ({language,country}) => {
         Wolframite: [],
         totalVolume: 0
     });
+    const [filteredGradeData, setFilteredGradeData] = useState({
+    Cassiterite: new Array(12).fill(0),
+    Coltan: new Array(12).fill(0),
+    Wolframite: new Array(12).fill(0),
+    Copper: new Array(12).fill(0),
+    totalGrade: 0
+});
+
+const [defaultGradeData, setDefaultGradeData] = useState({
+    Cassiterite: [],
+    Coltan: [],
+    Wolframite: [],
+    totalGrade: 0
+});
     const [yearFilterApplied, setYearFilterApplied] = useState(false);
     //end for Testing
     const [trace, settrace] = useState({
@@ -419,7 +437,40 @@ const Reports = ({language,country}) => {
             delay: 100,
             autoClose: true
         })
+
     }
+    //Select the Supplier Trand grade supplier
+    const changesupplierGradetrends = (e) => {
+        if (e.target.value === t("SelectCompanyShort")) {
+            // Clear selection
+            setsuppliergradetrends(null);
+            // Reset to default data
+            setFilteredGradeData({
+                Cassiterite: [],
+                Coltan: [],
+                Wolframite: [],
+                totalGrade: 0
+            });
+            return;
+        }
+        
+        try {
+            // Parse the JSON string back to an object
+            const selectedSupplier = JSON.parse(e.target.value);
+            
+            // Set the supplier trend with the parsed object
+            setsuppliergradetrends(selectedSupplier);
+            toast.info('Generating Grade report, please wait...', {
+                delay: 100,
+                autoClose: true
+            });
+            
+            // Fetch data for the selected supplier
+            fetchSupplierGradeData(selectedSupplier.supplierId);
+        } catch (error) {
+            console.error("Error parsing supplier data:", error);
+        }
+    };
     // Your select onChange handler
                 const changesuppliertrends = (e) => {
                     if (e.target.value === t("SelectCompanyShort")) {
@@ -582,6 +633,47 @@ const categories = [
             console.error('Error fetching default trend data:', error);
         }
     };
+    // Function to fetch data for selected supplier
+// Updated fetchSupplierGradeData function
+const fetchSupplierGradeData = async (supplierId) => {
+    try {
+        const response = await axiosInstance.get(`/report/suppliergradegraph/${supplierId}`, {
+            params: { country: normalizedCountry(country) }
+        });
+
+        console.log("Full API response:", response.data); // Debug log
+
+        if (response.data.success && response.data.gradegraph.success) {
+            console.log("Grade graph data:", response.data.gradegraph.data);
+            const processedData = processGradeGraphData(response.data.gradegraph.data);
+            console.log("About to set state with:", processedData); // Debug log
+            setFilteredGradeData(processedData);
+        }
+    } catch (error) {
+        console.error('Error fetching supplier grade data:', error);
+        toast.error('Error fetching supplier data');
+    }
+};
+
+
+const processGradeGraphData = (data) => {
+    console.log("Raw data received:", data); // Debug log
+    
+    // Initialize arrays for 12 months
+    const monthlyData = {
+        Cassiterite: data.Cassiterite || new Array(12).fill(0),
+        Coltan: data.Coltan || new Array(12).fill(0),
+        Wolframite: data.Wolframite || new Array(12).fill(0),
+        Copper: data["Copper-cobalt"] || new Array(12).fill(0),
+        totalGrade: data.totalGrade || 0
+    };
+
+    console.log("Processed data:", monthlyData); // Debug log
+    return monthlyData;
+};
+
+
+
 
     
     const loadCompanies =  ()=>{
@@ -637,6 +729,32 @@ const categories = [
             //console.log("Suppliers",response.data.salestrend);
         })
 
+        }
+        const loadSuppliersforGrade=()=>
+            {
+                  let normalizedCountry = country.trim();
+            
+        // Special handling for Rwanda
+        if (normalizedCountry.toLowerCase() === 'rwanda') {
+            // Randomly choose one of the three formats
+             normalizedCountry ='.Rwanda';
+            // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+        } else {
+            // For other countries, remove leading/trailing dots and spaces
+            normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+        }
+        axiosInstance.get(`/report/suppliertrend`,
+            {
+                params: {
+                    country: normalizedCountry,
+                }
+            }).then(response=>{
+           
+            setsuppliersgrade({
+                trend:response.data.trend
+            })
+            console.log("Full response data:", response.data.trend);
+            })
         }
         const loadExoprtationID=()=>
             {
@@ -885,6 +1003,39 @@ const categories = [
                 }
             });
         }
+        if(type === 'suppliercomposition' && mineral)
+            {
+                 let normalizedCountry = country.trim();
+            
+            if (normalizedCountry.toLowerCase() === 'rwanda') {
+                normalizedCountry = '.Rwanda';
+            } else {
+                normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
+            }
+            console.log("Mineral", mineral);
+            axiosInstance.get(`/report/suppliercomposition`, {
+                params: {
+                    country: normalizedCountry,
+                    mineral: mineral
+                }
+            }).then(response => {
+                 if (response.data && response.data.chemicalComposition) {
+                          // Process the chemical composition data
+                    console.log("Chemical Composition Data:", response.data.chemicalComposition.data);
+                    setChemicalComposition(response.data.chemicalComposition.data);
+                 }
+            }).catch(err => {
+                if (err.response) {
+                    if (err.response.status === 403) {
+                        dispatch(Logout(navigate));
+                    } else {
+                        toast.warn(err.response.data.message || "Failed to load composition data");
+                    }
+                } else {
+                    toast.error(err.message || "An error occurred");
+                }
+            });
+            }
 
     };
     const loadKycSummary = () => {
@@ -915,6 +1066,7 @@ const categories = [
           if (response.data && response.data.data) {
             // Set state to the inner data object that contains the companies
             setKycSummary(response.data.data);
+            console.log("KYC Summary Data:", response.data.data);
           } else {
             setKycSummary({});
             toast.warn("No KYC data available or invalid response format");
@@ -1039,6 +1191,46 @@ const categories = [
             setLoading(false);
         }
     };
+    // Apply year for Grade Trends
+        const applyYearGradeFilter = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setYearFilterApplied(true);
+
+        const formData = new FormData(e.target);
+        const year = formData.get('year');
+
+        try {
+            const response = await axiosInstance.get(
+                `/report/suppliergraderangegraph/${suppliergradetrends.supplierId}`,
+                {
+                    params: {
+                        country: normalizedCountry(country),
+                        year: year
+                    }
+                }
+            );
+
+            if (response.data.success && response.data.gradegraph.success) {
+                // The API response structure matches your sample
+                const data = response.data.gradegraph.data;
+                setFilteredGradeData({
+                    Cassiterite: data.Cassiterite || new Array(12).fill(0),
+                    Coltan: data.Coltan || new Array(12).fill(0),
+                    Wolframite: data.Wolframite || new Array(12).fill(0),
+                    Copper: data["Copper-cobalt"] || new Array(12).fill(0),
+                    totalGrade: data.totalGrade || 0
+                });
+                toast.success(`Grade data for ${year} loaded successfully!`);
+            }
+        } catch (error) {
+            console.error('Error fetching grade trend data:', error);
+            toast.error(error?.response?.data?.message || "An error occurred while fetching grade data.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const normalizedCountry = (country) => {
         let normalized = country.trim();
         if (normalized.toLowerCase() === 'rwanda') {
@@ -1056,9 +1248,10 @@ const categories = [
     useEffect(() => {
         setData(document.querySelectorAll("#report_wrapper tbody tr"));
         changeTitle(`${t('Report')} | Minexx`)
-        loadReport()
-        loadMinerals()
-        loadSuppliers()
+        loadReport();
+        loadMinerals();
+        loadSuppliers();
+        loadSuppliersforGrade();//loading Supplier  grade Trends
         loadExoprtationID();
         // if (timeData) {
         //     const categories = getCategories();
@@ -1679,6 +1872,99 @@ const chartOptions_Trend = {
         },
     ],
 };
+//Graph for Supplier Grade Trends
+const chartOptions_Grade = {
+    chart: {
+        type: 'bar',
+        height: 500,
+        stacked: false,
+    },
+    plotOptions: {
+        bar: {
+            horizontal: false,
+            columnWidth: '55%',
+            endingShape: 'rounded',
+        },
+    },
+    dataLabels: {
+        enabled: false,
+    },
+    stroke: {
+        show: true,
+        width: 1,
+        colors: ['#fff'],
+    },
+    xaxis: {
+        categories: [
+            t('January'), t('February'), t('March'), t('April'), t('May'), t('June'),
+            t('July'), t('August'), t('September'), t('October'), t('November'), t('December')
+        ],
+    },
+    yaxis: {
+        title: {
+            text: t('Grade (%)'),
+        },
+        labels: {
+            formatter: function (value) {
+                return value.toFixed(2);
+            },
+        },
+    },
+    tooltip: {
+        y: {
+            formatter: function (val) {
+                return val.toFixed(2) + ' %';
+            },
+        },
+    },
+    fill: {
+        opacity: 1,
+    },
+    legend: {
+        position: 'top',
+        horizontalAlign: 'left',
+        offsetX: 40,
+        labels: {
+            colors: ['#fff', '#fff', '#fff','#fff']
+        }
+    },
+    responsive: [
+        {
+            breakpoint: 1000,
+            options: {
+                plotOptions: {
+                    bar: {
+                        columnWidth: '70%',
+                    },
+                },
+                legend: {
+                    position: 'bottom',
+                    horizontalAlign: 'center',
+                    offsetX: 0,
+                },
+            },
+        },
+    ],
+};
+
+const chartSeries_Grade = [
+    {
+        name: 'Cassiterite',
+        data: (filteredGradeData.Cassiterite || []).map(val => val / 100)
+    },
+    {
+        name: 'Coltan',
+        data: (filteredGradeData.Coltan || []).map(val => val / 100)
+    },
+    {
+        name: 'Wolframite',
+        data: (filteredGradeData.Wolframite || []).map(val => val / 100)
+    },
+    {
+        name: 'Copper-Cobalt',
+        data: (filteredGradeData.Copper || []).map(val => val / 100)
+    }
+];
 // Create helper components for the KYC summary UI
 const YesNoButton = ({ value }) => (
     <div className={`d-flex justify-content-center`}>
@@ -1751,6 +2037,10 @@ const YesNoButton = ({ value }) => (
                             ? t('Shipped Report')
                             :type ==='kycsummary'
                             ? t('Kyc Summary')
+                            : type === 'deliverygradetrends'
+                                ? t('Delivery Grade Trends')
+                            : type === 'suppliercomposition'
+                                ? t('Supplier Composition')
                             : type === 'mtd' 
                                 ? t('InStockCountryBalance')
                                 : t('TotalPurchase')}
@@ -3711,6 +4001,246 @@ const YesNoButton = ({ value }) => (
                     </div>
                 )
                 :
+                type === 'suppliercomposition' ? (
+                   
+                    <div className='row'>
+                        <div className='col-md-5'>
+                        {access === "3ts"? (  
+                            // for prevent access of sale report to the gold 
+                            <div className='card'>
+                                <div className='card-header'>
+                                    <h5 className='card-title'>{t("SelectMinerals")}</h5> 
+                                </div>
+                                <div className='card-body'>
+                                    <select onChange={changeMineral} className='form-control'>
+                                        <option>{t("SelectMineralShort")}</option>
+                                        {access === '3ts' ? (
+                                            <>
+                                                <option value="Cassiterite">Cassiterite/Tin</option>
+                                                <option value="Coltan">Coltan/Tantalum</option>
+                                                <option value="Wolframite">Wolframite</option>
+                                                <option value="Copper-cobalt">Copper-Cobalt</option>
+                                            </>
+                                        ) : (
+                                            <option value="Gold">Gold</option>
+                                        )}
+                                    </select>
+                                </div>
+                            </div>
+                            ):
+                            (<div></div>
+                            //nothing show when it is gold 
+                                
+                            )} 
+                        </div>
+                                    
+                        {mineral && (
+                            <>
+                                <div className='col-md-4'>
+                                    <div className='card'>
+                                        <div className='card-header'>
+                                            <h5 className='card-title text-center'>{t("Average Grade")}</h5>
+                                        </div>
+                                        <div className='card-body'>
+                                        <h3 className='text-center text-primary fs-40'>
+                                    {(() => {
+                                        const currentData = paginate(
+                                            rangeapplied ? (appliedChemicalComposition || []) : (chemicalComposition || []), 
+                                            salesPage, 
+                                            20
+                                        );
+                                        return currentData.length > 0 ? 
+                                            currentData[0].Grade || '-' : 
+                                            'No Data Available';
+                                    })()}
+                                </h3>
+                                </div>
+                                    </div>
+                                </div>
+                                {/* <div className="col-md-3">
+                                    <div className="card">
+                                        <div className="card-header">
+                                            <h5 className="card-title text-center mb-0">{t('Viewby')}</h5>
+                                        </div>
+                                        <div className="card-body">
+                                            <form onSubmit={applyFilter}> 
+                                                <div className="row mb-3">
+                                                    <div className="col-6 ps-2 pe-1">
+                                                        <input type="date" name="start" className="form-control form-control-sm" defaultValue="2023-01-01" />
+                                                    </div>
+                                                    <div className="col-6 ps-1 pe-2">
+                                                        <input type="date" name="end" className="form-control form-control-sm"   defaultValue={new Date().toISOString().split('T')[0]} />
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="mineral" value={mineral} />
+                                                <div className="d-grid">
+                                                    <button className="btn btn-primary btn-sm" disabled={loading}>
+                                                    {loading ? 'Loading...' : 'Apply'}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div> */}
+                            </>
+                        )}
+                        {mineral && (
+                            <div className='card'>
+                                <div className='card-header'>
+                                    <h4 className='card-title'>{mineral} {t("Supplier Chemical Composition")}</h4>
+                                </div>
+                                <div className='card-body'>
+                                <div id="soldre-view" className="dataTables_wrapper no-footer">
+                                    {/* Add horizontal scroll container */}
+                                    <div style={{ overflowX: 'auto', width: '100%' }}>
+                                        <Table bordered striped hover responsive size='sm' style={{ minWidth: '2000px' }}>
+                                            <thead>
+                                                <tr>
+                                                   
+                                                    <th>{t("Supplier")}</th>
+                                                    <th>{t("Grade")}</th>
+                                                     <th>{t("SN")}</th>
+                                                    <th className="text-center text-dark">{t("Moisture")}</th>
+                                                    <th className="text-center text-dark">{t("U3O8")}</th>
+                                                    <th className="text-center text-dark">{t("ThO2")}</th>
+                                                    <th className="text-center text-dark">{t("SiO2")}</th>
+                                                    <th className="text-center text-dark">{t("MgO")}</th>
+                                                    <th className="text-center text-dark">{t("P2O5")}</th>
+                                                    <th className="text-center text-dark">{t("SO3")}</th>
+                                                    <th className="text-center text-dark">{t("CL")}</th>
+                                                    <th className="text-center text-dark">{t("K2O")}</th>
+                                                    <th className="text-center text-dark">{t("TIO2")}</th>
+                                                    <th className="text-center text-dark">{t("Cr2O3")}</th>
+                                                    <th className="text-center text-dark">{t("MnO")}</th>
+                                                    <th className="text-center text-dark">{t("Fe2O3")}</th>
+                                                    <th className="text-center text-dark">{t("CuO")}</th>
+                                                    <th className="text-center text-dark">{t("ZnO")}</th>
+                                                    <th className="text-center text-dark">{t("ZrO2")}</th>
+                                                    <th className="text-center text-dark">{t("Nb2O5")}</th>
+                                                    <th className="text-center text-dark">{t("Ta2O5")}</th>
+                                                    <th className="text-center text-dark">{t("Al2O3")}</th>
+                                                    <th className="text-center text-dark">{t("Na2O")}</th>
+                                                    <th className="text-center text-dark">{t("CaO")}</th>
+                                                    <th className="text-center text-dark">{t("Rb2O")}</th>
+                                                    <th className="text-center text-dark">{t("SrO")}</th>
+                                                    <th className="text-center text-dark">{t("Y2O3")}</th>
+                                                    <th className="text-center text-dark">{t("CeO2")}</th>
+                                                    <th className="text-center text-dark">{t("SnO2")}</th>
+                                                    <th className="text-center text-dark">{t("I")}</th>
+                                                    <th className="text-center text-dark">{t("PbO")}</th>
+                                                    <th className="text-center text-dark">{t("HfO2")}</th>
+                                                    <th className="text-center text-dark">{t("BaO")}</th>
+                                                    <th className="text-center text-dark">{t("As")}</th>
+                                                    <th className="text-center text-dark">{t("Bi")}</th>
+                                                    <th className="text-center text-dark">{t("Pb")}</th>
+                                                    <th className="text-center text-dark">{t("Fe")}</th>
+                                                    <th className="text-center text-dark">{t("WO3")}</th>
+                                                    <th className="text-center text-dark">{t("Sb")}</th>
+                                                    <th className="text-center text-dark">{t("Cu")}</th>
+                                                    <th className="text-center text-dark">{t("Ag")}</th>
+                                                    <th className="text-center text-dark">{t("Co")}</th>
+                                                    <th className="text-center text-dark">{t("Ni")}</th>
+                                                    <th className="text-center text-dark">{t("Mn")}</th>
+                                                    <th className="text-center text-dark">{t("Bal")}</th>
+                                                    <th className="text-center text-dark">{t("Ti")}</th>
+                                                </tr>
+                                            </thead>
+                                                                            <tbody>
+                                    {paginate(
+                                        rangeapplied ? (appliedChemicalComposition || []) : (chemicalComposition || []), 
+                                        salesPage, 
+                                        20
+                                    ).map((composition, i) => (
+                                        <tr key={`composition${i}`}>
+                                            
+                                            <td>{composition.SupplierName}</td>
+                                           
+                                            <td>{composition.Grade || '-'}(%)</td>
+                                            {/* Chemical elements data using API response property names */}
+                                            <td className="text-center">{composition.sn_percent || '-'}</td>
+                                            <td className="text-center">{composition.moisture_percent || '-'}</td>
+                                            <td className="text-center">{composition.u3o8_percent || '-'}</td>
+                                            <td className="text-center">{composition.tho2_percent || '-'}</td>
+                                            <td className="text-center">{composition.sio2_percent || '-'}</td>
+                                            <td className="text-center">{composition.mgo_percent || '-'}</td>
+                                            <td className="text-center">{composition.p2o5_percent || '-'}</td>
+                                            <td className="text-center">{composition.so3_percent || '-'}</td>
+                                            <td className="text-center">{composition.cl_percent || '-'}</td>
+                                            <td className="text-center">{composition.k2o_percent || '-'}</td>
+                                            <td className="text-center">{composition.tio2_percent ||'-'}</td>
+                                            <td className="text-center">{composition.cr2o3_percent || '-'}</td>
+                                            <td className="text-center">{composition.mno_percent || '-'}</td>
+                                            <td className="text-center">{composition.fe2o3_percent || '-'}</td>
+                                            <td className="text-center">{composition.cuo_percent || '-'}</td>
+                                            <td className="text-center">{composition.zno_percent || composition.zn_percent}</td>
+                                            <td className="text-center">{composition.zro2_percent || '-'}</td>
+                                            <td className="text-center">{composition.nb2o5_percent || '-'}</td>
+                                            <td className="text-center">{composition.ta2o5_percent || composition.ta_percent}</td>
+                                            <td className="text-center">{composition.al2o3_percent || composition.ai2o3_percent}</td>
+                                            <td className="text-center">{composition.na2o_percent || '-'}</td>
+                                            <td className="text-center">{composition.cao_percent || '-'}</td>
+                                            <td className="text-center">{composition.rb2o_percent || '-'}</td>
+                                            <td className="text-center">{composition.sro_percent || '-'}</td>
+                                            <td className="text-center">{composition.y2o3_percent || '-'}</td>
+                                            <td className="text-center">{composition.ceo2_percent || '-'}</td>
+                                            <td className="text-center">{composition.sno2_percent || '-'}</td>
+                                            <td className="text-center">{composition.i_percent || '-'}</td>
+                                            <td className="text-center">{composition.pbo_percent || '-'}</td>
+                                            <td className="text-center">{composition.hfo2_percent || composition.hso2_percent}</td>
+                                            <td className="text-center">{composition.bao_percent || '-'}</td>
+                                            <td className="text-center">{composition.as_percent || '-'}</td>
+                                            <td className="text-center">{composition.bi_percent || '-'}</td>
+                                            <td className="text-center">{composition.ph_percent || '-'}</td>
+                                            <td className="text-center">{composition.fe_percent || '-'}</td>
+                                            <td className="text-center">{composition.wo_percent || composition.wo3_percent}</td>
+                                            <td className="text-center">{composition.sb_percent || '-'}</td>
+                                            <td className="text-center">{composition.cu_percent || '-'}</td>
+                                            <td className="text-center">{composition.ag_percent || '-'}</td>
+                                            <td className="text-center">{composition.co_percent || '-'}</td>
+                                            <td className="text-center">{composition.ni_percent || '-'}</td>
+                                            <td className="text-center">{composition.mn_percent || '-'}</td>
+                                            <td className="text-center">{composition.bal_percent || '-'}</td>
+                                            <td className="text-center">{composition.ti_percent || '-'}</td>
+                                        </tr>
+                                    ))}
+                                    {(rangeapplied ? (appliedChemicalComposition || []) : (chemicalComposition || [])).length === 0 ? (
+                                        <tr>
+                                            <td colSpan={47}>{t("NoSelectedMineral")}</td>
+                                        </tr>
+                                    ) : (
+                                        <tr></tr>
+                                    )}
+                                </tbody>
+                                        </Table>
+                                    </div>
+                                    <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
+                                        <div className="dataTables_info">
+                                            {t("Showing")} {(salesPage-1) * 20 + 1} {t("To")}{" "}
+                                            {sale?.sale_Report.length > salesPage * 20 ? salesPage*20 : sale?.sale_Report.length}{" "}
+                                            {t("Of")} {sale?.sale_Report.length} {t("Entries")}
+                                        </div>
+                                        <div className="dataTables_paginate paging_simple_numbers" id="example2_paginate">
+                                            <Link
+                                                className="paginate_button previous disabled"
+                                                onClick={() => salesPage > 1 && setsalesPage(salesPage - 1)}
+                                            >
+                                                {t("Previous")}
+                                            </Link>
+                                            <Link
+                                                className="paginate_button next mx-4"
+                                                onClick={() => salesPage < paggination(sale?.sale_Report || []).length && setsalesPage(salesPage + 1)}
+                                            >
+                                                {t("Next")}
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        )}
+                    </div>
+                )
+                :
                 //shipped report start
                 type === 'shipped' ? (
                    
@@ -3931,6 +4461,132 @@ const YesNoButton = ({ value }) => (
                         ) : (
                             <p className="text-center">No data found</p>
                         ))
+                    }
+                        </div>
+                    </div>
+                </div>
+            )}
+                    </div>
+                )
+                :
+                
+                type === 'deliverygradetrends' ? (
+                   
+                    <div className='row'>
+                        <div className='col-md-5'>
+                        {access === "3ts"? (  
+                            // for prevent access of sale report to the gold 
+                            <div className='card'>
+                                <div className='card-header'>
+                                    <h5 className='card-title'>{t("Please Select the Company To generate Delivery Grade Trends")}</h5>
+                                </div>
+                                <div className='card-body'>
+                                <select onChange={changesupplierGradetrends} className='form-control'>
+                <option>{t("SelectCompanyShort")}</option>
+                {access === '3ts' && suppliersgrade && suppliersgrade.trend && suppliersgrade.trend.length > 0 ? (
+                    suppliersgrade.trend.map(supplier => (
+                        <option 
+                            key={supplier.supplierId} 
+                            value={JSON.stringify(supplier)}
+                        >
+                            {supplier.suppliername}
+                        </option>
+                    ))
+                ) : (
+                    <option value=""></option>
+                )}
+            </select>
+                                </div>
+                            </div>
+                            ):
+                            (<div></div>
+                            //nothing show when it is gold 
+                                
+                            )}
+                        </div>
+                                    
+                        {suppliergradetrends && (
+                            <>
+                                <div className='col-md-4'>
+                                    <div className='card'>
+                                        <div className='card-header'>
+                                            <h5 className='card-title text-center'>{t("Grade")}</h5>
+                                        </div>
+                                        <div className='card-body'>
+                                        <h3 className="text-center text-primary fs-40">
+                                            {yearFilterApplied
+                                                ? (filteredGradeData.totalGrade > 0 
+                                                    ? (filteredGradeData.totalGrade/100).toFixed(2) + " %" 
+                                                    : <>
+                                                        0.00 % <br /> No data found
+                                                    </>)
+                                                : (filteredGradeData.totalGrade > 0 
+                                                    ? (filteredGradeData.totalGrade/100).toFixed(2) + "%" 
+                                                    : <>
+                                                        0.00 % <br /> No data found
+                                                    </>)
+                                            }
+                                        </h3>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="col-md-3">
+                                    <div className="card">
+                                        <div className="card-header">
+                                            <h5 className="card-title text-center mb-0">{t('Sort By')}</h5>
+                                        </div>
+                                        <div className="card-body">
+                                            <form onSubmit={applyYearGradeFilter}> 
+                                                <div className="row mb-3">
+                                                    
+                                                    <div className="col-6 ">
+                                                        <select className='form-control' name='year' >
+                                                            <option value="2025">2025</option>
+                                                            <option value='2024'>2024</option> 
+                                                            <option value='2023'>2023</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="mineral" value={mineral} />
+                                                <div className="d-grid">
+                                                    <button className="btn btn-primary btn-sm" disabled={loading}>
+                                                    {loading ? 'Loading...' : 'Apply'}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                             
+                            </>
+                        )}
+                         {suppliergradetrends && (
+                <div className='col-12 mt-4'>
+                    <div className="card">
+                        <div className="card-header">
+                            <h4 className="card-title">{t("Delivery Grade Trend Overview")}</h4>
+                        </div>
+                        <div className="card-body">
+                        {yearFilterApplied
+                        ? (filteredGradeData.totalGrade > 0 ? (
+                            <ReactApexChart
+                                options={chartOptions_Grade}
+                                series={chartSeries_Grade}
+                                type="bar"
+                                height={500}
+                            />
+                        ) : (
+                            <p className="text-center">No data found</p>
+                        ))
+                        : 
+                            <ReactApexChart
+                                options={chartOptions_Grade}
+                                series={chartSeries_Grade}
+                                type="bar"
+                                height={500}
+                            />
+                       
                     }
                         </div>
                     </div>

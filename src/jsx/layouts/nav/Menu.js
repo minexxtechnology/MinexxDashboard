@@ -37,6 +37,14 @@ export const RootMenu = [
                 title:'Kyc Summary',
                 to:'reports/kycsummary'
             },
+             {
+                title:'Delivery Grade Trends',
+                to:'reports/deliverygradetrends'
+            },
+            {
+                title:'Supplier Chimical Composition',
+                to:'reports/suppliercomposition'
+            },
             {
             title:'Supplier Sales Report',
             to:'reports/sale',
@@ -121,6 +129,14 @@ export const RegulatorMenu = [
             {
                 title: 'Trace Reports',
                 to: 'reports/trace',
+            },
+             {
+                title:'Delivery Grade Trends',
+                to:'reports/deliverygradetrends'
+            },
+             {
+                title:'Supplier Chimical Composition',
+                to:'reports/suppliercomposition'
             },
             {
                 title:'Kyc Summary',
@@ -221,6 +237,14 @@ export const IMenu = [
             {
                 title: 'Trace Report',
                 to: 'reports/trace',
+            },
+            {
+                title:'Delivery Grade Trends',
+                to:'reports/deliverygradetrends'
+            },
+             {
+                title:'Supplier Chimical Composition',
+                to:'reports/suppliercomposition'
             },
             {
                 title:'Kyc Summary',

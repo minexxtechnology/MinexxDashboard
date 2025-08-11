@@ -11,7 +11,7 @@ export function signUp(email, password) {
         email,
         password,
         returnSecureToken: true,
-    };
+    }; 
     const apiKey = process.env.apiKey_authservice
     return axios.post(
         `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyD3RPAp3nuETDn9OQimqn_YF6zdzqWITII`,

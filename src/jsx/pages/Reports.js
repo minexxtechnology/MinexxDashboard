@@ -169,7 +169,7 @@ const [defaultGradeData, setDefaultGradeData] = useState({
     //     }
     //     return translations[language][key] || key;
     //   };
-    const[monthly,setMonthly]=useState({
+  const[monthly,setMonthly]=useState({
         cassiterite:
         {
             january:0,
@@ -339,6 +339,7 @@ const [defaultGradeData, setDefaultGradeData] = useState({
             
         }
     })
+
 
     const [deliveries, setdeliveries] = useState({
         cassiterite: {
@@ -1249,6 +1250,7 @@ const processGradeGraphData = (data) => {
         setData(document.querySelectorAll("#report_wrapper tbody tr"));
         changeTitle(`${t('Report')} | Minexx`)
         loadReport();
+        console.log('Country:', country);
         loadMinerals();
         loadSuppliers();
         loadSuppliersforGrade();//loading Supplier  grade Trends
@@ -2334,7 +2336,7 @@ const YesNoButton = ({ value }) => (
                   <div className="col-md-4">
     <div className="card">
         <div className="card-header">
-            <h4 className="card-title">{user.type === 'investor_drc' ? 'Copper-Cobalt' : 'Wolframite'}</h4>
+            <h4 className="card-title">{user.type === 'investor_drc' || country === 'DRC' ? 'Copper-Cobalt' : 'Wolframite'}</h4>
         </div>
         <div className="card-body">
             <div className="table-responsive">
@@ -2352,7 +2354,7 @@ const YesNoButton = ({ value }) => (
                                 <td>						
                                     <div>
                                         <Link to={"#"} className="h5">
-                                            {user.type === 'investor_drc' 
+                                            {user.type === 'investor_drc' || country === 'DRC'
                                                 ? (daily.copper.dailyTarget/1000).toFixed(2)
                                                 : (daily.wolframite.dailyTarget/1000).toFixed(2)
                                             }
@@ -2365,7 +2367,7 @@ const YesNoButton = ({ value }) => (
                                 <td>						
                                     <div>
                                         <Link to={"#"} className="h5">
-                                            {user.type === 'investor_drc' 
+                                            {user.type === 'investor_drc' || country === 'DRC'
                                                 ? (daily.copper.dailyActual/1000).toFixed(2)
                                                 : (daily.wolframite.dailyActual/1000).toFixed(2)
                                             }
@@ -2378,7 +2380,7 @@ const YesNoButton = ({ value }) => (
                                 <td>						
                                     <div>
                                         <Link to={"#"} className="h5">
-                                            {user.type === 'investor_drc' 
+                                            {user.type === 'investor_drc' || country === 'DRC'
                                                 ? (daily.copper.mtdTarget/1000).toFixed(2)
                                                 : (daily.wolframite.mtdTarget/1000).toFixed(2)
                                             }
@@ -2399,7 +2401,7 @@ const YesNoButton = ({ value }) => (
                                 <td>						
                                     <div>
                                         <Link to={"#"} className="h5">
-                                            {user.type === 'investor_drc' 
+                                            {user.type === 'investor_drc' || country === 'DRC'
                                                 ? (daily.copper.mtdActual/1000).toFixed(2)
                                                 : (daily.wolframite.mtdActual/1000).toFixed(2)
                                             }
@@ -2412,7 +2414,7 @@ const YesNoButton = ({ value }) => (
                                 <td>						
                                     <div>
                                         <Link to={"#"} className="h5">
-                                            {user.type === 'investor_drc' 
+                                            {user.type === 'investor_drc' || country === 'DRC'
                                                 ? ((daily.copper.mtdActual/1000)/(0.19*days)*100).toFixed(2)
                                                 : ((daily.wolframite.mtdActual/1000)/(0.19*days)*100).toFixed(2)
                                             }%
@@ -2425,7 +2427,7 @@ const YesNoButton = ({ value }) => (
                                 <td>						
                                     <div>
                                         <Link to={"#"} className="h5">
-                                            {user.type === 'investor_drc' 
+                                            {user.type === 'investor_drc' || country === 'DRC'
                                                 ? ((daily.copper.shipped/1000)).toFixed(2)
                                                 : ((daily.wolframite.shipped/1000)).toFixed(2)
                                             }
@@ -2590,7 +2592,7 @@ const YesNoButton = ({ value }) => (
                     <div className="col-md-4">
                         <div className="card">
                             <div className="card-header">
-                                <h4 className="card-title">{user.type === 'investor_drc' ? 'Copper-Cobalt' : 'Wolframite'}</h4>
+                                <h4 className="card-title">{user.type === 'investor_drc' || country === 'DRC' ? 'Copper-Cobalt' : 'Wolframite'}</h4>
                             </div>
                             <div className="card-body">
                                 <div className="table-responsive">
@@ -2608,7 +2610,7 @@ const YesNoButton = ({ value }) => (
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">
-                                                                {user.type === 'investor_drc' 
+                                                                {user.type === 'investor_drc'  || country === 'DRC'
                                                                     ? (balance.copper.rmr/1000).toFixed(2)
                                                                     : (balance.wolframite.rmr/1000).toFixed(2)
                                                                 }
@@ -2621,7 +2623,7 @@ const YesNoButton = ({ value }) => (
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">
-                                                                {user.type === 'investor_drc' 
+                                                                {user.type === 'investor_drc' || country === 'DRC'
                                                                     ? (balance.copper.minexx/1000).toFixed(2)
                                                                     : (balance.wolframite.minexx/1000).toFixed(2)
                                                                 }
@@ -2634,7 +2636,7 @@ const YesNoButton = ({ value }) => (
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">
-                                                                {user.type === 'investor_drc' 
+                                                                {user.type === 'investor_drc' || country === 'DRC'
                                                                     ? (balance.copper.pending/1000).toFixed(2)
                                                                     : (balance.wolframite.pending/1000).toFixed(2)
                                                                 }
@@ -2647,7 +2649,7 @@ const YesNoButton = ({ value }) => (
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">
-                                                                {user.type === 'investor_drc' 
+                                                                {user.type === 'investor_drc' || country === 'DRC'
                                                                     ? (balance.copper.shipped/1000).toFixed(2)
                                                                     : (balance.wolframite.shipped/1000).toFixed(2)
                                                                 }
@@ -2660,7 +2662,7 @@ const YesNoButton = ({ value }) => (
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">
-                                                                {user.type === 'investor_drc' 
+                                                                {user.type === 'investor_drc' || country === 'DRC'
                                                                     ? (balance.copper.buyer/1000).toFixed(2)
                                                                     : (balance.wolframite.buyer/1000).toFixed(2)
                                                                 }
@@ -2793,7 +2795,7 @@ const YesNoButton = ({ value }) => (
                     <div className="col-md-4">
                         <div className="card">
                             <div className="card-header">
-                                <h4 className="card-title">{user.type ==='investor_drc'?'Copper-Cobalt':'Wolframite'}</h4>
+                                <h4 className="card-title">{user.type ==='investor_drc' || country === 'DRC' ?'Copper-Cobalt':'Wolframite'}</h4>
                             </div>
                             <div className="card-body">
                                 <div className="table-responsive">
@@ -2811,7 +2813,7 @@ const YesNoButton = ({ value }) => (
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">
-                                                            {user.type === 'investor_drc'?
+                                                            {user.type === 'investor_drc' || country === 'DRC'?
                                                             (deliveries.copper.daily).toFixed(2):
                                                             (deliveries.wolframite.daily).toFixed(2)
                                                             }</Link>
@@ -2823,7 +2825,7 @@ const YesNoButton = ({ value }) => (
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">
-                                                             {user.type === 'investor_drc'?
+                                                             {user.type === 'investor_drc' || country === 'DRC'?
                                                              (deliveries.copper.weekly).toFixed(2)
                                                              :
                                                              (deliveries.wolframite.weekly).toFixed(2)
@@ -2836,7 +2838,7 @@ const YesNoButton = ({ value }) => (
                                                     <td>						
                                                         <div>
                                                             <Link to={"#"} className="h5">
-                                                            {user.type === 'investor_drc'?
+                                                            {user.type === 'investor_drc' || country === 'DRC'?
                                                             (deliveries.copper.monthly).toFixed(2)
                                                             :(deliveries.wolframite.monthly).toFixed(2)
                                                             }</Link>

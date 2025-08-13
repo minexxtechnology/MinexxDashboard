@@ -42,7 +42,7 @@ export const RootMenu = [
                 to:'reports/deliverygradetrends'
             },
             {
-                title:'Supplier Chimical Composition',
+                title:'Supplier Chemical Composition',
                 to:'reports/suppliercomposition'
             },
             {
@@ -135,7 +135,7 @@ export const RegulatorMenu = [
                 to:'reports/deliverygradetrends'
             },
              {
-                title:'Supplier Chimical Composition',
+                title:'Supplier Chemical Composition',
                 to:'reports/suppliercomposition'
             },
             {
@@ -243,7 +243,7 @@ export const IMenu = [
                 to:'reports/deliverygradetrends'
             },
              {
-                title:'Supplier Chimical Composition',
+                title:'Supplier Chemical Composition',
                 to:'reports/suppliercomposition'
             },
             {

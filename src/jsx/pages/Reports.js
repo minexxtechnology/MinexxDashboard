@@ -1952,19 +1952,19 @@ const chartOptions_Grade = {
 const chartSeries_Grade = [
     {
         name: 'Cassiterite',
-        data: (filteredGradeData.Cassiterite || []).map(val => val / 100)
+        data: (filteredGradeData.Cassiterite || [])  // Keep original values
     },
     {
         name: 'Coltan',
-        data: (filteredGradeData.Coltan || []).map(val => val / 100)
+        data: (filteredGradeData.Coltan || [])
     },
     {
         name: 'Wolframite',
-        data: (filteredGradeData.Wolframite || []).map(val => val / 100)
+        data: (filteredGradeData.Wolframite || [])
     },
     {
         name: 'Copper-Cobalt',
-        data: (filteredGradeData.Copper || []).map(val => val / 100)
+        data: (filteredGradeData.Copper || [])
     }
 ];
 // Create helper components for the KYC summary UI
@@ -4512,18 +4512,18 @@ const YesNoButton = ({ value }) => (
                                 <div className='col-md-4'>
                                     <div className='card'>
                                         <div className='card-header'>
-                                            <h5 className='card-title text-center'>{t("Grade")}</h5>
+                                            <h5 className='card-title text-center'>{t("Avarage Grade")}</h5>
                                         </div>
                                         <div className='card-body'>
                                         <h3 className="text-center text-primary fs-40">
                                             {yearFilterApplied
                                                 ? (filteredGradeData.totalGrade > 0 
-                                                    ? (filteredGradeData.totalGrade/100).toFixed(2) + " %" 
+                                                    ? (filteredGradeData.totalGrade).toFixed(2) + " %" 
                                                     : <>
                                                         0.00 % <br /> No data found
                                                     </>)
                                                 : (filteredGradeData.totalGrade > 0 
-                                                    ? (filteredGradeData.totalGrade/100).toFixed(2) + "%" 
+                                                    ? (filteredGradeData.totalGrade).toFixed(2) + "%" 
                                                     : <>
                                                         0.00 % <br /> No data found
                                                     </>)

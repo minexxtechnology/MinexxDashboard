@@ -420,7 +420,7 @@ const [defaultGradeData, setDefaultGradeData] = useState({
         }
         const selected = input;
         setmineral(selected)
-        toast.info('Generating Sales report, please wait...', {
+        toast.info('Generating  report, please wait...', {
             delay: 100,
             autoClose: true
         })
@@ -4011,7 +4011,7 @@ const YesNoButton = ({ value }) => (
                             // for prevent access of sale report to the gold 
                             <div className='card'>
                                 <div className='card-header'>
-                                    <h5 className='card-title'>{t("SelectMinerals")}</h5> 
+                                    <h5 className='card-title'>{t("SelectMineralsc")}</h5> 
                                 </div>
                                 <div className='card-body'>
                                     <select onChange={changeMineral} className='form-control'>
@@ -4046,15 +4046,32 @@ const YesNoButton = ({ value }) => (
                                         <div className='card-body'>
                                         <h3 className='text-center text-primary fs-40'>
                                     {(() => {
-                                        const currentData = paginate(
-                                            rangeapplied ? (appliedChemicalComposition || []) : (chemicalComposition || []), 
-                                            salesPage, 
-                                            20
-                                        );
-                                        return currentData.length > 0 ? 
-                                            currentData[0].Grade || '-' : 
-                                            'No Data Available';
-                                    })()}
+                                const currentData = paginate(
+                                    rangeapplied ? (appliedChemicalComposition || []) : (chemicalComposition || []), 
+                                    salesPage, 
+                                    20
+                                );
+                                
+                                if (currentData.length === 0) {
+                                    return 'No Data Available';
+                                }
+                                
+                                // Filter out items with valid numeric grades
+                                const validGrades = currentData
+                                    .map(item => item.Grade)
+                                    .filter(grade => grade !== null && grade !== undefined && grade !== '-' && !isNaN(parseFloat(grade)))
+                                    .map(grade => parseFloat(grade));
+                                
+                                if (validGrades.length === 0) {
+                                    return 'No Valid Grades Available';
+                                }
+                                
+                                // Calculate average
+                                const average = validGrades.reduce((sum, grade) => sum + grade, 0) / validGrades.length;
+                                
+                                // Return formatted average (rounded to 2 decimal places)
+                                return average.toFixed(2);
+                            })()}
                                 </h3>
                                 </div>
                                     </div>
@@ -4100,51 +4117,52 @@ const YesNoButton = ({ value }) => (
                                                 <tr>
                                                    
                                                     <th>{t("Supplier")}</th>
-                                                    <th>{t("Grade")}</th>
-                                                     <th>{t("SN")}</th>
-                                                    <th className="text-center text-dark">{t("Moisture")}</th>
-                                                    <th className="text-center text-dark">{t("U3O8")}</th>
-                                                    <th className="text-center text-dark">{t("ThO2")}</th>
-                                                    <th className="text-center text-dark">{t("SiO2")}</th>
-                                                    <th className="text-center text-dark">{t("MgO")}</th>
-                                                    <th className="text-center text-dark">{t("P2O5")}</th>
-                                                    <th className="text-center text-dark">{t("SO3")}</th>
-                                                    <th className="text-center text-dark">{t("CL")}</th>
-                                                    <th className="text-center text-dark">{t("K2O")}</th>
-                                                    <th className="text-center text-dark">{t("TIO2")}</th>
-                                                    <th className="text-center text-dark">{t("Cr2O3")}</th>
-                                                    <th className="text-center text-dark">{t("MnO")}</th>
-                                                    <th className="text-center text-dark">{t("Fe2O3")}</th>
-                                                    <th className="text-center text-dark">{t("CuO")}</th>
-                                                    <th className="text-center text-dark">{t("ZnO")}</th>
-                                                    <th className="text-center text-dark">{t("ZrO2")}</th>
-                                                    <th className="text-center text-dark">{t("Nb2O5")}</th>
-                                                    <th className="text-center text-dark">{t("Ta2O5")}</th>
-                                                    <th className="text-center text-dark">{t("Al2O3")}</th>
-                                                    <th className="text-center text-dark">{t("Na2O")}</th>
-                                                    <th className="text-center text-dark">{t("CaO")}</th>
-                                                    <th className="text-center text-dark">{t("Rb2O")}</th>
-                                                    <th className="text-center text-dark">{t("SrO")}</th>
-                                                    <th className="text-center text-dark">{t("Y2O3")}</th>
-                                                    <th className="text-center text-dark">{t("CeO2")}</th>
-                                                    <th className="text-center text-dark">{t("SnO2")}</th>
-                                                    <th className="text-center text-dark">{t("I")}</th>
-                                                    <th className="text-center text-dark">{t("PbO")}</th>
-                                                    <th className="text-center text-dark">{t("HfO2")}</th>
-                                                    <th className="text-center text-dark">{t("BaO")}</th>
-                                                    <th className="text-center text-dark">{t("As")}</th>
-                                                    <th className="text-center text-dark">{t("Bi")}</th>
-                                                    <th className="text-center text-dark">{t("Pb")}</th>
-                                                    <th className="text-center text-dark">{t("Fe")}</th>
-                                                    <th className="text-center text-dark">{t("WO3")}</th>
-                                                    <th className="text-center text-dark">{t("Sb")}</th>
-                                                    <th className="text-center text-dark">{t("Cu")}</th>
-                                                    <th className="text-center text-dark">{t("Ag")}</th>
-                                                    <th className="text-center text-dark">{t("Co")}</th>
-                                                    <th className="text-center text-dark">{t("Ni")}</th>
-                                                    <th className="text-center text-dark">{t("Mn")}</th>
-                                                    <th className="text-center text-dark">{t("Bal")}</th>
-                                                    <th className="text-center text-dark">{t("Ti")}</th>
+                                                    
+                                                    <th>{('Lot Number')}</th>
+                                                     <th>{t("SN %")}</th>
+                                                    <th className="text-center text-dark">{t("Moisture %")}</th>
+                                                    <th className="text-center text-dark">{t("U3O8 %")}</th>
+                                                    <th className="text-center text-dark">{t("ThO2 %")}</th>
+                                                    <th className="text-center text-dark">{t("SiO2 %")}</th>
+                                                    <th className="text-center text-dark">{t("MgO %")}</th>
+                                                    <th className="text-center text-dark">{t("P2O5 %")}</th>
+                                                    <th className="text-center text-dark">{t("SO3 %")}</th>
+                                                    <th className="text-center text-dark">{t("CL %")}</th>
+                                                    <th className="text-center text-dark">{t("K2O %")}</th>
+                                                    <th className="text-center text-dark">{t("TIO2 %")}</th>
+                                                    <th className="text-center text-dark">{t("Cr2O3 %")}</th>
+                                                    <th className="text-center text-dark">{t("MnO %")}</th>
+                                                    <th className="text-center text-dark">{t("Fe2O3 %")}</th>
+                                                    <th className="text-center text-dark">{t("CuO %")}</th>
+                                                    <th className="text-center text-dark">{t("ZnO %")}</th>
+                                                    <th className="text-center text-dark">{t("ZrO2 %")}</th>
+                                                    <th className="text-center text-dark">{t("Nb2O5 %")}</th>
+                                                    <th className="text-center text-dark">{t("Ta2O5 %")}</th>
+                                                    <th className="text-center text-dark">{t("Al2O3 %")}</th>
+                                                    <th className="text-center text-dark">{t("Na2O %")}</th>
+                                                    <th className="text-center text-dark">{t("CaO %")}</th>
+                                                    <th className="text-center text-dark">{t("Rb2O %")}</th>
+                                                    <th className="text-center text-dark">{t("SrO %")}</th>
+                                                    <th className="text-center text-dark">{t("Y2O3 %")}</th>
+                                                    <th className="text-center text-dark">{t("CeO2 %")}</th>
+                                                    <th className="text-center text-dark">{t("SnO2 %")}</th>
+                                                    <th className="text-center text-dark">{t("I %")}</th>
+                                                    <th className="text-center text-dark">{t("PbO %")}</th>
+                                                    <th className="text-center text-dark">{t("HfO2 %")}</th>
+                                                    <th className="text-center text-dark">{t("BaO %")}</th>
+                                                    <th className="text-center text-dark">{t("As %")}</th>
+                                                    <th className="text-center text-dark">{t("Bi %")}</th>
+                                                    <th className="text-center text-dark">{t("Pb %")}</th>
+                                                    <th className="text-center text-dark">{t("Fe %")}</th>
+                                                    <th className="text-center text-dark">{t("WO3 %")}</th>
+                                                    <th className="text-center text-dark">{t("Sb %")}</th>
+                                                    <th className="text-center text-dark">{t("Cu %")}</th>
+                                                    <th className="text-center text-dark">{t("Ag %")}</th>
+                                                    <th className="text-center text-dark">{t("Co %")}</th>
+                                                    <th className="text-center text-dark">{t("Ni %")}</th>
+                                                    <th className="text-center text-dark">{t("Mn %")}</th>
+                                                    <th className="text-center text-dark">{t("Bal %")}</th>
+                                                    <th className="text-center text-dark">{t("Ti %")}</th>
                                                 </tr>
                                             </thead>
                                                                             <tbody>
@@ -4157,7 +4175,8 @@ const YesNoButton = ({ value }) => (
                                             
                                             <td>{composition.SupplierName}</td>
                                            
-                                            <td>{composition.Grade || '-'}(%)</td>
+                                            
+                                            <td>{composition.LotNumber || '-'}</td>
                                             {/* Chemical elements data using API response property names */}
                                             <td className="text-center">{composition.sn_percent || '-'}</td>
                                             <td className="text-center">{composition.moisture_percent || '-'}</td>
@@ -4207,7 +4226,7 @@ const YesNoButton = ({ value }) => (
                                     ))}
                                     {(rangeapplied ? (appliedChemicalComposition || []) : (chemicalComposition || [])).length === 0 ? (
                                         <tr>
-                                            <td colSpan={47}>{t("NoSelectedMineral")}</td>
+                                            <td colSpan={47}>{t("NoSelectedMinerals")}</td>
                                         </tr>
                                     ) : (
                                         <tr></tr>

@@ -10,6 +10,7 @@ export const translations = {
         SelectCompany: "Please select company to generate trace report",
         SelectMineralstrends:"Please select Company to generate Sales trends",
         SelectMinerals:"Select Minerals to generate Sale Report",
+        SelectMineralsc:"Select Minerals to generate Chemical Composition Report",
         SelectMineralsS:"Select Minerals to generate Shipped Report",
         SelectExportID:"Please Select Export ID to Generate Report",
         SelectMineralShort:"Select Mineral",
@@ -166,6 +167,7 @@ export const translations = {
         //drum tab
         Drums: "Drums",
         NoSelectedMineral:"The selected Mineral does not have any Sale Report to show.",
+        NoSelectedMinerals:"The selected Mineral does not have any Chemical Composition to show.",
         NoSelectedMineralShipped:"The selected Mineral does not have any Shipped Report to show.",
         DrumNumber: "Drum Number",
         GrossWeight: "Gross Weight",
@@ -329,6 +331,7 @@ export const translations = {
         SaleReport: "Rapport de vente",
         CassiteriteSaleReport:"Rapport de vente ",
         CassiteriteShippedReport:"Rapport de Ship ",
+        SelectMineralsc:"Veuillez sélectionner des minéraux pour générer le rapport de composition chimique",
         SelectMinerals: "Veuillez sélectionner des minéraux pour générer le rapport de vente",
         SelectMineralsS:"Veuillez sélectionner des minéraux pour générer le rapport de ship",
         SelectMineralstrends:"Veuillez sélectionner une entreprise pour générer les tendances des ventes.",
@@ -382,6 +385,7 @@ export const translations = {
         November: "novembre",
         December: "Décembre",
         NoSelectedMineral:"Le minéral sélectionné n'a aucun rapport de vente à afficher.",
+        NoSelectedMinerals:"Le minéral sélectionné n'a aucun rapport de composition chimique à afficher.",
         NoSelectedMineralShipped:"Le minéral sélectionné n'a aucun rapport d'expédition à afficher.",
         //production Tab
         ProductionWeight: "Poids de production (Kg)",

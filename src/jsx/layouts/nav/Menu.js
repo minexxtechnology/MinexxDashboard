@@ -37,14 +37,7 @@ export const RootMenu = [
                 title:'Kyc Summary',
                 to:'reports/kycsummary'
             },
-             {
-                title:'Delivery Grade Trends',
-                to:'reports/deliverygradetrends'
-            },
-            {
-                title:'Supplier Chemical Composition',
-                to:'reports/suppliercomposition'
-            },
+           
             {
             title:'Supplier Sales Report',
             to:'reports/sale',
@@ -64,6 +57,14 @@ export const RootMenu = [
             {
                 title:'Shipped Report',
                 to:'reports/shipped'
+            },
+            {
+                title:'Delivery Grade Trends',
+                to:'reports/deliverygradetrends'
+            },
+            {
+                title:'Supplier Chemical Composition',
+                to:'reports/suppliercomposition'
             },
             {
                 title: 'In-Stock Country Balance',
@@ -130,14 +131,6 @@ export const RegulatorMenu = [
                 title: 'Trace Reports',
                 to: 'reports/trace',
             },
-             {
-                title:'Delivery Grade Trends',
-                to:'reports/deliverygradetrends'
-            },
-             {
-                title:'Supplier Chemical Composition',
-                to:'reports/suppliercomposition'
-            },
             {
                 title:'Kyc Summary',
                 to:'reports/kycsummary'
@@ -157,6 +150,14 @@ export const RegulatorMenu = [
             {
                 title:'Shipped Report',
                 to:'reports/shipped'
+            },
+              {
+                title:'Delivery Grade Trends',
+                to:'reports/deliverygradetrends'
+            },
+            {
+                title:'Supplier Chemical Composition',
+                to:'reports/suppliercomposition'
             },
             {
                 title: 'Total Stock Delivery',
@@ -238,14 +239,7 @@ export const IMenu = [
                 title: 'Trace Report',
                 to: 'reports/trace',
             },
-            {
-                title:'Delivery Grade Trends',
-                to:'reports/deliverygradetrends'
-            },
-             {
-                title:'Supplier Chemical Composition',
-                to:'reports/suppliercomposition'
-            },
+            
             {
                 title:'Kyc Summary',
                 to:'reports/kycsummary'
@@ -265,6 +259,14 @@ export const IMenu = [
             {
                 title:'Shipped Report',
                 to:'reports/shipped'
+            },
+              {
+                title:'Delivery Grade Trends',
+                to:'reports/deliverygradetrends'
+            },
+            {
+                title:'Supplier Chemical Composition',
+                to:'reports/suppliercomposition'
             },
             {
                 title: 'Total Stock Delivery',

@@ -305,7 +305,7 @@ function Home({ language, country }) {
             </div>
           </div>
         </div>
-        { country === 'Libya' ?
+        { country === 'Libya'  ?
         <div className="col-md-8">
 
         </div>:

@@ -10,13 +10,36 @@ const MineVolumeChart = ({ country, height = 220 }) => {
   const [selectedMineral, setSelectedMineral] = useState('Cassiterite');
   const [error, setError] = useState(null);
   
-  const minerals = [
+  const allMinerals = [
     { id: 'Cassiterite', label: 'Cassiterite', color: '#4dc9f6' },
     { id: 'Coltan', label: 'Coltan', color: '#f67019' },
+    { id: 'Diomond', label: 'Diomond', color: '#f53794' },
     // { id: 'Tantalum', label: 'Tantalum', color: '#f53794' },
     // { id: 'Tungsten', label: 'Tungsten', color: '#537bc4' },
-    // { id: 'Gold', label: 'Gold', color: '#acc236' }
+    { id: 'Gold', label: 'Gold', color: '#acc236' }
   ];
+
+  // Filter minerals based on country
+  const getAvailableMinerals = () => {
+    if (country && country.toLowerCase().trim() === 'gabon') {
+      return allMinerals.filter(mineral => 
+        mineral.id === 'Gold' || mineral.id === 'Diomond'
+      );
+    }
+    return allMinerals.filter(mineral => 
+        mineral.id === 'Cassiterite' || mineral.id === 'Coltan'
+      );;
+  };
+
+  const minerals = getAvailableMinerals();
+
+  // Update selected mineral if current selection is not available for the country
+  useEffect(() => {
+    const availableMineralIds = minerals.map(m => m.id);
+    if (!availableMineralIds.includes(selectedMineral)) {
+      setSelectedMineral(availableMineralIds[0] || 'Cassiterite');
+    }
+  }, [country, minerals, selectedMineral]);
 
   const fetchSalesData = async (mineral) => {
     setLoading(true);
@@ -68,7 +91,7 @@ const MineVolumeChart = ({ country, height = 220 }) => {
   };
 
   const getMineralColor = (mineralId) => {
-    const mineral = minerals.find(m => m.id === mineralId);
+    const mineral = allMinerals.find(m => m.id === mineralId);
     return mineral ? mineral.color : '#000';
   };
 

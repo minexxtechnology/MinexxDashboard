@@ -1,6 +1,9 @@
 {
   "name": "minexx-dashboard",
   "version": "0.1.0",
+  "engines": {
+    "node":"20.x"
+  },
 
   "private": true,
   "dependencies": {

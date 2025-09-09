@@ -12,7 +12,7 @@ import { ThemeContext } from "../../../context/ThemeContext";
 
 // Add translations for menu items
 const menuTranslations = {
-  en: {
+  en: { 
     Overview: "Overview",
     Exports: "Exports",
     Suppliers: "Suppliers",
@@ -189,13 +189,13 @@ const SideBar = ({ language, country }) => {
     >
       <PerfectScrollbar className="deznav-scroll">
         <ul className="metismenu" id="menu">
-          {processedMenu.filter(item => user.type !== "buyer" ? item : item.to !== "reports").map((data, index) => {
+             {processedMenu.filter(item => user.type !== "buyer" || user.type !== "buyers" ? item : item.to !== "reports").map((data, index) => {
             let menuClass = data.classChange;
             if (menuClass === "menu-title") {
               return (
                 <li className={menuClass} key={index}>{data.title}</li>
               );
-            } else {
+            }else {
               return (
                 <li className={`${path === data.to || window.location.pathname.includes(data.to) || state.active === data.title ? 'mm-active' : ''}`}
                   key={index}

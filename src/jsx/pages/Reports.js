@@ -4018,10 +4018,16 @@ const YesNoButton = ({ value }) => (
                                         <option>{t("SelectMineralShort")}</option>
                                         {access === '3ts' ? (
                                             <>
+                                            {user.type ==="buyer"?(
+                                                <option value="Cassiterite">Cassiterite/Tin</option>
+                                            ):(
+                                                <>
                                                 <option value="Cassiterite">Cassiterite/Tin</option>
                                                 <option value="Coltan">Coltan/Tantalum</option>
                                                 <option value="Wolframite">Wolframite</option>
                                                 <option value="Copper-cobalt">Copper-Cobalt</option>
+                                                </>
+                                            )}
                                             </>
                                         ) : (
                                             <option value="Gold">Gold</option>

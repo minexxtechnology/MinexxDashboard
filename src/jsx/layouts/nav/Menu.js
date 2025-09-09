@@ -200,7 +200,19 @@ export const BMenu = [
         title: 'Knowledge Base',
         iconStyle: <i className="flaticon-monitor"></i>,
         to: 'knowledge' 
-    }
+    },
+    {
+        title:'Reporting',
+        to: 'reports',
+        update:"New",
+        iconStyle : <i className="flaticon-business-report" />,
+        content: [
+            {
+                title:'Supplier Chemical Composition',
+                to:'reports/suppliercomposition'
+            },
+        ]
+        } 
 ]
 
 export const IMenu = [

@@ -34,6 +34,15 @@ export const RootMenu = [
                 to: 'reports/trace',
             },
             {
+                title:'KPIs',
+                to:'reports/kpis'
+
+            },
+            {
+                title:'Stock Movement',
+                to:'reports/stockmovement'
+            },
+            {
                 title:'Kyc Summary',
                 to:'reports/kycsummary'
             },
@@ -130,6 +139,15 @@ export const RegulatorMenu = [
             {
                 title: 'Trace Reports',
                 to: 'reports/trace',
+            },
+            {
+                title:'KPIs',
+                to:'reports/kpis'
+
+            },
+            {
+                title:'Stock Movement',
+                to:'reports/stockmovement'
             },
             {
                 title:'Kyc Summary',
@@ -250,6 +268,15 @@ export const IMenu = [
             {
                 title: 'Trace Report',
                 to: 'reports/trace',
+            },
+            {
+                title:'KPIs',
+                to:'reports/kpis'
+
+            },
+            {
+                title:'Stock Movement',
+                to:'reports/stockmovement'
             },
             
             {

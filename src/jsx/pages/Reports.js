@@ -13,6 +13,8 @@ import axiosInstance from '../../services/AxiosInstance';
 import ReactApexChart from 'react-apexcharts';
 import { translations } from './Reportstranslation';
 import { Select } from 'semantic-ui-react';
+import KPIs from './KPIs';
+import Stockmovement from './stockmovement';
 
 
 const ticketData = [
@@ -2043,6 +2045,10 @@ const YesNoButton = ({ value }) => (
                                 ? t('Delivery Grade Trends')
                             : type === 'suppliercomposition'
                                 ? t('Supplier Composition')
+                            : type === 'kpis'
+                                ? t('KPI Report')
+                            : type === 'stockmovement'
+                                ? t('Stock Movement')    
                             : type === 'mtd' 
                                 ? t('InStockCountryBalance')
                                 : t('TotalPurchase')}
@@ -2693,6 +2699,12 @@ const YesNoButton = ({ value }) => (
                         </div>
                     </div>
                 </div>
+                :
+                type === `kpis` ?
+                <KPIs country={country} language={language}/>
+                :
+                type ===`stockmovement`?
+                <Stockmovement country={country} language={language} access={access}/>
                 :
                 type === `deliveries` ?
                 <div className='row'>
@@ -4180,8 +4192,6 @@ const YesNoButton = ({ value }) => (
                                         <tr key={`composition${i}`}>
                                             
                                             <td>{composition.SupplierName}</td>
-                                           
-                                            
                                             <td>{composition.LotNumber || '-'}</td>
                                             {/* Chemical elements data using API response property names */}
                                             <td className="text-center">{composition.sn_percent || '-'}</td>

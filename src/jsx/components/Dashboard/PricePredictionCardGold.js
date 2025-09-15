@@ -50,7 +50,7 @@ const TinPredictionChart = ({ language, refreshInterval = 300000,country }) => {
 
     return { historicaldata: historical };
   };
-  
+
   // Function to process forecast data and add derived fields
   const processForecastData = (data) => {
     if (!data || !data.forecast || !data.forecast.length) return null;
@@ -522,7 +522,7 @@ const createCombinedChart = (historicalData, forecastData) => {
     <div className="card">
       <div className="card-header d-sm-flex d-block pb-0 border-0">
         <div>
-          <h4 className="fs-20 text-white">{country === 'Gabon' || country ==='Ghana' || country ==='France' ? 'Copper' : 'TIN'} Price Analysis</h4>
+          <h4 className="fs-20 text-white">Gold Price Analysis</h4>
           <p className="mb-0 fs-12 text-white-50">{t('Historical data and price forecasts combined')}</p>
         </div>
         <div className="d-flex mt-sm-0 mt-3 align-items-center ml-auto">

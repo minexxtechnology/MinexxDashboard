@@ -17,6 +17,7 @@ import TrendingAssets from './TrendingAssets';
 import MineralsPriceTable from './MineralsPriceTable';
 import MineVolumeChart from './MineVolumeChart';
 import PricePredictionCard from './PricePredictionCard';
+import PricePredictionCardGold from './PricePredictionCardGold';
 
 
 const Doughnutchart = loadable(() =>
@@ -49,7 +50,8 @@ function Home({ language, country }) {
       data: {
         'TIN': {},
         'LME-TIN': {},
-        'TIN3M': {}
+        'TIN3M': {},
+        'COPPER':{}
       }
     }
   });
@@ -325,11 +327,11 @@ function Home({ language, country }) {
                 <h4 className="mb-0 fs-20">Market Status</h4>
               </div>
             </div>
-            <MetalPricesChart data={apiData} />
+            <MetalPricesChart data={apiData} country={country} />
           </div>
         </div>
         <div className="col-md-4">
-          <MineralsPriceTable />
+          <MineralsPriceTable country={country} />
         </div>
       </div>
       
@@ -337,16 +339,20 @@ function Home({ language, country }) {
       <div className="row mt-4">
         <div className="col-md-12">
           {/* Price Prediction Card component on its own row */}
-          <PricePredictionCard language={language} />
+          <PricePredictionCard language={language} country={country}/>
         </div>
       </div>
-          
-      {/* Last row: Trending Assets section */}
-      <div className="row mt-4">
+      {/* {country === 'Gabon' || country ==='Ghana' || country ==='France' ?  <div className="row mt-4">
         <div className="col-md-12">
-          <TrendingAssets data={apiData} />
+          
+          <PricePredictionCardGold language={language} country={country}/>
         </div>
-      </div>
+      </div> : (
+        null
+       
+      )} */}
+
+   
      
     </Fragment>
   )

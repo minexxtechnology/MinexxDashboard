@@ -320,6 +320,12 @@ export const IMenu = [
                 to: 'reports/deliveries',
             },
         ]
-
     }
+     ,
+        {
+        title:'System Health',
+        update:"New",
+        iconStyle : <i className="flaticon-381-graph"></i>,
+        to:'Systemhealth',
+        },
 ]

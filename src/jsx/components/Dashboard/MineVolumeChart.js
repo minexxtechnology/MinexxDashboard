@@ -21,7 +21,7 @@ const MineVolumeChart = ({ country, height = 220 }) => {
 
   // Filter minerals based on country
   const getAvailableMinerals = () => {
-    if (country && country.toLowerCase().trim() === 'gabon') {
+    if (country && (country.toLowerCase().trim() === 'gabon'|| country.toLowerCase().trim() === 'ghana' || country.toLowerCase().trim() === 'france')) {
       return allMinerals.filter(mineral => 
         mineral.id === 'Gold' || mineral.id === 'Diomond'
       );

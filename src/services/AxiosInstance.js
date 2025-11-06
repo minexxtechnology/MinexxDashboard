@@ -7,6 +7,7 @@ const axiosInstance = axios.create({
     }
 }); 
 
+
 axiosInstance.interceptors.request.use((config) => {
     const token = localStorage.getItem(`_authTkn`)
     const refresh = localStorage.getItem(`_authRfrsh`)
@@ -19,3 +20,4 @@ axiosInstance.interceptors.request.use((config) => {
 });
  
 export default axiosInstance;
+ 

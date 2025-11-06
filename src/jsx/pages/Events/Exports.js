@@ -22,6 +22,7 @@ const Exports = ({ language, country }) => {
     const [loading, setLoading] = useState(true);
     const [progressData, setProgressData] = useState({});
     const access = localStorage.getItem(`_dash`) || '3ts';
+    const user = JSON.parse(localStorage.getItem(`_authUsr`));
 
     // Memoized translations function to avoid recreating on every render
     const t = useCallback((key) => {
@@ -100,6 +101,31 @@ const Exports = ({ language, country }) => {
         }
     }, [normalizedCountry, dispatch, navigate]);
 
+    const handleApprove = useCallback(async(exportId) => {
+        try {
+            // Show loading state (optional - you could add a loading state per button)
+            let response = await axiosInstance.post(`approve/export/${exportId}`);
+        
+            toast.success("Export approved successfully");
+            
+            // Update the local state to reflect the approval
+            setExports(prevExports => 
+                prevExports.map(exp => 
+                    exp.id === exportId 
+                        ? { ...exp, status: "Approved" } 
+                        : exp
+                )
+            );
+            
+        } catch(err) {
+            if (err.response?.status === 403) { // Fixed: should be 'status' not 'code'
+                dispatch(Logout(navigate));
+            } else {
+                toast.error(err.response?.data?.message || err.message || "Failed to approve export");
+            }
+        }
+    }, [dispatch, navigate]);
+
     // Filtered exports using useMemo to avoid recalculating on every render
     const filtered = useMemo(() => {
         if (!searchInput) return exports;
@@ -155,12 +181,13 @@ const Exports = ({ language, country }) => {
     // Only fetch data when country changes, not language
     useEffect(() => {
         fetchExports();
+        
     }, [fetchExports]);
 
     // Update page title when language changes
     useEffect(() => {
         changeTitle(`${t('Exports')} | Minexx`);
-    }, [changeTitle, t]);
+    }, [changeTitle, t,country,user]);
 
     return(
         <Segment>
@@ -222,15 +249,21 @@ const Exports = ({ language, country }) => {
                                                         <label className="custom-control-label" htmlFor="checkAll" />
                                                     </div>
                                                 </th>
-                                                <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('CompanyName')}</th>
-                                                <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('ExportationID')}</th>
+                                                <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{country === 'Gabon' ? t('BuyerID') : t('CompanyName')}</th>
+                                                <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{country === 'Gabon' ? t('SaleID') : t('ExportationID')}</th>
                                                 <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('Date')}</th>
                                                 <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('MineralType')}</th>
                                                 <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('Grade')}</th>
                                                 <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('NetWeight')}</th>
-                                                <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('Track')}</th>
+                                               {country !== 'Gabon' && 
+                                               <>
+                                               <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('Track')}</th>
                                                 <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('TradeTimeline')}</th>
+                                                </>}
                                                 <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('QrCode')}</th> 
+                                                {/* {user.type ==='investor' && user.email ==='info@minexx.co' && (
+                                                    <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('Actions')}</th>
+                                                )} */}
                                             </tr>
                                         </thead>
                                         {loading ? 
@@ -249,7 +282,7 @@ const Exports = ({ language, country }) => {
                                                                 <input type="checkbox" className="custom-control-input" id={`customCheckBox_${_export.id}`} required />
                                                                 <label className="custom-control-label" htmlFor={`customCheckBox_${_export.id}`} />
                                                             </div>
-                                                        </td>
+                                                        </td> 
                                                         <td><Link to={`/company/${_export?.company?.id}`}>{_export?.company?.name}</Link></td>
                                                         <td><Link className={_export.exportationID ? "text-primary" : "text-danger"} to={`/exports/${_export?.id}`}>{_export.exportationID ? _export.exportationID : "Exportation ID Missing"}</Link></td>
                                                         <td>{new Date(_export.date).toString().substring(0, 16)}</td>
@@ -261,8 +294,10 @@ const Exports = ({ language, country }) => {
                                                         </td>
                                                         <td>{_export.grade}</td>
                                                         <td>{access === '3ts' ? _export.netWeight : (_export.netWeight/1000).toFixed(2)}</td>
-                                                        <td>{_export.link ? <a target="_blank" href={`${_export.link}`} className="text-primary" rel="noreferrer">Track Shipment</a> : <span className="text-warning">Tracking not available</span>}</td>
-                                                        <td>
+                                                        {country !== 'Gabon' && (
+                                                            <td>{_export.link ? <a target="_blank" href={`${_export.link}`} className="text-primary" rel="noreferrer">Track Shipment</a> : <span className="text-warning">Tracking not available</span>}</td>
+                                                        )}
+                                                      {country !== 'Gabon' && ( <td>
                                                             {_export.exportationID && progressData[_export.exportationID] ? 
                                                                 <a href={`/time-tracking/?id=${_export?.exportationID}`} rel="noreferrer" style={{ display: 'block', textDecoration: 'none', width: '100%' }}>
                                                                     <div className="d-flex align-items-center">
@@ -279,9 +314,20 @@ const Exports = ({ language, country }) => {
                                                                 <span className="text-warning">Progress not available</span>
                                                             }
                                                         </td>
+                                                      )}
                                                         <td>
                                                             <QRCodeWithPrintButton value={`https://minexx-scann-mysql.vercel.app/export/${_export?.id}/${_export?.company?.id}/?x-platform=${_export.mineral === 'Gold' ? 'gold' : '3ts'}`} />
                                                         </td> 
+                                                       
+                                                        {/* {user.type === 'investor' && user.email === 'info@minexx.co' && (
+                                                            <td>
+                                                                {_export.status !== "Approved" ? (
+                                                                    <button className="btn btn-primary" onClick={() => handleApprove(_export.id)}>Approve</button>
+                                                                ) : (
+                                                                    <span className="text-success">Approved</span>
+                                                                )}
+                                                            </td>
+                                                        )} */}
                                                     </tr> 
                                                 ))}
                                             </tbody>

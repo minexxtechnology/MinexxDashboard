@@ -12,7 +12,7 @@ import { ThemeContext } from "../../../context/ThemeContext";
 
 // Add translations for menu items
 const menuTranslations = {
-  en: { 
+  en: {
     Overview: "Overview",
     Exports: "Exports",
     Suppliers: "Suppliers",
@@ -34,6 +34,7 @@ const menuTranslations = {
     "Trade Time Report": "Trade Time Report",
     "Kyc Summary": "Kyc Summary",
     "Shipped Report": "Shipped Report",
+    "Sales": "Sales",
   },
   fr: {
     Overview: "Vue d'ensemble",
@@ -57,6 +58,7 @@ const menuTranslations = {
     "Trade Time Report": "Rapport de temps d'échange",
     "Kyc Summary": "Résumé KYC",
     "Shipped Report": "Rapport d'expédition",
+    "Sales": "Ventes",
   }
 };
 
@@ -137,11 +139,18 @@ const SideBar = ({ language, country }) => {
   const t = (key) => menuTranslations[language]?.[key] || key;
 
   // Process menu items based on country filter
+ // Process menu items based on country filter
   const processMenu = (menuItems) => {
     return menuItems.map(item => {
       // Clone the item to avoid modifying the original
       const processedItem = {...item};
-      processedItem.title = t(item.title);
+      
+      // For Gabon, change "Exports" to "Sales"
+      if (item.title === "Exports" && country === "Gabon") {
+        processedItem.title = t("Sales");
+      } else {
+        processedItem.title = t(item.title);
+      }
       
       // If it's the Reporting section and we're in Libya
       if (item.title === "Reporting" && country === "Libya") {
@@ -174,7 +183,7 @@ const SideBar = ({ language, country }) => {
   path = path[path.length - 1];
 
   return (
-    <div 
+    <div  
       onMouseEnter={() => ChangeIconSidebar(true)}
       onMouseLeave={() => ChangeIconSidebar(false)}
       className={`deznav border-right ${iconHover} ${
@@ -189,13 +198,13 @@ const SideBar = ({ language, country }) => {
     >
       <PerfectScrollbar className="deznav-scroll">
         <ul className="metismenu" id="menu">
-             {processedMenu.filter(item => user.type !== "buyer" || user.type !== "buyers" ? item : item.to !== "reports").map((data, index) => {
+          {processedMenu.filter(item => user.type !== "buyer" || user.type !== "buyers" ? item : item.to !== "reports").map((data, index) => {
             let menuClass = data.classChange;
             if (menuClass === "menu-title") {
               return (
                 <li className={menuClass} key={index}>{data.title}</li>
               );
-            }else {
+            } else {
               return (
                 <li className={`${path === data.to || window.location.pathname.includes(data.to) || state.active === data.title ? 'mm-active' : ''}`}
                   key={index}
@@ -225,11 +234,15 @@ const SideBar = ({ language, country }) => {
                   {data.content && data.content.length > 0 && (
                     <Collapse in={state.active === data.title}>
                       <ul className={`${menuClass === "mm-collapse" && data.content ? "mm-show" : ""}`}>
-                        {data.content.filter(c => {
+                        {data.content.filter(c => { 
                           // Apply existing access-based filters
-                          if (access === `gold`) {
-                            return !["reports/daily", "reports/mtd", "reports/deliveries", "reports/sale", "reports/suppliertrends"].includes(c.to);
+                          if (access === `gold` && country !== 'Gabon') {
+                            return !["reports/daily", "reports/mtd", "reports/deliveries", "reports/sale",'reports/suppliercomposition','reports/suppliertrends','reports/deliverygradetrends','reports/shipped'].includes(c.to);
                           }
+                          if (access === `gold` && country === 'Gabon')
+                            {
+                              return ['reports/trace','reports/sale','reports/daily','reports/mtd','reports/deliveries'].includes(c.to);
+                            } 
                           return true;
                         }).map((subData, subIndex) => {									
                           return (
@@ -290,4 +303,4 @@ const SideBar = ({ language, country }) => {
   );
 };
 
-export default SideBar;
+export default SideBar; 

@@ -12,9 +12,9 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
   const getMetalConfig = () => {
     if (country === 'Gabon'|| country === 'Ghana' || country === 'France') {
       return {
-        metalTypes: ['COPPER'],
+        metalTypes: ['Gold'],
         metalColors: {
-          'COPPER': '#B87333'     // Copper
+          'Gold': '#FFD700'     // Gold
         }
       };
     } else {
@@ -101,7 +101,7 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
     
     // Base prices for different metals (fallback only)
     const basePrices = {
-      'COPPER': 8500,  // Copper fallback price
+      'Gold': 8500,  // Copper fallback price
     };
     
     let currentPrice = basePrices[metalType] || 1000;
@@ -200,7 +200,7 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
         low,
         formattedDate: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         isUp: close >= open,
-        metalType: 'COPPER'
+        metalType: 'Gold'
       });
     });
     
@@ -245,11 +245,11 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(endDate.getDate() - 30); // Last 30 days
-        
-        processedData['COPPER'] = generateMockData('COPPER', startDate, endDate);
-        
+
+        processedData['Gold'] = generateMockData('Gold', startDate, endDate);
+
         const allDates = new Set();
-        processedData['COPPER'].forEach(point => allDates.add(point.date.toISOString().split('T')[0]));
+        processedData['Gold'].forEach(point => allDates.add(point.date.toISOString().split('T')[0]));
         sortedDates = Array.from(allDates).sort();
       }
     } else {
@@ -592,7 +592,7 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
     
     // Draw legend based on country
     const legendItems = (country === 'Gabon' || country === 'Ghana' || country === 'France') ? [
-      { label: 'Copper', color: metalColors['COPPER'], type: 'COPPER' }
+      { label: 'Gold', color: metalColors['Gold'], type: 'Gold' }
     ] : [
       { label: 'LME TIN', color: metalColors['LME-TIN'], type: 'LME-TIN' },
       { label: 'TIN 3M', color: metalColors['TIN3M'], type: 'TIN3M' },
@@ -660,7 +660,7 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
             }}
             onClick={() => handleLegendClick(type)}
           >
-            {type === 'COPPER' && (country === 'Gabon' || country === 'Ghana' || country === 'France') 
+            {type === 'Gold' && (country === 'Gabon' || country === 'Ghana' || country === 'France') 
               ? `${type}` : type}
           </button>
         ))}
@@ -741,7 +741,7 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
           
           <div className="text-muted">
             Loading {(country === 'Gabon' || country === 'Ghana' || country === 'France') 
-              ? 'copper price data...' 
+              ? 'Gold price data...' 
               : 'market data...'}
           </div>
           

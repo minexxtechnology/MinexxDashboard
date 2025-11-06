@@ -146,9 +146,9 @@ import Tracking from "./pages/Events/Tracking";
 import ProductionSummary from "./pages/ProductionSummary";
 import Companies from "./pages/Companies";
 import Suppliers from "./pages/Suppliers";
+import Systemhealth from "./pages/Systemhealth";
 import Mines from "./pages/Locations/Mines";
 import Kyc from "./pages/InnerPages/Kyc";
-import Systemhealth from "./pages/Systemhealth";
 import Export from "./pages/InnerPages/Export";
 import ExportA from "./pages/InnerPages/ExportA";
 import Mine from "./pages/InnerPages/Mine";
@@ -200,9 +200,9 @@ const Markup = (props) => {
     { url: 'overview', component: <Home key={language} language={language}  country={country} /> },
     { url: 'companies', component: <Companies/> },
      { url: 'Systemhealth', component: <Systemhealth  language={language}/> },
-    { url: 'company/:id', component: <Company key={language} language={language}/> },
+    { url: 'company/:id', component: <Company key={language} language={language} country={country}/> },
     { url: 'mines/:id', component: <Mine key={language} language={language}/> },
-    { url: 'Kyc/:id', component: <Kyc key={language} language={language} /> },
+    { url: 'Kyc/:id', component: <Kyc key={language} language={language} country={country} /> },
     { url: 'users', component: <Users/> },
 	  { url: 'incidents', component: <Incidents/> },
 	  { url: 'exports', component: <Exports key={language} language={language} country={country}/> },

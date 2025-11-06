@@ -746,18 +746,23 @@ const processGradeGraphData = (data) => {
             // For other countries, remove leading/trailing dots and spaces
             normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
         }
-        axiosInstance.get(`/report/suppliertrend`,
-            {
-                params: {
-                    country: normalizedCountry,
-                }
-            }).then(response=>{
-           
-            setsuppliersgrade({
-                trend:response.data.trend
-            })
-            console.log("Full response data:", response.data.trend);
-            })
+        axiosInstance.get(`/report/suppliertrend`, {
+    params: {
+        country: normalizedCountry,
+    }
+})
+.then(response => {
+    setsuppliersgrade({
+        trend: response.data.trend
+    });
+    console.log("Full response data:", response.data.trend);
+})
+.catch(error => {
+    // Add error handling to see the actual error message
+    console.error("Error details:", error.response?.data);
+    console.error("Status:", error.response?.status);
+    console.error("Headers:", error.response?.headers);
+});
         }
         const loadExoprtationID=()=>
             {
@@ -3010,28 +3015,28 @@ const YesNoButton = ({ value }) => (
                                                 </thead>
                                                 <tbody>
     {trace.production?.production?.length > 0 ? (
-        trace.production.production.map((prod, i) => {
-            // Check if prod is an object or an array
-            const rowData = Array.isArray(prod) ? prod : Object.values(prod);
-            return (
-                <tr key={`prod${i}`}>
-                    {rowData.map((p, index) => (
-                        <td key={index}>
-                            {p.includes && p.includes('Images') ? (
-                                <button 
-                                    onClick={() => showAttachment(p, `Transaction: ${rowData[0]}`)} 
-                                    className='btn btn-sm btn-primary'
-                                >
-                                    View
-                                </button>
-                            ) : (
-                                p
-                            )}
-                        </td>
-                    ))}
-                </tr>
-            );
-        })
+    trace.production.production.map((prod, i) => {
+        // Check if prod is an object or an array
+        const rowData = Array.isArray(prod) ? prod : Object.values(prod);
+        return (
+            <tr key={`prod${i}`}>
+                {rowData.map((p, index) => (
+                    <td key={index}>
+                        {typeof p === 'string' && p.includes('Images') ? (
+                            <button 
+                                onClick={() => showAttachment(p, `Transaction: ${rowData[0]}`)} 
+                                className='btn btn-sm btn-primary'
+                            >
+                                View
+                            </button>
+                        ) : (
+                            p
+                        )}
+                    </td>
+                ))}
+            </tr>
+        );
+    })
     ) : (
         <tr>
             <td colSpan={9}>The selected company does not have any production to show.</td>
@@ -3882,7 +3887,7 @@ const YesNoButton = ({ value }) => (
                                                 <option value="Cassiterite">Cassiterite/Tin</option>
                                                 <option value="Coltan">Coltan/Tantalum</option>
                                                 <option value="Wolframite">Wolframite</option>
-                                                <option value="Copper">Copper-Cobalt</option>
+                                                <option value="Copper">Copper-Cobalts</option>
                                             </>
                                         ) : (
                                             <option value="Gold">Gold</option>

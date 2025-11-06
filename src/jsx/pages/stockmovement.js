@@ -91,7 +91,8 @@ const Stockmovement = ({ country, language,access }) => {
                         date: date,
                         minexx: data[mineralLower]?.minexx || 0,
                         rmr: data[mineralLower]?.rmr || 0,
-                        export: data[mineralLower]?.shipped_buyer || 0
+                        export: data[mineralLower]?.shipped_buyer || 0,
+                        pending_shipment: data[mineralLower]?.pending_shipment || 0,
                     };
                 })
             };
@@ -202,6 +203,7 @@ const Stockmovement = ({ country, language,access }) => {
                                                 <th>{selectedMineral}{t(" With minexx")}</th>
                                                 <th>{country === 'DRC' ? (selectedMineral + t(" With Partenaire")) : (selectedMineral + t(" With RMR"))}</th>
                                                 <th className="text-center text-dark">{t("Export")}</th>
+                                                 <th className="text-center text-dark">{t("Pending Shipment")}</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -231,6 +233,7 @@ const Stockmovement = ({ country, language,access }) => {
                                                 <td className="text-center">{saleItem.minexx.toFixed(2)} Kg</td>
                                                 <td className="text-center">{saleItem.rmr.toFixed(2)} Kg</td>
                                                 <td className="text-center">{saleItem.export.toFixed(2)} Kg</td>
+                                                <td className="text-center">{saleItem.pending_shipment.toFixed(2)} Kg</td>
                                             </tr>
                                         ))
                                     )}

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { baseURL_ } from '../../config';
+// import { baseURL_ } from '../../config';
 import axiosInstance from '../../services/AxiosInstance';
 import { translations } from './KpiTranslation';
-const testingURL_="https://minexxapi-testing-p7n5ing2cq-uc.a.run.app/";
+
+const baseURL_="https://minexxapi-testing-p7n5ing2cq-uc.a.run.app/";
 
 const KPIs = ({ country, language }) => {
     const [selectedYear, setSelectedYear] = useState('2025');
@@ -39,7 +40,7 @@ const KPIs = ({ country, language }) => {
         count: 0,
         volume: 0
     });
-    const [daysToDestination, setDaysToDestination] = useState(36.33);
+    const [daysToDestination, setDaysToDestination] = useState();
     const [supplier, setSupplier] = useState({
         count: 0,
         active: 0,
@@ -47,19 +48,12 @@ const KPIs = ({ country, language }) => {
     const [users, setUsers] = useState(0); 
 
     const months = [
-        { value: '', label: 'All Months' },
-        { value: '1', label: 'January' },
-        { value: '2', label: 'February' },
-        { value: '3', label: 'March' },
-        { value: '4', label: 'April' },
-        { value: '5', label: 'May' },
-        { value: '6', label: 'June' },
-        { value: '7', label: 'July' },
-        { value: '8', label: 'August' },
-        { value: '9', label: 'September' },
-        { value: '10', label: 'October' },
-        { value: '11', label: 'November' },
-        { value: '12', label: 'December' }
+        { value: '', label: 'All Quarters' },
+        { value: 'Q1', label: 'Q1' },
+        { value: 'Q2', label: 'Q2' },
+        { value: 'Q3', label: 'Q3' },
+        { value: 'Q4', label: 'Q4' },
+
     ];
 
     const t = (key) => {
@@ -80,10 +74,10 @@ const KPIs = ({ country, language }) => {
             
             // Only add month parameter if a specific month is selected
             if (selectedMonth) {
-                params.month = selectedMonth;
+                params.quarter = selectedMonth;
             }
 
-            const response = await axiosInstance.get(`${testingURL_}report/kpisyear`, {
+            const response = await axiosInstance.get(`${baseURL_}report/kpisyeartest`, {
                 params: params
             });
             console.log('KPI Data:', response.data);
@@ -112,7 +106,7 @@ const KPIs = ({ country, language }) => {
                 setUsers(data.total_users || 0);
                 // Note: daysToDestination is not in the API response, 
                 // you might need to add it to your API or remove it from the component
-                setDaysToDestination(data.daysToDestination || 0);
+                setDaysToDestination(data.purchase_days_to_destination.kpi_quarter_days || 0);
                 
                 console.log('Updated KPI Data:', data.supplier);
                 console.log('Updated Users Count:', data.total_users);
@@ -194,13 +188,7 @@ const KPIs = ({ country, language }) => {
                         <div className="col-12 col-lg-6">
                             <div className="card bg-dark-light">
                                 <div className="card-body text-center">
-                                    <h2 className="display-1 text-info">
-                                        {country === 'Rwanda' ? (
-                                            "91 Days"
-                                        ) : (
-                                            "0 Day"
-                                        )}
-                                       </h2>
+                                    <h2 className="display-1 text-info">{daysToDestination}</h2>
                                     <p>{t("Purchase to Final Destination")}</p>
                                 </div>
                             </div>

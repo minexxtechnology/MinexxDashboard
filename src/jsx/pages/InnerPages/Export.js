@@ -11,7 +11,7 @@ import { Turtle, CheckCircle, X, XCircle } from 'lucide-react';
 import { translations } from '../Events/Exporttranslation';
 
 // Updated DocumentsList component with document availability checking
-const DocumentsList = ({ documents, dashboard, exportId, language, country }) => {
+const DocumentsList = ({ documents, dashboard, exportId, language, country,user }) => {
     // Individual loading states for each document
     const [documentLoading, setDocumentLoading] = useState({});
     // Store file IDs separately, only fetch when needed
@@ -94,6 +94,15 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
         return fieldNames[index] || null;
       }
     };
+    const getDocumentInfo = (fieldName) => {
+  const dbFieldName = getDbFieldName(fieldName);
+  return availableDocuments.find(doc => 
+    doc.fieldName === fieldName || 
+    doc.fieldName === dbFieldName || 
+    doc.dbFieldName === fieldName || 
+    doc.dbFieldName === dbFieldName
+  );
+};
     
     // Map field names to dbFieldNames for better matching with available documents
     const getDbFieldName = (fieldName) => {
@@ -208,7 +217,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
   
     // Get file ID for a document - always use /exportsfield endpoint
     const getFileId = async (index, fieldName) => {
-      console.log(`getFileId called for index ${index}, fieldName ${fieldName}, exportId ${exportId}`);
+      console.log(`getFileId called for index ${index}, fieldName ${fieldName}, exportId ${exportId},`);
       
       // If we already have the file ID from a previous call, use it
       if (fileIds[fieldName] && fileIds[fieldName] !== undefined) {
@@ -283,7 +292,74 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
         }));
       }
     };
+    //handle Approve Document
+ const handleApprove = async (fieldName, index) => {
+  setDocumentLoading(prev => ({
+    ...prev,
+    [index]: true
+  }));
+  
+  try {
+    const response = await axiosInstance.post(
+      `${baseURL_}approve/exportfield/${exportId}?field=${fieldName}`,  // ✅ Add as query param
+      {}  // Empty body
+    );
+    toast.success("Document approved successfully");
     
+    // Refresh available documents to get updated status
+    const refreshResponse = await axiosInstance.get(`/exports/available/${exportId}`, {
+      params: { 
+        country: normalizedCountry
+      }
+    });
+    
+    if (refreshResponse.data.success && refreshResponse.data.document && refreshResponse.data.document.availableDocuments) {
+      setAvailableDocuments(refreshResponse.data.document.availableDocuments);
+    }
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Something went wrong");
+    console.error(`Error approving document for ${fieldName}:`, error);
+  } finally {
+    setDocumentLoading(prev => ({
+      ...prev,
+      [index]: false
+    }));
+  }
+}
+const handleDisapprove = async (fieldName, index) => {
+   setDocumentLoading(prev => ({
+    ...prev,
+    [index]: true
+  }));
+  
+  try {
+    const response = await axiosInstance.post(
+      `${baseURL_}disapprove/exportfield/${exportId}?field=${fieldName}`,  // ✅ Add as query param
+      {}  // Empty body
+    );
+    toast.success("Document disapproved successfully");
+
+    // Refresh available documents to get updated status
+    const refreshResponse = await axiosInstance.get(`/exports/available/${exportId}`, {
+      params: { 
+        country: normalizedCountry
+      }
+    });
+    
+    if (refreshResponse.data.success && refreshResponse.data.document && refreshResponse.data.document.availableDocuments) {
+      setAvailableDocuments(refreshResponse.data.document.availableDocuments);
+    }
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Something went wrong");
+    console.error(`Error approving document for ${fieldName}:`, error);
+  } finally {
+    setDocumentLoading(prev => ({
+      ...prev,
+      [index]: false
+    }));
+  } 
+
+  };
     // Handle view document action
     const handleViewDocument = async (index) => {
       const fieldName = getFieldName(index);
@@ -327,6 +403,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
         {documents.map((document, index) => {
           const fieldName = getFieldName(index);
           const documentAvailable = isDocumentAvailable(fieldName);
+           const documentInfo = getDocumentInfo(fieldName); // Get full document info
           
           return (
             <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
@@ -340,29 +417,49 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country }) =>
                   <div className="spinner-border spinner-border-sm text-primary" role="status">
                     <span className="sr-only">Loading...</span>
                   </div>
-                ) : documentAvailable ? (
-                  <>
-                    <button
-                      className="btn btn-info"
-                      onClick={() => handleViewDocument(index)}
-                    >
-                      {t("View")}
-                    </button>
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => handleDownloadDocument(index)}
-                    >
-                      {t("Download")}
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    className="btn btn-danger"
-                    disabled
-                  >
-                    {t("Missing")}
-                  </button>
+                  ) : documentAvailable ? (
+              <>
+                <button
+                  className="btn btn-info"
+                  onClick={() => handleViewDocument(index)}
+                >
+                  {t("View")}
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => handleDownloadDocument(index)}
+                >
+                  {t("Download")}
+                </button>
+                {user.type === "investor" && user.email === "info@minexx.co" && (
+                  documentInfo?.status !== "Approved" ? (
+                    <>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => handleApprove(fieldName)}
+                      >
+                        {t("Approve")}
+                      </button>
+                      <button
+                        className="btn btn-danger"
+                        onClick={() => handleDisapprove(fieldName)}
+                      >
+                        {t("Disapprove")}
+                      </button>
+                    </>
+                  ) : (
+                    <span className="badge bg-success">{t("Approved")}</span>
+                  )
                 )}
+              </>
+            ) : (
+              <button
+                className="btn btn-danger"
+                disabled
+              >
+                {t("Missing")}
+              </button>
+            )}
               </div>
             </ListGroup.Item>
           );
@@ -734,6 +831,7 @@ const Export = ({ country, language }) => {
                                                 <DocumentsList 
                                                     documents={documents} 
                                                     dashboard={access} 
+                                                    user={user}
                                                     exportId={id} 
                                                     language={language}
                                                     country={country}

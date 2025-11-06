@@ -10,7 +10,7 @@ import { useDispatch } from 'react-redux';
 import axiosInstance from '../../services/AxiosInstance';
 import { translations } from './Companytranslation';
 
-const Company = ({ language }) => {
+const Company = ({ language,country }) => {
     const { id } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -30,6 +30,7 @@ const Company = ({ language }) => {
     const [shareholders, setShareholders] = useState([]);
     const [beneficialOwners, setBeneficialOwners] = useState([]);
     const [shareholderID, setShareholderID] = useState(null);
+    const user = JSON.parse(localStorage.getItem(`_authUsr`));
 
     const t = (key) => {
         if (!translations[language]) {
@@ -38,6 +39,17 @@ const Company = ({ language }) => {
         }
         return translations[language][key] || key;
     };
+    let normalizedCountrys = country.trim();
+            
+    // Special handling for Rwanda
+    if (normalizedCountrys.toLowerCase() === 'rwanda') {
+        // Randomly choose one of the three formats
+         normalizedCountrys ='.Rwanda';
+        // normalizedCountry = formats[Math.floor(Math.random() * formats.length)];
+    } else {
+        // For other countries, remove leading/trailing dots and spaces
+        normalizedCountrys = normalizedCountrys.replace(/^\.+|\.+$/g, '');
+    }
 
     const handleError = (err) => {
         try {
@@ -54,11 +66,15 @@ const Company = ({ language }) => {
     // Separate fetch functions for each data type
     const fetchCompanyDetails = async () => {
         try {
-            const response = await axiosInstance.get(`companies/${id}`);
+            const response = await axiosInstance.get(`companies/country/${id}`,
+                {
+                    params: { country: normalizedCountrys }
+                });
             setCompany(response.data.company);
             changeTitle(response.data.company.name);
         } catch (err) {
-            handleError(err);
+            // handleError(err);
+            console.log(err);
         } finally {
             setLoadingStates(prev => ({ ...prev, basic: false }));
         }
@@ -66,7 +82,10 @@ const Company = ({ language }) => {
 
     const fetchDocuments = async () => {
         try {
-            const response = await axiosInstance.get(`${baseURL_}documentsnoAuth/${id}`);
+            const response = await axiosInstance.get(`${baseURL_}documentsnoAuth/${id}`,
+                {
+                    params: { country: normalizedCountrys }
+                });
             setDocuments(response.data.documents.documents);
         } catch (err) {
             handleError(err);
@@ -77,7 +96,11 @@ const Company = ({ language }) => {
 
     const fetchShareholders = async () => {
         try {
-            const response = await axiosInstance.get(`${baseURL_}shareholders/${id}`);
+            const response = await axiosInstance.get(`${baseURL_}shareholders/${id}`,
+                {
+                    params: { country: normalizedCountrys }
+                }
+            );
             setShareholders(response.data.shareholders);
         } catch (err) {
             handleError(err);
@@ -88,7 +111,11 @@ const Company = ({ language }) => {
 
     const fetchBeneficialOwners = async () => {
         try {
-            const response = await axiosInstance.get(`${baseURL_}owners/${id}`);
+            const response = await axiosInstance.get(`${baseURL_}owners/${id}`,
+                {
+                    params: { country: normalizedCountrys }
+                }
+            );
             setBeneficialOwners(response.data.beneficial_owners);
         } catch (err) {
             handleError(err);
@@ -96,13 +123,21 @@ const Company = ({ language }) => {
             setLoadingStates(prev => ({ ...prev, beneficialOwners: false }));
         }
     };
+      // Add callback function to update document status locally
+    const handleDocumentUpdate = (docId, newStatus) => {
+        setDocuments(prevDocs => 
+            prevDocs.map(doc => 
+                doc.id === docId ? { ...doc, status: newStatus } : doc
+            )
+        );
+    };
 
     useEffect(() => {
         fetchCompanyDetails();
         fetchDocuments();
         fetchShareholders();
         fetchBeneficialOwners();
-    }, [id, language]);
+    }, [id, language, country]);
 
     // Loading spinner component
     const LoadingSpinner = () => (
@@ -232,7 +267,7 @@ const Company = ({ language }) => {
                                 {loadingStates.documents ? (
                                     <LoadingSpinner />
                                 ) : (
-                                    <ComplianceTable documents={documents} language={language} />
+                                    <ComplianceTable documents={documents} language={language} user={user}   onDocumentUpdate={handleDocumentUpdate} />
                                 )}
                             </Tab.Pane>
 

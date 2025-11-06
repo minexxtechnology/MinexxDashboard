@@ -2,9 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
 import { ThemeContext } from "../../context/ThemeContext";
 import axiosInstance from "../../services/AxiosInstance";
-import axios from "axios";
-
-const baseURL_="https://minexxapi-testing-p7n5ing2cq-uc.a.run.app"
 
 const Systemhealth = () => {
     const { changeTitle } = useContext(ThemeContext);
@@ -69,7 +66,7 @@ const Systemhealth = () => {
     // Load service health records from new endpoint
     const loadServiceHealthRecords = async () => {
         try {
-            const response = await axios(`${baseURL_}/service_health_records`);
+            const response = await axiosInstance.get('/service_health_records');
             if (response.data && response.data.success) {
                 // Limit to latest 30 records per service (they're already sorted DESC by created_at)
                 const limitedData = response.data.data.map(service => ({

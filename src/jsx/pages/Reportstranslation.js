@@ -23,6 +23,7 @@ export const translations = {
         BagsProcessed: "Bags Processed",
         Blending: "Blending",
         Duration:"Duration",
+        "KPI Report": "KPI Report",
 
         Drums: "Drums",
         Exports: "Exports",
@@ -324,6 +325,7 @@ export const translations = {
         Month:"mois",
         Year:"année",
         Sales:"Vente",
+        "Kpis Report": "Rapport KPI",
         Viewby: "Voir par",
         Duration:"Durée",
         Tradetimelinereport:"Rapport de la chronologie du commerce",

@@ -327,6 +327,7 @@ function Home({ language, country }) {
                 <h4 className="mb-0 fs-20">Market Status</h4>
               </div>
             </div>
+            
             <MetalPricesChart data={apiData} country={country} />
           </div>
         </div>
@@ -336,21 +337,16 @@ function Home({ language, country }) {
       </div>
       
       {/* New row just for Price Prediction Card */}
-      <div className="row mt-4">
+    
+      {country === 'Gabon' || country ==='Ghana' || country ==='France' ?  <div className="row mt-4">
         <div className="col-md-12">
           {/* Price Prediction Card component on its own row */}
-          <PricePredictionCard language={language} country={country}/>
-        </div>
-      </div>
-      {/* {country === 'Gabon' || country ==='Ghana' || country ==='France' ?  <div className="row mt-4">
-        <div className="col-md-12">
-          
           <PricePredictionCardGold language={language} country={country}/>
         </div>
       </div> : (
-        null
+        <PricePredictionCard language={language} country={country}/>
        
-      )} */}
+      )}
 
    
      

@@ -4,7 +4,9 @@ export const translations = {
   en: {
     SearchforExports: "Search for Exports",
     CompanyName: "Company Name",
+    BuyerID: "Buyer ID",
     ExportationID: "Exportation ID",
+    SaleID: "Sale ID",
     Date: "Date",
     MineralType: "Mineral Type",
     Grade: "Grade",
@@ -60,6 +62,8 @@ export const translations = {
   fr: {
     SearchforExports: "Recherche de l'exportation",
     CompanyName: "Nom de l'entreprise",
+    BuyerID: "ID de l'acheteur",
+    SaleID: "ID de vente",
     ExportationID: "ID d'exportation",
     Date: "Date de l'exportation",
     MineralType: "Type de minéral",

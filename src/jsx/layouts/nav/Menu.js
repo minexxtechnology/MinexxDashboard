@@ -46,7 +46,14 @@ export const RootMenu = [
                 title:'Kyc Summary',
                 to:'reports/kycsummary'
             },
-           
+             {
+                title:'Delivery Grade Trends',
+                to:'reports/deliverygradetrends'
+            },
+            {
+                title:'Supplier Chemical Composition',
+                to:'reports/suppliercomposition'
+            },
             {
             title:'Supplier Sales Report',
             to:'reports/sale',
@@ -68,14 +75,6 @@ export const RootMenu = [
                 to:'reports/shipped'
             },
             {
-                title:'Delivery Grade Trends',
-                to:'reports/deliverygradetrends'
-            },
-            {
-                title:'Supplier Chemical Composition',
-                to:'reports/suppliercomposition'
-            },
-            {
                 title: 'In-Stock Country Balance',
                 to: 'reports/mtd',
             },
@@ -83,9 +82,11 @@ export const RootMenu = [
                 title: 'Total Purchase',
                 to: 'reports/deliveries',
             },
-        ]
 
+        ]
+        
     },
+
     // Users
     {
         title: 'User Management',
@@ -145,9 +146,17 @@ export const RegulatorMenu = [
                 to:'reports/kpis'
 
             },
-            {
+             {
                 title:'Stock Movement',
                 to:'reports/stockmovement'
+            },
+             {
+                title:'Delivery Grade Trends',
+                to:'reports/deliverygradetrends'
+            },
+             {
+                title:'Supplier Chemical Composition',
+                to:'reports/suppliercomposition'
             },
             {
                 title:'Kyc Summary',
@@ -169,14 +178,6 @@ export const RegulatorMenu = [
                 title:'Shipped Report',
                 to:'reports/shipped'
             },
-              {
-                title:'Delivery Grade Trends',
-                to:'reports/deliverygradetrends'
-            },
-            {
-                title:'Supplier Chemical Composition',
-                to:'reports/suppliercomposition'
-            },
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
@@ -192,6 +193,13 @@ export const RegulatorMenu = [
         ]
 
     }
+    ,
+        {
+        title:'System Health',
+        update:"New",
+        iconStyle : <i className="flaticon-381-graph"></i>,
+        to:'Systemhealth',
+        },
 ]
 
 export const BMenu = [
@@ -230,7 +238,7 @@ export const BMenu = [
                 to:'reports/suppliercomposition'
             },
         ]
-        } 
+        }
 ]
 
 export const IMenu = [
@@ -274,11 +282,18 @@ export const IMenu = [
                 to:'reports/kpis'
 
             },
-            {
+             {
                 title:'Stock Movement',
                 to:'reports/stockmovement'
             },
-            
+            {
+                title:'Delivery Grade Trends',
+                to:'reports/deliverygradetrends'
+            },
+             {
+                title:'Supplier Chemical Composition',
+                to:'reports/suppliercomposition'
+            },
             {
                 title:'Kyc Summary',
                 to:'reports/kycsummary'
@@ -299,14 +314,6 @@ export const IMenu = [
                 title:'Shipped Report',
                 to:'reports/shipped'
             },
-              {
-                title:'Delivery Grade Trends',
-                to:'reports/deliverygradetrends'
-            },
-            {
-                title:'Supplier Chemical Composition',
-                to:'reports/suppliercomposition'
-            },
             {
                 title: 'Total Stock Delivery',
                 to: 'reports/daily',
@@ -320,8 +327,9 @@ export const IMenu = [
                 to: 'reports/deliveries',
             },
         ]
+
     }
-     ,
+    ,
         {
         title:'System Health',
         update:"New",

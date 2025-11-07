@@ -479,8 +479,8 @@ const Kyc = ({language,country}) => {
                         </Row>
                       </Container>
 
-                      {/* Bulk Actions */}
-                      {user.type === 'investor' && user.email === "info@minexx.co" && companyDocs.length > 0 && (
+                      {/* Bulk Actions - Only show if there are unapproved documents */}
+                      {user.type === 'investor' && user.email === "info@minexx.co" && companyDocs.length > 0 && companyDocs.some(doc => doc.status !== 'Approved') && (
                         <div className="d-flex justify-content-between align-items-center mt-4 mb-3 p-3 bg-dark rounded">
                           <div className="form-check">
                             <input

@@ -35,6 +35,9 @@ const ComplianceTable = ({ documents, language, user, onDocumentUpdate }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
 
+  // Check if all documents are approved
+  const allDocumentsApproved = documents.length > 0 && documents.every(doc => doc.status === "Approved");
+
   // Active data
   const chageData = (frist, sec) => {
     for (var i = 0; i < data.length; ++i) {
@@ -348,7 +351,7 @@ const ComplianceTable = ({ documents, language, user, onDocumentUpdate }) => {
           >
             <thead>
               <tr role="row">
-                 {user.type === "investor" && user.email === 'info@minexx.co' && (
+                 {user.type === "investor" && user.email === 'info@minexx.co' && !allDocumentsApproved && (
                 <th
                   className="sorting_asc"
                   tabIndex="0"
@@ -385,7 +388,7 @@ const ComplianceTable = ({ documents, language, user, onDocumentUpdate }) => {
                 </th>
                 <th>{t('Action')}</th>
                 <th>
-                  {user.type === "investor" && user.email === 'info@minexx.co' && (
+                  {user.type === "investor" && user.email === 'info@minexx.co' && !allDocumentsApproved && (
                     <div className="d-flex gap-2">
                       <button
                         title="Approve Selected"
@@ -421,7 +424,7 @@ const ComplianceTable = ({ documents, language, user, onDocumentUpdate }) => {
               ) : (
                 documents.map((doc, i) => (
                   <tr key={`doc${i}`} role="row" className="odd">
-                       {user.type === "investor" && user.email === 'info@minexx.co' && (
+                       {user.type === "investor" && user.email === 'info@minexx.co' && !allDocumentsApproved && (
                     <td className="sorting_1">
                       <div className="checkbox me-0 align-self-center">
                         <div className="form-check custom-checkbox ">

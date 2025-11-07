@@ -10,7 +10,7 @@ const KPIs = ({ country, language }) => {
     const [selectedMonth, setSelectedMonth] = useState('');
     const [purchaseCassiterite, setPurchaseCassiterite] = useState({
         count: 0,
-        volume: 0
+        volume: 0 
     });
     const [purchaseColtan, setPurchaseColtan] = useState({
         count: 0,

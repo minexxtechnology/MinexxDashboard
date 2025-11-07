@@ -348,6 +348,7 @@ const ComplianceTable = ({ documents, language, user, onDocumentUpdate }) => {
           >
             <thead>
               <tr role="row">
+                 {user.type === "investor" && user.email === 'info@minexx.co' && (
                 <th
                   className="sorting_asc"
                   tabIndex="0"
@@ -356,7 +357,7 @@ const ComplianceTable = ({ documents, language, user, onDocumentUpdate }) => {
                   colSpan="1"
                   aria-sort="ascending"
                   aria-label=": activate to sort column descending"
-                >
+                > 
                   <div className="checkbox me-0 align-self-center">
                     <div className="form-check custom-checkbox ">
                       <input
@@ -369,7 +370,9 @@ const ComplianceTable = ({ documents, language, user, onDocumentUpdate }) => {
                       <label className="form-check-label" htmlFor="checkAll"></label>
                     </div>
                   </div>
+                     
                 </th>
+                 )}
                 <th
                   className="d-none d-lg-table-cell sorting"
                   tabIndex="0"
@@ -418,6 +421,7 @@ const ComplianceTable = ({ documents, language, user, onDocumentUpdate }) => {
               ) : (
                 documents.map((doc, i) => (
                   <tr key={`doc${i}`} role="row" className="odd">
+                       {user.type === "investor" && user.email === 'info@minexx.co' && (
                     <td className="sorting_1">
                       <div className="checkbox me-0 align-self-center">
                         <div className="form-check custom-checkbox ">
@@ -435,6 +439,7 @@ const ComplianceTable = ({ documents, language, user, onDocumentUpdate }) => {
                         </div>
                       </div>
                     </td>
+                       )}
                     <td>
                       <div className="media align-items-center pointer" onClick={() => setdocu(doc)}>
                         <div className="media-body">
@@ -460,40 +465,38 @@ const ComplianceTable = ({ documents, language, user, onDocumentUpdate }) => {
                         >
                           <FontAwesomeIcon icon={icon({ name: 'download' })} />
                         </Link>
-                        {user.type === "investor" &&
-                          (doc.status !== "Approved" ? (
-                            user.email === 'info@minexx.co' && (
-                              <>
-                                <button
-                                  title="Approve"
-                                  onClick={() => showConfirmation({
-                                    type: 'single-approve',
-                                    doc: doc,
-                                    docId: doc.id
-                                  })}
-                                  className="btn btn-secondary light btn-sm px-4"
-                                >
-                                  <FontAwesomeIcon icon={icon({ name: 'check' })} />
-                                </button>
-                                <button
-                                  title="Reject"
-                                  onClick={() => showConfirmation({
-                                    type: 'single-disapprove',
-                                    doc: doc,
-                                    docId: doc.id
-                                  })}
-                                  className="btn btn-danger btn-subtle  btn-sm px-4 ms-2"
-                                >
-                                  <FontAwesomeIcon icon={icon({ name: 'x' })} />
-                                </button>
-                              </>
-                            )
-                          ) : (
-                            <span className="btn btn-success light btn-sm px-4">
-                              <FontAwesomeIcon icon={icon({ name: 'thumbs-up' })} />
-                              Approved
-                            </span>
-                          ))}
+                       {user.type === "investor" && user.email === 'info@minexx.co' &&
+                        (doc.status !== "Approved" ? (
+                          <>
+                            <button
+                              title="Approve"
+                              onClick={() => showConfirmation({
+                                type: 'single-approve',
+                                doc: doc,
+                                docId: doc.id
+                              })}
+                              className="btn btn-secondary light btn-sm px-4"
+                            >
+                              <FontAwesomeIcon icon={icon({ name: 'check' })} />
+                            </button>
+                            <button
+                              title="Reject"
+                              onClick={() => showConfirmation({
+                                type: 'single-disapprove',
+                                doc: doc,
+                                docId: doc.id
+                              })}
+                              className="btn btn-danger btn-subtle btn-sm px-4 ms-2"
+                            >
+                              <FontAwesomeIcon icon={icon({ name: 'x' })} />
+                            </button>
+                          </>
+                        ) : (
+                          <span className="btn btn-success light btn-sm px-4">
+                            <FontAwesomeIcon icon={icon({ name: 'thumbs-up' })} />
+                            Approved
+                          </span>
+                        ))}
                       </div>
                     </td>
                     <td></td>

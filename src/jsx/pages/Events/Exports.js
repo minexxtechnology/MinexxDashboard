@@ -96,7 +96,7 @@ const Exports = ({ language, country }) => {
             if (err.response?.code === 403) {
                 dispatch(Logout(navigate));
             } else {
-                toast.error(err.message || "Failed to fetch exports");
+                console.log(err.message || "Failed to fetch exports");
             }
         }
     }, [normalizedCountry, dispatch, navigate]);
@@ -121,7 +121,7 @@ const Exports = ({ language, country }) => {
             if (err.response?.status === 403) { // Fixed: should be 'status' not 'code'
                 dispatch(Logout(navigate));
             } else {
-                toast.error(err.response?.data?.message || err.message || "Failed to approve export");
+                console.log(err.response?.data?.message || err.message || "Failed to approve export");
             }
         }
     }, [dispatch, navigate]);
@@ -165,7 +165,7 @@ const Exports = ({ language, country }) => {
                 if (err.response?.code === 403) {
                     dispatch(Logout(navigate));
                 } else {
-                    toast.error(err.message || "Failed to load attachment");
+                    console.log(err.message || "Failed to load attachment");
                 }
             });
     }, [dispatch, navigate]);

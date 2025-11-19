@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 
 /// React router dom
-import {  Routes, Route, Outlet, Router  } from "react-router-dom";
+import {  Routes, Route, Outlet, useNavigate  } from "react-router-dom";
 
 /// Css
 //import "swiper/css";
@@ -156,6 +156,7 @@ import Assessment from "./pages/InnerPages/Assessment";
 
 const Markup = (props) => {
   const { menuToggle } = useContext(ThemeContext);
+  const navigate = useNavigate();
   
   // Get initial country based on user type
   const getInitialCountry = () => {
@@ -190,8 +191,11 @@ const Markup = (props) => {
   };
   
   const changeCountry = (newCountry) => {
-    setCountry(newCountry);
-    localStorage.setItem('_country', newCountry);
+    if (newCountry !== country) {
+      setCountry(newCountry);
+      localStorage.setItem('_country', newCountry);
+      navigate('/overview');
+    }
   };
   
   const allroutes = [
@@ -368,6 +372,7 @@ const Markup = (props) => {
 
 function MainLayout({ language, onLanguageChange, country, onCountryChange }){
   const { menuToggle, sidebariconHover } = useContext(ThemeContext);
+
   return (
     <div id="main-wrapper" className={`show ${sidebariconHover ? "iconhover-toggle": ""} ${ menuToggle ? "menu-toggle" : ""}`}>  
       <Nav 

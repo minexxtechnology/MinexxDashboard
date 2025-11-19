@@ -40,6 +40,42 @@ export function saveTokenInLocalStorage(data) {
     localStorage.setItem('_authRfrsh', data.refreshToken);
     localStorage.setItem('_authUsr', JSON.stringify(data.user));
     localStorage.setItem('_dash', data.user.access === 'both' ? '3ts' : data.user.access);
+    
+    // Set country based on user type and access_supervisor
+    let initialCountry = 'Rwanda'; // default
+    
+    if (data.user.type === 'investor_drc' || data.user.type === 'buyers_drc') {
+        initialCountry = 'DRC';
+    } else if (data.user.type === 'investor' && data.user.access_supervisor === 'drc') {
+        initialCountry = 'DRC';
+    } else if (data.user.type === 'investor' && data.user.access_supervisor === 'rwanda') {
+        initialCountry = 'Rwanda';
+    } else if (data.user.type === 'buyer' || data.user.type === 'buyers') {
+        // For buyers with access to both, check if there's a stored preference
+        const storedCountry = localStorage.getItem('_country');
+        initialCountry = storedCountry && (storedCountry === 'Rwanda' || storedCountry === 'DRC') 
+            ? storedCountry 
+            : 'Rwanda';
+    }
+    
+    localStorage.setItem('_country', initialCountry);
+    
+    // Set language based on country
+    const countryLanguageDefaults = {
+        'Rwanda': 'en',
+        'DRC': 'fr',
+        'Ghana': 'en',
+        'France': 'fr',
+        'Gabon': 'fr',
+        'Ethiopia': 'en',
+        'Libya': 'en',
+    };
+    
+    // Only set default language if user hasn't manually chosen one
+    const userLang = localStorage.getItem('_userLang');
+    if (!userLang) {
+        localStorage.setItem('_lang', countryLanguageDefaults[initialCountry] || 'en');
+    }
 }
 
 export function runLogoutTimer(dispatch, timer, navigate) {

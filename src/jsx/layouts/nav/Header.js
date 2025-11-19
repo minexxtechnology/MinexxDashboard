@@ -36,12 +36,40 @@ const countryLanguageDefaults = {
   'Libya':'en',
 };
 
+// Move this function outside the component
+const getInitialCountry = (user) => {
+  const storedCountry = localStorage.getItem(`_country`);
+  
+  if (user?.type === 'investor_drc' || user?.type === 'buyers_drc') {
+    return 'DRC';
+  } else if (user?.type === 'investor' && user?.access_supervisor === 'drc') {
+    return 'DRC';
+  } else if (user?.type === 'investor' && user?.access_supervisor === 'rwanda') {
+    return 'Rwanda';
+  } else if (user?.type === 'buyer' || user?.type === 'buyers') {
+    return storedCountry && (storedCountry === 'Rwanda' || storedCountry === 'DRC') 
+      ? storedCountry 
+      : 'Rwanda';
+  }
+  
+  return storedCountry || 'Rwanda';
+};
+
 const Header = ({ onLanguageChange, onCountryChange }) => {
   const [user] = useState(JSON.parse(localStorage.getItem(`_authUsr`)));
   const [access, setAccess] = useState('');
   const [view, setView] = useState(localStorage.getItem(`_dash`) || '');
-  const [country, setCountry] = useState(localStorage.getItem(`_country`) || 'Rwanda');
-  const [lang, setLang] = useState(localStorage.getItem(`_userLang`) || localStorage.getItem(`_lang`) || countryLanguageDefaults[country] || 'en');
+  
+  // Initialize country first
+  const [country, setCountry] = useState(getInitialCountry(user));
+  
+  // Now initialize lang with country available
+  const [lang, setLang] = useState(
+    localStorage.getItem(`_userLang`) || 
+    localStorage.getItem(`_lang`) || 
+    countryLanguageDefaults[getInitialCountry(user)] || 
+    'en'
+  );
 
   const countries = {
     'Rwanda': 'https://flagcdn.com/w320/rw.png',
@@ -59,7 +87,16 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
       return { 'DRC': countries['DRC'] };
     } else if (user?.type === 'buyer' || user?.type === 'buyers') {
       return { 'Rwanda': countries['Rwanda'], 'DRC': countries['DRC'] };
-    } else {
+    } else if(user?.type === 'investor' && user?.access_supervisor === 'rwanda & Ethiopia') {
+      return { 'Rwanda': countries['Rwanda'],'Ethiopia':countries['Ethiopia'] };
+    } else if(user?.type === "investor" && user?.access_supervisor === 'drc') {
+      return { 'DRC': countries['DRC'] };
+    }
+    else if(user?.type ==="investor"  && user?.access_supervisor === 'rwanda')
+    {
+      return { 'Rwanda': countries['Rwanda'] };
+    }
+     else {
       return countries;
     }
   }; 
@@ -67,6 +104,9 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
   const availableCountries = getAvailableCountries();
 
   useEffect(() => {
+    // Save country to localStorage
+    localStorage.setItem('_country', country);
+    
     // If current country is not in available countries, reset to first available
     if (!availableCountries[country]) {
       const firstAvailable = Object.keys(availableCountries)[0];
@@ -153,7 +193,7 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
     }
   }
 
-  const t = (key) => translations[lang][key] || key;
+  const t = (key) => translations[lang]?.[key] || key;
   const otherCountries = Object.keys(availableCountries).filter(c => c !== country);
 
   return (
@@ -220,7 +260,6 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
         </nav>
       </div>
       <ChatBot /> 
-
     </div>
   );
 };

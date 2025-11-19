@@ -191,7 +191,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country,user 
           }
         } catch (error) {
           console.error('Error fetching available documents:', error);
-          toast.error(error.response?.data?.message || `${t("ErrorFetchingDocuments")}`);
+          console.log(error.response?.data?.message || `${t("ErrorFetchingDocuments")}`);
         } finally {
           setLoadingAvailability(false);
         }
@@ -265,7 +265,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country,user 
           return fileContent;
         } else {
           console.warn(`Document not found for ${fieldName}:`, response.data);
-          toast.error(`${t("DocumentNotFound")}: ${documents[index]}`);
+          console.log(`${t("DocumentNotFound")}: ${documents[index]}`);
           
           setFileIds(prev => ({
             ...prev,
@@ -277,7 +277,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country,user 
       } catch (error) {
         console.error('Error fetching file ID:', error);
         
-        toast.error(error.response?.data?.message || `${t("ErrorFetchingDocument")}`);
+        console.log(error.response?.data?.message || `${t("ErrorFetchingDocument")}`);
         
         setFileIds(prev => ({
           ...prev,
@@ -317,7 +317,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country,user 
       setAvailableDocuments(refreshResponse.data.document.availableDocuments);
     }
   } catch (error) {
-    toast.error(error.response?.data?.message || "Something went wrong");
+    console.log(error.response?.data?.message || "Something went wrong");
     console.error(`Error approving document for ${fieldName}:`, error);
   } finally {
     setDocumentLoading(prev => ({
@@ -350,7 +350,7 @@ const handleDisapprove = async (fieldName, index) => {
       setAvailableDocuments(refreshResponse.data.document.availableDocuments);
     }
   } catch (error) {
-    toast.error(error.response?.data?.message || "Something went wrong");
+    console.log(error.response?.data?.message || "Something went wrong");
     console.error(`Error approving document for ${fieldName}:`, error);
   } finally {
     setDocumentLoading(prev => ({
@@ -566,10 +566,10 @@ const Export = ({ country, language }) => {
                 if (err.response.code === 403) {
                     dispatch(Logout(navigate));
                 } else {
-                    toast.warn(err.response.message);
+                    console.log(err.response.message);
                 }
             } catch (e) {
-                toast.error(err.message);
+                console.log(err.message);
             }
         } finally {
             setLoading(false);

@@ -103,7 +103,7 @@ function Home({ language, country }) {
         if(err.response.code === 403){
           dispatch(Logout(navigate))
         }else{
-          toast.warn(err.response.message)
+          console.log(err.response.message);
         }
       }catch(e){
         console.log(err.message);
@@ -140,10 +140,10 @@ function Home({ language, country }) {
         if(err.response.code === 403){
           dispatch(Logout(navigate))
         }else{
-          toast.warn(err.response.message)
+          console.log(err.response.message);
         }
       }catch(e){
-        toast.error(err.message)
+        console.log(err.message)
       }
     })
 
@@ -162,10 +162,10 @@ function Home({ language, country }) {
         if(err.response.code === 403){
           dispatch(Logout(navigate))
         }else{
-          toast.warn(err.response.message)
+          console.log(err.response.message);
         }
       }catch(e){
-        toast.error(err.message)
+        console.log(err.message)
       }
     })
     axiosInstance.get(`${baseURL_}metals-api/yearly`
@@ -177,10 +177,10 @@ function Home({ language, country }) {
       if(err.response.code === 403){
         dispatch(Logout(navigate))
       }else{
-        toast.warn(err.response.message)
+        console.log(err.response.message);
       }
     }catch(e){
-      toast.error(err.message)
+      console.log(err.message)
     }
   })
     let normalizedCountry = country.trim();
@@ -210,10 +210,10 @@ function Home({ language, country }) {
         if(err.response.code === 403){
           dispatch(Logout(navigate))
         }else{
-          toast.warn(err.response.message)
+          console.log(err.response.message);
         }
       }catch(e){
-        toast.error(err.message)
+        console.log(err.message)
       }
     })
     let normalizedCountryq = country.trim();
@@ -242,10 +242,10 @@ function Home({ language, country }) {
         if(err.response.code === 403){
           dispatch(Logout(navigate))
         }else{
-          toast.warn(err.response.message)
+          console.log(err.response.message);
         }
       }catch(e){
-        toast.error(err.message)
+        console.log(err.message)
       }
     })
   }

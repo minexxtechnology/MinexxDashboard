@@ -109,7 +109,7 @@ export function checkAutoLogin(dispatch, navigate) {
 export function showIdleWarning(dispatch, navigate) {
     swal({
         title: "Session Timeout",
-        text: "You've been inactive for 10 minutes and will be logged out for security.",
+        text: "You've been inactive for 5 minutes and will be logged out for security.",
         icon: "warning",
         buttons: {
             cancel: false,

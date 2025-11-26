@@ -52,7 +52,7 @@ function App (props) {
     
     // Handle idle logout - only active when user is authenticated
     const handleIdleLogout = () => {
-        console.log('User idle for 10 minutes - logging out');
+        console.log('User idle for 5 minutes - logging out');
         showIdleWarning(dispatch, navigate);
     };
 
@@ -60,7 +60,7 @@ function App (props) {
     // Only runs when user is authenticated
     useIdleTimer(
         props.isAuthenticated ? handleIdleLogout : () => {}, 
-        30000
+        300000
     );
 
     let routeblog = ( 

@@ -100,7 +100,6 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
       return countries;
     }
   }; 
-
   const availableCountries = getAvailableCountries();
 
   useEffect(() => {

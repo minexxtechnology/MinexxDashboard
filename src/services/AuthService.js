@@ -106,3 +106,16 @@ export function checkAutoLogin(dispatch, navigate) {
     // const timer = expireDate.getTime() - todaysDate.getTime();
     // runLogoutTimer(dispatch, 100, navigate);
 }
+export function showIdleWarning(dispatch, navigate) {
+    swal({
+        title: "Session Timeout",
+        text: "You've been inactive for 10 minutes and will be logged out for security.",
+        icon: "warning",
+        buttons: {
+            cancel: false,
+            confirm: "OK"
+        }
+    }).then(() => {
+        dispatch(Logout(navigate));
+    });
+}

@@ -4256,25 +4256,33 @@ const YesNoButton = ({ value }) => (
                                         </Table>
                                     </div>
                                     <div className="d-sm-flex text-center justify-content-between align-items-center mt-3">
-                                        <div className="dataTables_info">
-                                            {t("Showing")} {(salesPage-1) * 20 + 1} {t("To")}{" "}
-                                            {sale?.sale_Report.length > salesPage * 20 ? salesPage*20 : sale?.sale_Report.length}{" "}
-                                            {t("Of")} {sale?.sale_Report.length} {t("Entries")}
-                                        </div>
-                                        <div className="dataTables_paginate paging_simple_numbers" id="example2_paginate">
-                                            <Link
-                                                className="paginate_button previous disabled"
-                                                onClick={() => salesPage > 1 && setsalesPage(salesPage - 1)}
-                                            >
-                                                {t("Previous")}
-                                            </Link>
-                                            <Link
-                                                className="paginate_button next mx-4"
-                                                onClick={() => salesPage < paggination(sale?.sale_Report || []).length && setsalesPage(salesPage + 1)}
-                                            >
-                                                {t("Next")}
-                                            </Link>
-                                        </div>
+                                         <div className="dataTables_info">
+                                             {t("Showing")} {(salesPage-1) * 20 + 1} {t("To")}{" "}
+                                             {(rangeapplied ? (appliedChemicalComposition || []) : (chemicalComposition || [])).length > salesPage * 20 
+                                                 ? salesPage * 20 
+                                                 : (rangeapplied ? (appliedChemicalComposition || []) : (chemicalComposition || [])).length}{" "}
+                                             {t("Of")} {(rangeapplied ? (appliedChemicalComposition || []) : (chemicalComposition || [])).length} {t("Entries")}
+                                         </div>
+                                         <div className="dataTables_paginate paging_simple_numbers" id="example2_paginate">
+                                             <Link
+                                                 className="paginate_button previous disabled"
+                                                 onClick={() => salesPage > 1 && setsalesPage(salesPage - 1)}
+                                             >
+                                                 {t("Previous")}
+                                             </Link>
+                                             <Link
+                                                 className="paginate_button next mx-4"
+                                                 onClick={() => {
+                                                     const totalData = rangeapplied ? (appliedChemicalComposition || []) : (chemicalComposition || []);
+                                                     const totalPages = Math.ceil(totalData.length / 20);
+                                                     if (salesPage < totalPages) {
+                                                         setsalesPage(salesPage + 1);
+                                                     }
+                                                 }}
+                                             >
+                                                 {t("Next")}
+                                             </Link>
+                                         </div>
                                     </div>
                                 </div>
                             </div>

@@ -16,6 +16,7 @@ axiosInstance.interceptors.request.use((config) => {
     config.headers['authorization'] = token;
     config.headers['x-refresh'] = refresh;
     config.headers['x-platform'] = dash;
+    
     return config;
 });
  

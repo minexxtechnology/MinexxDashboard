@@ -96,6 +96,11 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
     {
       return { 'Rwanda': countries['Rwanda'] };
     }
+    else if (user.type ==='buyer_rwanda')
+    {
+      return { 'Rwanda': countries['Rwanda'] };
+      
+    }
      else {
       return countries;
     }

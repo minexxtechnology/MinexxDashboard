@@ -66,7 +66,7 @@ function Login (props) {
                         <div className="mt-5">
                             <Link to={"https://minexx.co/technology"} className=" me-4">Technology</Link>
                             <Link to={"https://minexx.co/contact"} className=" me-4">Contact</Link>
-                            <Link to={"https://minexx.co"} className="">&copy; 2023 Minexx</Link>
+                            <Link to={"https://minexx.co"} className="">&copy; 2025 Minexx</Link>
                         </div>
                     </div>
                 </div>
@@ -144,14 +144,14 @@ function Login (props) {
                                       </button>
                                     </div>
                                 </form>
-                                {/* <div className="new-account mt-2">
+                                <div className="new-account mt-2">
                                   <p className="">
                                     Forgot your password?{" "}
                                     <Link className="text-primary" to="/forgot-password">
                                       Reset Password
                                     </Link>
                                   </p>
-                                </div> */}
+                                </div>
                                 <div>
                                   {/* <p>
                                   <Link className="text-primary" to="/kyc-login">

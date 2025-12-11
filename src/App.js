@@ -60,7 +60,7 @@ function App (props) {
     // Only runs when user is authenticated
     useIdleTimer(
         props.isAuthenticated ? handleIdleLogout : () => {}, 
-        300000
+        600000
     );
 
     let routeblog = ( 

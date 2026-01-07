@@ -6,7 +6,7 @@ import { translations } from './KpiTranslation';
 const baseURL_="https://minexxapi-testing-p7n5ing2cq-uc.a.run.app/";
 
 const KPIs = ({ country, language }) => {
-    const [selectedYear, setSelectedYear] = useState('2025');
+    const [selectedYear, setSelectedYear] = useState('2026');
     const [selectedMonth, setSelectedMonth] = useState('');
     const [purchaseCassiterite, setPurchaseCassiterite] = useState({
         count: 0,
@@ -148,6 +148,7 @@ const KPIs = ({ country, language }) => {
                             value={selectedYear}
                             onChange={(e) => setSelectedYear(e.target.value)}
                         >
+                            <option value="2026">2026</option>
                             <option value="2025">2025</option>
                             <option value="2024">2024</option>
                         </select>

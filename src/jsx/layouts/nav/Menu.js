@@ -241,6 +241,32 @@ export const BMenu = [
         }
 ]
 
+export const B_RWMenu = [
+    {   
+        title:'Overview',
+        iconStyle: <i className="flaticon-layout"></i>,
+        to: 'overview',
+    },
+
+    {   
+        title:'Exports',
+        iconStyle: <i className="flaticon-381-list"></i>,
+        to: 'exports',
+    },
+
+    
+    {   
+        title:'Suppliers',
+        iconStyle: <i className="flaticon-location"></i>,
+        to: 'mines',
+    },
+
+    {
+        title: 'Knowledge Base',
+        iconStyle: <i className="flaticon-monitor"></i>,
+        to: 'knowledge' 
+    }
+]
 export const IMenu = [
     {   
         title:'Overview',

@@ -301,65 +301,55 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country,user 
   
   try {
     const response = await axiosInstance.post(
-      `${baseURL_}approve/exportfield/${exportId}?field=${fieldName}`,  // ✅ Add as query param
-      {}  // Empty body
+      `${baseURL_}approve/exportfield/${exportId}?field=${fieldName}`,
+      {}
     );
     toast.success("Document approved successfully");
     
-    // Refresh available documents to get updated status
-    const refreshResponse = await axiosInstance.get(`/exports/available/${exportId}`, {
-      params: { 
-        country: normalizedCountry
-      }
-    });
+    // Force a full page reload after a short delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
     
-    if (refreshResponse.data.success && refreshResponse.data.document && refreshResponse.data.document.availableDocuments) {
-      setAvailableDocuments(refreshResponse.data.document.availableDocuments);
-    }
   } catch (error) {
     console.log(error.response?.data?.message || "Something went wrong");
     console.error(`Error approving document for ${fieldName}:`, error);
-  } finally {
+    
     setDocumentLoading(prev => ({
       ...prev,
       [index]: false
     }));
   }
-}
+};
+
 const handleDisapprove = async (fieldName, index) => {
-   setDocumentLoading(prev => ({
+  setDocumentLoading(prev => ({
     ...prev,
     [index]: true
   }));
   
   try {
     const response = await axiosInstance.post(
-      `${baseURL_}disapprove/exportfield/${exportId}?field=${fieldName}`,  // ✅ Add as query param
-      {}  // Empty body
+      `${baseURL_}disapprove/exportfield/${exportId}?field=${fieldName}`,
+      {}
     );
     toast.success("Document disapproved successfully");
-
-    // Refresh available documents to get updated status
-    const refreshResponse = await axiosInstance.get(`/exports/available/${exportId}`, {
-      params: { 
-        country: normalizedCountry
-      }
-    });
     
-    if (refreshResponse.data.success && refreshResponse.data.document && refreshResponse.data.document.availableDocuments) {
-      setAvailableDocuments(refreshResponse.data.document.availableDocuments);
-    }
+    // Force a full page reload after a short delay
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+    
   } catch (error) {
     console.log(error.response?.data?.message || "Something went wrong");
-    console.error(`Error approving document for ${fieldName}:`, error);
-  } finally {
+    console.error(`Error disapproving document for ${fieldName}:`, error);
+    
     setDocumentLoading(prev => ({
       ...prev,
       [index]: false
     }));
-  } 
-
-  };
+  }
+};
     // Handle view document action
     const handleViewDocument = async (index) => {
       const fieldName = getFieldName(index);

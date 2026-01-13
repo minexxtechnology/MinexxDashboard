@@ -6,7 +6,7 @@ import {Collapse} from 'react-bootstrap';
 /// Link
 import { Link } from "react-router-dom";
 
-import {RootMenu, RegulatorMenu, BIMenu, IMenu, BMenu, B_RWMenu} from './Menu';
+import {RootMenu, RegulatorMenu, BIMenu, IMenu, BMenu, B_RWMenu,B_drMenu} from './Menu';
 import {useScrollPosition} from "@n8tb1t/use-scroll-position";
 import { ThemeContext } from "../../../context/ThemeContext";
 
@@ -105,6 +105,10 @@ const SideBar = ({ language, country }) => {
      else if (user.type === 'investor') {
       menu = IMenu;
     }
+    else if (user.type ==='investor_drc' && user.name ==="jiujiangjx")
+      {
+        menu=B_drMenu; 
+      }
     else if (user.type === 'investor_drc') {
       menu = IMenu;
     }

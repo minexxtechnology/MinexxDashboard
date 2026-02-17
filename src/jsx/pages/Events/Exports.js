@@ -50,7 +50,7 @@ const Exports = ({ language, country }) => {
         try {
             setLoading(true);
 
-            let response = await axiosInstance.get(`exports`, {
+            let response = await axiosInstance.get(`https://minexxapi-livescreen-p7n5ing2cq-uc.a.run.app/exports`, {
                 params: {
                     country: normalizedCountry,
                 }
@@ -208,7 +208,7 @@ const Exports = ({ language, country }) => {
             }));
 
             // Save to backend
-            await axiosInstance.post(`livescreen/container-status`, null, {
+            await axiosInstance.post(`https://minexxapi-livescreen-p7n5ing2cq-uc.a.run.app/livescreen/container-status`, null, {
                 params: {
                     country: normalizedCountry,
                     exportId: exportationID,
@@ -322,7 +322,7 @@ const Exports = ({ language, country }) => {
                                                         <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('TradeTimeline')}</th>
                                                     </>
                                                 }
-                                               {(user?.type === 'investor' && user?.email === 'info@minexx.co' || user?.type === 'minexx' && user?.email === 'beda@minexx.email'|| user?.email ==='info_@minexx.co') && country !== 'Gabon' && (
+                                               {(user?.type === 'investor' &&  user?.email ==='info_@minexx.co') && user?.name== 'Joseph' && (
                                                     <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('Container Status')}</th>
                                                 )}
                                                 <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('QrCode')}</th>
@@ -379,8 +379,9 @@ const Exports = ({ language, country }) => {
                                                                     <span className="text-warning">Progress not available</span>
                                                                 }
                                                             </td>
+                                                            
                                                             )}
-                                                            {(user?.type === 'investor' && user?.email === 'info@minexx.co' || user?.type === 'minexx' && user?.email === 'beda@minexx.email'|| user.email ==='info_@minexx.co') && country !== 'Gabon' && (
+                                                            {(user?.type === 'investor' &&  user?.email ==='info_@minexx.co') && user?.name== 'Joseph' && (
                                                                 <td>
                                                                     {containerStatus[_export.id] === 'delivered' || containerStatus[_export.id] === 'delay' ? (
                                                                         // Show badge AND allow switching between statuses

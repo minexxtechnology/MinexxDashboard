@@ -46,7 +46,8 @@ const getInitialCountry = (user) => {
     return 'DRC';
   } else if (user?.type === 'investor' && user?.access_supervisor === 'rwanda') {
     return 'Rwanda';
-  } else if (user?.type === 'buyer' || user?.type === 'buyers') {
+  }  
+   else if (user?.type === 'buyer' || user?.type === 'buyers') {
     return storedCountry && (storedCountry === 'Rwanda' || storedCountry === 'DRC') 
       ? storedCountry 
       : 'Rwanda';
@@ -96,6 +97,11 @@ const Header = ({ onLanguageChange, onCountryChange }) => {
     {
       return { 'Rwanda': countries['Rwanda'] };
     }
+    else if(user?.type ==="investor"  && user?.name === 'Joseph')
+      {
+        return{'Rwanda':countries['Rwanda']};
+      
+  }
     else if (user.type ==='buyer_rwanda')
     {
       return { 'Rwanda': countries['Rwanda'] };

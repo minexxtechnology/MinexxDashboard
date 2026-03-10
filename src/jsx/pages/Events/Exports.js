@@ -25,6 +25,8 @@ const Exports = ({ language, country }) => {
     const [statusUpdating, setStatusUpdating] = useState({});
     const access = localStorage.getItem(`_dash`) || '3ts';
     const user = JSON.parse(localStorage.getItem(`_authUsr`));
+    const PAGE_SIZE = 20;
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Memoized translations function to avoid recreating on every render
     const t = useCallback((key) => {
@@ -36,7 +38,7 @@ const Exports = ({ language, country }) => {
 
     // Normalize country name once when it changes
     const normalizedCountry = useMemo(() => {
-        let result = country.trim(); 
+        let result = country.trim();
 
         if (result.toLowerCase() === 'rwanda') {
             return '.Rwanda';
@@ -50,7 +52,7 @@ const Exports = ({ language, country }) => {
         try {
             setLoading(true);
 
-            let response = await axiosInstance.get(`https://minexxapi-livescreen-p7n5ing2cq-uc.a.run.app/exports`, {
+            let response = await axiosInstance.get(`exports`, {
                 params: {
                     country: normalizedCountry,
                 }
@@ -162,10 +164,19 @@ const Exports = ({ language, country }) => {
         return filteredData;
     }, [exports, searchInput, tablehead, access]);
 
-    // Handle search input change
+    // Handle search input change – reset to first page when query changes
     const handleSearchChange = (e) => {
         setSearchInput(e.currentTarget.value);
+        setCurrentPage(1);
     };
+
+    // Slice the filtered list for the current page
+    const paginated = useMemo(() => {
+        const start = (currentPage - 1) * PAGE_SIZE;
+        return filtered.slice(start, start + PAGE_SIZE);
+    }, [filtered, currentPage]);
+
+    const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
 
     // Show attachment with error handling
     const showAttachment = useCallback((file, field) => {
@@ -193,10 +204,10 @@ const Exports = ({ language, country }) => {
     // Handle container status change (with per-item updating flag + safer revert + deselect support)
     const handleStatusChange = useCallback(async (exportId, exportationID, status) => {
         const prevStatus = containerStatus[exportId];
-        
+
         // If clicking the same status again, deselect it (set to 'in transit')
         const newStatus = prevStatus === status ? 'in transit' : status;
-        
+
         try {
             // mark this item as updating
             setStatusUpdating(prev => ({ ...prev, [exportId]: true }));
@@ -208,7 +219,7 @@ const Exports = ({ language, country }) => {
             }));
 
             // Save to backend
-            await axiosInstance.post(`https://minexxapi-livescreen-p7n5ing2cq-uc.a.run.app/livescreen/container-status`, null, {
+            await axiosInstance.post(`livescreen/container-status`, null, {
                 params: {
                     country: normalizedCountry,
                     exportId: exportationID,
@@ -322,7 +333,7 @@ const Exports = ({ language, country }) => {
                                                         <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('TradeTimeline')}</th>
                                                     </>
                                                 }
-                                               {(user?.type === 'investor' &&  user?.email ==='info_@minexx.co') && user?.name== 'Joseph' && (
+                                                {(user?.type === 'investor' && user?.email === 'info@minexx.co' || user?.type === 'minexx' && user?.email === 'beda@minexx.email' || user?.email === 'info_@minexx.co') && country !== 'Gabon' && (
                                                     <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('Container Status')}</th>
                                                 )}
                                                 <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('QrCode')}</th>
@@ -340,7 +351,7 @@ const Exports = ({ language, country }) => {
                                                     <tr role="row" className="odd">
                                                         <td colSpan={9} className="sorting_1 text-center">{t('NoExportRecords')}</td>
                                                     </tr>
-                                                    : filtered.map(_export => (
+                                                    : paginated.map(_export => (
                                                         <tr role="row" key={_export.id} className="odd">
                                                             <td className="sorting_1">
                                                                 <div className="custom-control custom-checkbox ">
@@ -379,9 +390,8 @@ const Exports = ({ language, country }) => {
                                                                     <span className="text-warning">Progress not available</span>
                                                                 }
                                                             </td>
-                                                            
                                                             )}
-                                                            {(user?.type === 'investor' &&  user?.email ==='info_@minexx.co') && user?.name== 'Joseph' && (
+                                                            {(user?.type === 'investor' && user?.email === 'info@minexx.co' || user?.type === 'minexx' && user?.email === 'beda@minexx.email' || user.email === 'info_@minexx.co') && country !== 'Gabon' && (
                                                                 <td>
                                                                     {containerStatus[_export.id] === 'delivered' || containerStatus[_export.id] === 'delay' ? (
                                                                         // Show badge AND allow switching between statuses
@@ -503,6 +513,32 @@ const Exports = ({ language, country }) => {
                                         }
                                     </table>
                                 </div>
+                                {/* Pagination controls */}
+                                {filtered.length > PAGE_SIZE && (
+                                    <div className="d-flex justify-content-between align-items-center mt-3 px-1">
+                                        <div className="dataTables_info">
+                                            Showing {(currentPage - 1) * PAGE_SIZE + 1} to{' '}
+                                            {Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length} entries
+                                        </div>
+                                        <div className="dataTables_paginate paging_simple_numbers">
+                                            <button
+                                                className={`btn btn-sm btn-primary me-2 ${currentPage <= 1 ? 'disabled' : ''}`}
+                                                onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                                                disabled={currentPage <= 1}
+                                            >
+                                                Previous
+                                            </button>
+                                            <span className="mx-2">Page {currentPage} / {totalPages}</span>
+                                            <button
+                                                className={`btn btn-sm btn-primary ${currentPage >= totalPages ? 'disabled' : ''}`}
+                                                onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                                disabled={currentPage >= totalPages}
+                                            >
+                                                Next
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

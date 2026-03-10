@@ -54,6 +54,10 @@ export const RootMenu = [
                 title:'Supplier Chemical Composition',
                 to:'reports/suppliercomposition'
             },
+              {
+                title:'Export Chemical Composition',
+                to:'reports/exportchemicalcomposition'
+            },
             {
             title:'Supplier Sales Report',
             to:'reports/sale',
@@ -159,7 +163,11 @@ export const RegulatorMenu = [
                 to:'reports/suppliercomposition'
             },
             {
-                title:'Kyc Summary',
+                title:'Export Chemical Composition',
+                to:'reports/exportchemicalcomposition'
+            },
+            {
+                title:'Kyc Summary', 
                 to:'reports/kycsummary'
             },
             {
@@ -345,6 +353,10 @@ export const IMenu = [
              {
                 title:'Supplier Chemical Composition',
                 to:'reports/suppliercomposition'
+            },
+              {
+                title:'Export Chemical Composition',
+                to:'reports/exportchemicalcomposition'
             },
             {
                 title:'Kyc Summary',

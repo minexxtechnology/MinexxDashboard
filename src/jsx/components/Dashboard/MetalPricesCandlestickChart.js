@@ -10,7 +10,7 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
   
   // Define metal types and colors based on country
   const getMetalConfig = () => {
-    if (country === 'Gabon'|| country === 'Ghana' || country === 'France') {
+    if (country === 'Gabon'|| country === 'Ghana' || country === 'France' || country ==='Togo') {
       return {
         metalTypes: ['Gold'],
         metalColors: {
@@ -214,7 +214,7 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
     const processedData = {};
     let sortedDates = [];
     
-    if (country === 'Gabon' || country === 'Ghana' || country === 'France') {
+    if (country === 'Gabon' || country === 'Ghana' || country === 'France' || country === 'Togo') {
       // For Gabon/Ghana/France: Use only real copper data from API
       let copperData = null;
       
@@ -591,7 +591,7 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
     });
     
     // Draw legend based on country
-    const legendItems = (country === 'Gabon' || country === 'Ghana' || country === 'France') ? [
+    const legendItems = (country === 'Gabon' || country === 'Ghana' || country === 'France'|| country === 'Togo') ? [
       { label: 'Gold', color: metalColors['Gold'], type: 'Gold' }
     ] : [
       { label: 'LME TIN', color: metalColors['LME-TIN'], type: 'LME-TIN' },
@@ -660,7 +660,7 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
             }}
             onClick={() => handleLegendClick(type)}
           >
-            {type === 'Gold' && (country === 'Gabon' || country === 'Ghana' || country === 'France') 
+            {type === 'Gold' && (country === 'Gabon' || country === 'Ghana' || country === 'France' || country === 'Togo') 
               ? `${type}` : type}
           </button>
         ))}
@@ -740,7 +740,7 @@ const MetalPricesCandlestickChart = ({ data, country }) => {
           </div>
           
           <div className="text-muted">
-            Loading {(country === 'Gabon' || country === 'Ghana' || country === 'France') 
+            Loading {(country === 'Gabon' || country === 'Ghana' || country === 'France'|| country === 'Togo') 
               ? 'Gold price data...' 
               : 'market data...'}
           </div>

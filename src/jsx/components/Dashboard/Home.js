@@ -338,7 +338,7 @@ function Home({ language, country }) {
       
       {/* New row just for Price Prediction Card */}
     
-      {country === 'Gabon' || country ==='Ghana' || country ==='France' ?  <div className="row mt-4">
+      {country === 'Gabon' || country ==='Ghana' || country ==='France'|| country === 'Togo' ?  <div className="row mt-4">
         <div className="col-md-12">
           {/* Price Prediction Card component on its own row */}
           <PricePredictionCardGold language={language} country={country}/>

@@ -14,7 +14,7 @@ const MineralsPriceTable = ({ refreshInterval = 60000, country }) => { // 1 minu
   // Define the minerals metadata based on country
   let mineralsMetadata;
   
-  if (country === 'Gabon'|| country === 'Ghana' || country === 'France') {
+  if (country === 'Gabon'|| country === 'Ghana' || country === 'France'|| country === 'Togo') {
     mineralsMetadata = {
       'USDCU': { name: 'Copper', symbol: 'Cu', color: '#b87333' },
       'USDDIAMOND': { name: 'Diamond', symbol: 'D', color: '#e8f4fd' },
@@ -43,7 +43,7 @@ const MineralsPriceTable = ({ refreshInterval = 60000, country }) => { // 1 minu
 
   // Mock data for minerals not available in API
   const getMockData = () => {
-    if (country === 'Gabon'|| country === 'Ghana' || country === 'France') {
+    if (country === 'Gabon'|| country === 'Ghana' || country === 'France'|| country === 'Togo') {
       return {
         'USDDIAMOND': 5200.0,  // Price per carat for high-quality diamonds
         'USDCU': 8.45,         // Price per pound for copper

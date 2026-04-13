@@ -522,7 +522,7 @@ const createCombinedChart = (historicalData, forecastData) => {
     <div className="card">
       <div className="card-header d-sm-flex d-block pb-0 border-0">
         <div>
-          <h4 className="fs-20 text-white">{country === 'Gabon' || country ==='Ghana' || country ==='France' ? 'Gold' : 'TIN'} Price Analysis</h4>
+          <h4 className="fs-20 text-white">{country === 'Gabon' || country ==='Ghana' || country ==='France' || country === 'Togo' ? 'Gold' : 'TIN'} Price Analysis</h4>
           <p className="mb-0 fs-12 text-white-50">{t('Historical data and price forecasts combined')}</p>
         </div>
         <div className="d-flex mt-sm-0 mt-3 align-items-center ml-auto">

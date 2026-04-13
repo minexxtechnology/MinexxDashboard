@@ -8,6 +8,7 @@ import {  Route, Routes, useLocation , useNavigate , useParams, Navigate } from 
 import { checkAutoLogin, showIdleWarning } from './services/AuthService';
 import { isAuthenticated } from './store/selectors/AuthSelectors';
 import useIdleTimer from './hooks/useIdleTimer'; // Import the idle timer hook
+import { initializeAccessControl } from './services/AccessControl'; // Import AccessControl
 
 /// Style
 import "./vendor/bootstrap-select/dist/css/bootstrap-select.min.css";
@@ -48,6 +49,8 @@ function App (props) {
     
     useEffect(() => {
        checkAutoLogin(dispatch, navigate);
+       // Initialize access control after login
+       initializeAccessControl();
     }, []);
     
     // Handle idle logout - only active when user is authenticated

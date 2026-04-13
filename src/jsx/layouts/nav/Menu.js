@@ -401,3 +401,94 @@ export const IMenu = [
         to:'Systemhealth',
         },
 ]
+// Togo specific menu for Gold-Togo access
+export const TogoMenu = [
+    {   
+        title:'Overview',
+        iconStyle: <i className="flaticon-layout"></i>,
+        to: 'overview',
+    },
+    {
+        title:'Purchase',
+        iconStyle: <i className="flaticon-381-list"></i>,
+        to: 'purchase',
+    },
+
+    {   
+        title:'Exports',
+        iconStyle: <i className="flaticon-381-list"></i>,
+        to: 'exports',
+    },
+
+    
+    {   
+        title:'Suppliers',
+        iconStyle: <i className="flaticon-location"></i>,
+        to: 'mines',
+    },
+ 
+    {
+        title: 'Knowledge Base',
+        iconStyle: <i className="flaticon-monitor"></i>,
+        to: 'knowledge' 
+    },
+    {
+        title:'Reporting',
+        to: 'reports',
+        update:"New",
+        iconStyle : <i className="flaticon-business-report" />,
+        content: [
+            {
+                title: 'Trace Report',
+                to: 'reports/trace',
+            },
+            // {
+            //     title:'KPIs',
+            //     to:'reports/kpis'
+
+            // },
+           
+            {
+                title:'Kyc Summary',
+                to:'reports/kycsummary'
+            },
+             {
+                title:'Delivery Grade Trends',
+                to:'reports/deliverygradetrends'
+            },
+            
+            {
+            title:'Supplier Sales Report',
+            to:'reports/sale',
+            },
+            {
+                title:'Supplier Delivery Trend',
+                to:'reports/suppliertrends',
+            },
+           
+            {
+                title: 'Total Purchase',
+                to: 'reports/deliveries',
+            },
+
+        ]
+        
+    },
+
+    // Users
+    {
+        title: 'User Management',
+        class: 'mm-collapse',
+        iconStyle: <i className="flaticon-settings-1"></i>,
+        content: [
+            {
+                title: 'Dashboard Users',
+                to: '/users/dashboard',
+            },
+            {
+                title: 'App Users',
+                to: '/users/app',
+            }
+        ]
+    }    
+]

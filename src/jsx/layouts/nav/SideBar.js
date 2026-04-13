@@ -6,7 +6,7 @@ import {Collapse} from 'react-bootstrap';
 /// Link
 import { Link } from "react-router-dom";
 
-import {RootMenu, RegulatorMenu, BIMenu, IMenu, BMenu, B_RWMenu,B_drMenu} from './Menu';
+import {RootMenu, RegulatorMenu, IMenu, BMenu, B_RWMenu,B_drMenu, TogoMenu} from './Menu';
 import {useScrollPosition} from "@n8tb1t/use-scroll-position";
 import { ThemeContext } from "../../../context/ThemeContext";
 
@@ -17,6 +17,8 @@ const menuTranslations = {
     Exports: "Exports",
     Suppliers: "Suppliers",
     "Knowledge Base": "Knowledge Base",
+    Purchase: "Purchase",
+    "Purchase Reports": "Purchase Reports",
     Reporting: "Reporting",
     "User Management": "User Management",
     "Dashboard Users": "Dashboard Users",
@@ -40,6 +42,8 @@ const menuTranslations = {
     Exports: "Exportations",
     Suppliers: "Fournisseurs",
     "Knowledge Base": "Base de connaissances",
+    Purchase: "Achat",
+    "Purchase Reports": "Rapports d'achat",
     Reporting: "Rapports",
     "User Management": "Gestion des utilisateurs",
     "Dashboard Users": "Utilisateurs du tableau de bord",
@@ -87,7 +91,11 @@ const SideBar = ({ language, country }) => {
   const access = localStorage.getItem(`_dash`) || '3ts';
 
   if (user) {
-    if (user.type === 'buyer') {
+    // Gold-Togo users use the Togo-specific menu
+    if (user.access === 'Gold-Togo' || user.access === 'Gold_Togo') {
+      menu = TogoMenu;
+    }
+    else if (user.type === 'buyer') {
       menu = BMenu;
     }
     else if (user.type === 'buyers') 
@@ -236,7 +244,7 @@ const SideBar = ({ language, country }) => {
                         {data.content.filter(c => {
                           // Apply existing access-based filters
                           if (access === `gold`) {
-                            return !["reports/daily", "reports/mtd", "reports/deliveries", "reports/sale", "reports/suppliertrends"].includes(c.to);
+                            return !["reports/daily", "reports/mtd","reports/suppliercomposition","reports/exportchemicalcomposition","reports/stockmovement","reports/timetracking","reports/shipped"].includes(c.to);
                           }
                           return true;
                         }).map((subData, subIndex) => {									

@@ -9,6 +9,9 @@ import "./index.css";
 import "./chart.css";
 import "./step.css";
 
+/// Access Control
+import { hasGoldTogoAccess, getInitialCountry as getInitialCountryFromAccess, canAccessFeature } from "../services/AccessControl";
+
 /// Layout
 import Nav from "./layouts/nav";
 import Footer from "./layouts/Footer";
@@ -153,17 +156,27 @@ import Export from "./pages/InnerPages/Export";
 import ExportA from "./pages/InnerPages/ExportA";
 import Mine from "./pages/InnerPages/Mine";
 import Assessment from "./pages/InnerPages/Assessment";
+import Purchase from "./pages/Purchase";
 
 const Markup = (props) => {
   const { menuToggle } = useContext(ThemeContext);
   const navigate = useNavigate();
   
-  // Get initial country based on user type
+  // Get initial country based on user type and access level
   const getInitialCountry = () => {
-    const user = JSON.parse(localStorage.getItem(`_authUsr`));
+    const user = JSON.parse(localStorage.getItem(`_authUsr`) || '{}');
     const storedCountry = localStorage.getItem(`_country`);
+    
+    // Gold_Togo users are ALWAYS locked to Togo
+    if (hasGoldTogoAccess(user) || user?.access === 'Gold_Togo') {
+      localStorage.setItem('_country', 'Togo');
+      localStorage.setItem('_dash', 'gold');
+      return 'Togo';
+    }
+    
     const userType = user?.type;
     
+    // DRC-specific investors
     if (userType === 'investor_drc' || userType === 'buyers_drc') {
       return 'DRC';
     }
@@ -174,11 +187,24 @@ const Markup = (props) => {
   const [language, setLanguage] = useState(localStorage.getItem('_lang') || 'en');
   const [country, setCountry] = useState(getInitialCountry());
 
-  // Update localStorage and state when user type requires DRC
+  // Enforce country and access level constraints
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem(`_authUsr`));
-    const userType = user?.type;
+    const user = JSON.parse(localStorage.getItem(`_authUsr`) || '{}');
     
+    // Force Gold_Togo users to Togo
+    if (hasGoldTogoAccess(user) || user?.access === 'Gold_Togo') {
+      if (country !== 'Togo') {
+        setCountry('Togo');
+        localStorage.setItem('_country', 'Togo');
+      }
+      if (localStorage.getItem('_dash') !== 'gold') {
+        localStorage.setItem('_dash', 'gold');
+      }
+      return;
+    }
+    
+    // Force DRC investors to DRC
+    const userType = user?.type;
     if ((userType === 'investor_drc' || userType === 'buyers_drc') && country !== 'DRC') {
       setCountry('DRC');
       localStorage.setItem('_country', 'DRC');
@@ -223,6 +249,11 @@ const Markup = (props) => {
 	  { url: 'miners', component: <Miners/> },
 	  { url: 'suppliers', component: <Suppliers/> },
 	  { url: 'knowledge', component: <DDSystems key={language} language={language} country={country}/> },
+    // Purchase module - Only for Gold-Togo access
+    ...(canAccessFeature('purchase', JSON.parse(localStorage.getItem('_authUsr'))) ? [{
+      url: 'purchase', 
+      component: <Purchase key={language} language={language} country={country}/>
+    }] : []),
     { url: 'dashboard-light', component: <DashboardLight/> },
 	  { url: 'event-list', component: <EventList/> },
 	  { url: 'event', component: <EventPage/> },

@@ -156,7 +156,7 @@ import Export from "./pages/InnerPages/Export";
 import ExportA from "./pages/InnerPages/ExportA";
 import Mine from "./pages/InnerPages/Mine";
 import Assessment from "./pages/InnerPages/Assessment";
-import Purchase from "./pages/Purchase";
+import PurchaseWrapper from "./pages/PurchaseWrapper";
 
 const Markup = (props) => {
   const { menuToggle } = useContext(ThemeContext);
@@ -249,11 +249,13 @@ const Markup = (props) => {
 	  { url: 'miners', component: <Miners/> },
 	  { url: 'suppliers', component: <Suppliers/> },
 	  { url: 'knowledge', component: <DDSystems key={language} language={language} country={country}/> },
-    // Purchase module - Only for Gold-Togo access
-    ...(canAccessFeature('purchase', JSON.parse(localStorage.getItem('_authUsr'))) ? [{
+    // Purchase module - Routes to appropriate component based on access level
+    // Gold access: Uses Purchase.js (Togo trace reports)
+    // 3ts access: Uses Purchase_3ts.js (DRC standard purchases)
+    {
       url: 'purchase', 
-      component: <Purchase key={language} language={language} country={country}/>
-    }] : []),
+      component: <PurchaseWrapper key={language} language={language} country={country}/>
+    },
     { url: 'dashboard-light', component: <DashboardLight/> },
 	  { url: 'event-list', component: <EventList/> },
 	  { url: 'event', component: <EventPage/> },

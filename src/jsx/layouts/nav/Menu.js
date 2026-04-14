@@ -4,6 +4,11 @@ export const RootMenu = [
         iconStyle: <i className="flaticon-layout"></i>,
         to: 'overview',
     },
+     {
+        title:'Purchase',
+        iconStyle: <i className="flaticon-381-list"></i>,
+        to: 'purchase',
+    },
 
     {   
         title:'Exports',
@@ -114,6 +119,11 @@ export const RegulatorMenu = [
         title:'Overview',
         iconStyle: <i className="flaticon-layout"></i>,
         to: 'overview',
+    },
+     {
+        title:'Purchase',
+        iconStyle: <i className="flaticon-381-list"></i>,
+        to: 'purchase',
     },
 
     {   
@@ -307,7 +317,11 @@ export const IMenu = [
         iconStyle: <i className="flaticon-layout"></i>,
         to: 'overview',
     },
-
+     {
+        title:'Purchase',
+        iconStyle: <i className="flaticon-381-list"></i>,
+        to: 'purchase',
+    },
     {   
         title:'Exports',
         iconStyle: <i className="flaticon-381-list"></i>,

@@ -82,6 +82,7 @@ export const baseURL_ = getBaseURL();  // Dynamic
   component: <Purchase key={language} language={language} country={country}/>
 }] : []),
 ```
+we need to add purchase when access in not only Gold_tog
 
 **Effect:** Purchase route only appears if user has permission
 

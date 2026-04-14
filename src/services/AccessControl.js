@@ -123,7 +123,7 @@ export const getAvailableCountries = (user) => {
     Ghana: 'https://flagcdn.com/w320/gh.png',
     France: 'https://flagcdn.com/w320/fr.png',
     Ethiopia: 'https://flagcdn.com/w320/et.png',
-    Libya: 'https://flagcdn.com/w320/ly.png',
+    Togo: 'https://flagcdn.com/w320/tg.png',
   };
 
   if (!user) {

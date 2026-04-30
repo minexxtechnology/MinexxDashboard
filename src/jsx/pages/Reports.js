@@ -2161,7 +2161,7 @@ const Reports = ({ language, country }) => {
             height: 500,
             stacked: false,
         },
-        colors: ['#FFD700'], // Gold color for the Gold series
+        colors: access === 'gold' && country === 'Togo' ? ['#FFD700'] : ['#FF6B6B', '#4ECDC4', '#45B7D1'], // Gold for Togo, 3TS minerals for others
         plotOptions: {
             bar: {
                 horizontal: false,
@@ -2204,12 +2204,7 @@ const Reports = ({ language, country }) => {
             opacity: 1,
         },
         legend: {
-            position: 'top',
-            horizontalAlign: 'left',
-            offsetX: 40,
-            labels: {
-                colors: ['#fff', '#fff', '#fff', '#fff']
-            }
+            show: false, // Disable chart legend to avoid duplicate with custom legend
         },
         responsive: [
             {
@@ -2230,12 +2225,27 @@ const Reports = ({ language, country }) => {
         ],
     };
 
-    const chartSeries_Grade = [
-        {
-            name: 'Gold',
-            data: (filteredGradeData.Gold || [])
-        }
-    ];
+    const chartSeries_Grade = access === 'gold' && country === 'Togo' 
+        ? [
+            {
+                name: 'Gold',
+                data: (filteredGradeData.Gold || [])
+            }
+        ]
+        : [
+            {
+                name: 'Cassiterite',
+                data: (filteredGradeData.Cassiterite || [])
+            },
+            {
+                name: 'Coltan',
+                data: (filteredGradeData.Coltan || [])
+            },
+            {
+                name: 'Wolframite',
+                data: (filteredGradeData.Wolframite || [])
+            }
+        ];
     // Create helper components for the KYC summary UI
     const YesNoButton = ({ value }) => (
         <div className={`d-flex justify-content-center`}>
@@ -4761,256 +4771,301 @@ const Reports = ({ language, country }) => {
 
                                                         </div>
                                                     )
-                                                        //end of the Shipped report
+                                                                                                            //end of the Shipped report
 
-                                                        :
-                                                        type === 'suppliertrends' ? (
-
-                                                            <div className='row'>
-                                                                <div className='col-md-5'>
-                                                                    {/* Show supplier trends selection for both 3ts and Gold */}
-                                                                    <div className='card'>
-                                                                        <div className='card-header'>
-                                                                            <h5 className='card-title'>{t("SelectMineralstrends")}</h5>
-                                                                        </div>
-                                                                        <div className='card-body'>
-                                                                            <select onChange={changesuppliertrends} className='form-control'>
-                                                                                <option>{t("SelectCompanyShort")}</option>
-                                                                                {access === 'gold' && suppliersgrade && suppliersgrade.trend && suppliersgrade.trend.length > 0 ? (
-                                                                                    suppliersgrade.trend.map(supplier => (
-                                                                                        <option
-                                                                                            key={getReportEntityId(supplier) || JSON.stringify(supplier)}
-                                                                                            value={JSON.stringify(supplier)}
-                                                                                        >
-                                                                                            {getReportEntityName(supplier) || t("SelectCompanyShort")}
-                                                                                        </option>
-                                                                                    ))
-                                                                                ) : (
-                                                                                    <option value=""></option>
-                                                                                )}
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {suppliertrend && (
-                                                                    <>
-                                                                        <div className='col-md-4'>
-                                                                            <div className='card'>
-                                                                                <div className='card-header'>
-                                                                                    <h5 className='card-title text-center'>{t("Volume")}</h5>
-                                                                                </div>
-                                                                                <div className='card-body'>
-                                                                                    <h3 className="text-center text-primary fs-40">
-                                                                                        {yearFilterApplied
-                                                                                            ? (filteredTrendData.totalVolume > 0
-                                                                                                ? filteredTrendData.totalVolume.toFixed(2) + " Kg"
-                                                                                                : <>
-                                                                                                    0.00 Kg <br /> No data found
-                                                                                                </>)
-                                                                                            : (defaultTrendData.totalVolume > 0
-                                                                                                ? defaultTrendData.totalVolume.toFixed(2) + " Kg"
-                                                                                                : <>
-                                                                                                    0.00 Kg <br /> No data found
-                                                                                                </>)
-                                                                                        }
-                                                                                    </h3>
-
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="col-md-3">
-                                                                            <div className="card">
-                                                                                <div className="card-header">
-                                                                                    <h5 className="card-title text-center mb-0">{t('Sort By')}</h5>
-                                                                                </div>
-                                                                                <div className="card-body">
-                                                                                    <form onSubmit={applyYearFilter}>
-                                                                                        <div className="row mb-3">
-
-                                                                                            <div className="col-6 ">
-                                                                                                <select className='form-control' name='year' >
-                                                                                                    <option value="2026">2026</option>
-                                                                                                    <option value="2025">2025</option>
-                                                                                                    <option value='2024'>2024</option>
-                                                                                                    <option value='2023'>2023</option>
-                                                                                                </select>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <input type="hidden" name="mineral" value={mineral} />
-                                                                                        <div className="d-grid">
-                                                                                            <button className="btn btn-primary btn-sm" disabled={loading}>
-                                                                                                {loading ? 'Loading...' : 'Apply'}
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    </form>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                    </>
-                                                                )}
-                                                                {suppliertrend && (
-                                                                    <div className='col-12 mt-4'>
-                                                                        <div className="card">
-                                                                            <div className="card-header">
-                                                                                <h4 className="card-title">{t("SalesTrendOverview")}</h4>
-                                                                            </div>
-                                                                            <div className="card-body">
-                                                                                {yearFilterApplied
-                                                                                    ? (filteredTrendData.totalVolume > 0 ? (
-                                                                                        <ReactApexChart
-                                                                                            options={chartOptions_Trend}
-                                                                                             series={chartSeries_Trend}
-                                                                                            type="bar"
-                                                                                            height={500}
-                                                                                        />
-                                                                                    ) : (
-                                                                                         <p className="text-center">No data found</p>
-                                                                                    ))
-                                                                                    : (defaultTrendData.totalVolume > 0 ? (
-                                                                                        <ReactApexChart
-                                                                                            options={chartOptions_Trend}
-                                                                                            series={chartSeries_Trend}
-                                                                                            type="bar"
-                                                                                            height={500}
-                                                                                        />
-                                                                                    ) : (
-                                                                                        <p className="text-center">No data found</p>
-                                                                                    ))
-                                                                                }
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
+                                                                                                            :
+                                            type === 'suppliertrends' ? (
+                                                      <div className='row'>
+                                                        <div className='col-md-5'>
+                                                          {access === 'gold' && country === 'Togo' ? (
+                                                            // First file logic: Gold-Togo users
+                                                            <div className='card'>
+                                                              <div className='card-header'>
+                                                                <h5 className='card-title'>{t("SelectMineralstrends")}</h5>
+                                                              </div>
+                                                              <div className='card-body'>
+                                                                <select onChange={changesuppliertrends} className='form-control'>
+                                                                  <option>{t("SelectCompanyShort")}</option>
+                                                                  {suppliersgrade?.trend?.length > 0 &&
+                                                                    suppliersgrade.trend.map(supplier => (
+                                                                      <option
+                                                                        key={getReportEntityId(supplier) || JSON.stringify(supplier)}
+                                                                        value={JSON.stringify(supplier)}
+                                                                      >
+                                                                        {getReportEntityName(supplier) || t("SelectCompanyShort")}
+                                                                      </option>
+                                                                    ))
+                                                                  }
+                                                                </select>
+                                                              </div>
                                                             </div>
-                                                        )
+                                                          ) : (
+                                                            // Second file logic: everyone else
+                                                            access === "3ts" ? (
+                                                              <div className='card'>
+                                                                <div className='card-header'>
+                                                                  <h5 className='card-title'>{t("SelectMineralstrends")}</h5>
+                                                                </div>
+                                                                <div className='card-body'>
+                                                                  <select onChange={changesuppliertrends} className='form-control'>
+                                                                    <option>{t("SelectCompanyShort")}</option>
+                                                                    {suppliers?.suppliers_data?.length > 0 ? (
+                                                                      suppliers.suppliers_data.map(supplier => (
+                                                                        <option
+                                                                          key={supplier.id}
+                                                                          value={JSON.stringify(supplier)}
+                                                                        >
+                                                                          {supplier.supplier}
+                                                                        </option>
+                                                                      ))
+                                                                    ) : (
+                                                                      <option value=""></option>
+                                                                    )}
+                                                                  </select>
+                                                                </div>
+                                                              </div>
+                                                            ) : (
+                                                              <div></div> // nothing shown for gold (non-Togo)
+                                                            )
+                                                          )}
+                                                        </div>
+                                                      
+                                                        {suppliertrend && (
+                                                          <>
+                                                            <div className='col-md-4'>
+                                                              <div className='card'>
+                                                                <div className='card-header'>
+                                                                  <h5 className='card-title text-center'>{t("Volume")}</h5>
+                                                                </div>
+                                                                <div className='card-body'>
+                                                                  <h3 className="text-center text-primary fs-40">
+                                                                    {yearFilterApplied
+                                                                      ? (filteredTrendData.totalVolume > 0
+                                                                        ? filteredTrendData.totalVolume.toFixed(2) + " Kg"
+                                                                        : <> 0.00 Kg <br /> No data found </>)
+                                                                      : (defaultTrendData.totalVolume > 0
+                                                                        ? defaultTrendData.totalVolume.toFixed(2) + " Kg"
+                                                                        : <> 0.00 Kg <br /> No data found </>)
+                                                                    }
+                                                                  </h3>
+                                                                </div>
+                                                              </div>
+                                                            </div>
+                                                            <div className="col-md-3">
+                                                              <div className="card">
+                                                                <div className="card-header">
+                                                                  <h5 className="card-title text-center mb-0">{t('Sort By')}</h5>
+                                                                </div>
+                                                                <div className="card-body">
+                                                                  <form onSubmit={applyYearFilter}>
+                                                                    <div className="row mb-3">
+                                                                      <div className="col-6">
+                                                                        <select className='form-control' name='year'>
+                                                                          <option value="2026">2026</option>
+                                                                          <option value="2025">2025</option>
+                                                                          <option value='2024'>2024</option>
+                                                                          <option value='2023'>2023</option>
+                                                                        </select>
+                                                                      </div>
+                                                                    </div>
+                                                                    <input type="hidden" name="mineral" value={mineral} />
+                                                                    <div className="d-grid">
+                                                                      <button className="btn btn-primary btn-sm" disabled={loading}>
+                                                                        {loading ? 'Loading...' : 'Apply'}
+                                                                      </button>
+                                                                    </div>
+                                                                  </form>
+                                                                </div>
+                                                              </div>
+                                                            </div>
+                                                          </>
+                                                        )}
+
+                                                        {suppliertrend && (
+                                                          <div className='col-12 mt-4'>
+                                                            <div className="card">
+                                                              <div className="card-header">
+                                                                <h4 className="card-title">{t("SalesTrendOverview")}</h4>
+                                                              </div>
+                                                              <div className="card-body">
+                                                                {yearFilterApplied
+                                                                  ? (filteredTrendData.totalVolume > 0 ? (
+                                                                    <ReactApexChart options={chartOptions_Trend} series={chartSeries_Trend} type="bar" height={500} />
+                                                                  ) : (
+                                                                    <p className="text-center">No data found</p>
+                                                                  ))
+                                                                  : (defaultTrendData.totalVolume > 0 ? (
+                                                                    <ReactApexChart options={chartOptions_Trend} series={chartSeries_Trend} type="bar" height={500} />
+                                                                  ) : (
+                                                                    <p className="text-center">No data found</p>
+                                                                  ))
+                                                                }
+                                                              </div>
+                                                            </div>
+                                                          </div>
+                                                        )}
+                                                      </div>
+                                                    )
                                                             :
 
-                                                            type === 'deliverygradetrends' ? (
+                                                           type === 'deliverygradetrends' ? (
+  <div className='row'>
+    <div className='col-md-5'>
+      {access === 'gold' && country === 'Togo' ? (
+        // File 3 logic: Gold + Togo users
+        <div className='card'>
+          <div className='card-header'>
+            <h5 className='card-title'>
+              {t("Please Select the Company To generate Delivery Grade Trends")}
+            </h5>
+          </div>
+          <div className='card-body'>
+            <select onChange={changesupplierGradetrends} className='form-control'>
+              <option>{t("SelectCompanyShort")}</option>
+              {suppliersgrade?.trend?.length > 0 &&
+                suppliersgrade.trend.map(supplier => (
+                  <option
+                    key={getReportEntityId(supplier) || JSON.stringify(supplier)}
+                    value={JSON.stringify(supplier)}
+                  >
+                    {getReportEntityName(supplier) || t("SelectCompanyShort")}
+                  </option>
+                ))
+              }
+            </select>
+          </div>
+        </div>
+      ) : (
+        // File 4 logic: everyone else
+        access === "3ts" ? (
+          <div className='card'>
+            <div className='card-header'>
+              <h5 className='card-title'>
+                {t("Please Select the Company To generate Delivery Grade Trends")}
+              </h5>
+            </div>
+            <div className='card-body'>
+              <select onChange={changesupplierGradetrends} className='form-control'>
+                <option>{t("SelectCompanyShort")}</option>
+                {suppliersgrade?.trend?.length > 0 ? (
+                  suppliersgrade.trend.map(supplier => (
+                    <option
+                      key={supplier.supplierId}
+                      value={JSON.stringify(supplier)}
+                    >
+                      {supplier.suppliername}
+                    </option>
+                  ))
+                ) : (
+                  <option value=""></option>
+                )}
+              </select>
+            </div>
+          </div>
+        ) : (
+          <div></div> // nothing shown for gold (non-Togo)
+        )
+      )}
+    </div>
 
-                                                                <div className='row'>
-                                                                    <div className='col-md-5'>
-                                                                        {/* Show grade trends selection for both 3ts and Gold */}
-                                                                        <div className='card'>
-                                                                            <div className='card-header'>
-                                                                                <h5 className='card-title'>{t("Please Select the Company To generate Delivery Grade Trends")}</h5>
-                                                                            </div>
-                                                                            <div className='card-body'>
-                                                                                <select onChange={changesupplierGradetrends} className='form-control'>
-                                                                                    <option>{t("SelectCompanyShort")}</option>
-                                                                                {access === 'gold' && suppliersgrade && suppliersgrade.trend && suppliersgrade.trend.length > 0 ? (
-                                                                                        suppliersgrade.trend.map(supplier => (
-                                                                                            <option
-                                                                                                key={getReportEntityId(supplier) || JSON.stringify(supplier)}
-                                                                                                value={JSON.stringify(supplier)}
-                                                                                            >
-                                                                                                {getReportEntityName(supplier) || t("SelectCompanyShort")}
-                                                                                            </option>
-                                                                                        ))
-                                                                                    ) : (
-                                                                                        <option value=""></option>
-                                                                                    )}
-                                                                                </select>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
+    {suppliergradetrends && (
+      <>
+        <div className='col-md-4'>
+          <div className='card'>
+            <div className='card-header'>
+              <h5 className='card-title text-center'>{t("Avarage Grade")}</h5>
+            </div>
+            <div className='card-body'>
+              <h3 className="text-center text-primary fs-40">
+                {yearFilterApplied
+                  ? (filteredGradeData.totalGrade > 0
+                    ? (filteredGradeData.totalGrade).toFixed(2) + " %"
+                    : <> 0.00 % <br /> No data found </>)
+                  : (filteredGradeData.totalGrade > 0
+                    ? (filteredGradeData.totalGrade).toFixed(2) + "%"
+                    : <> 0.00 % <br /> No data found </>)
+                }
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-3">
+          <div className="card">
+            <div className="card-header">
+              <h5 className="card-title text-center mb-0">{t('Sort By')}</h5>
+            </div>
+            <div className="card-body">
+              <form onSubmit={applyYearGradeFilter}>
+                <div className="row mb-3">
+                  <div className="col-6">
+                    <select className='form-control' name='year'>
+                      <option value="2026">2026</option>
+                      <option value="2025">2025</option>
+                      <option value='2024'>2024</option>
+                      <option value='2023'>2023</option>
+                    </select>
+                  </div>
+                </div>
+                <input type="hidden" name="mineral" value={mineral} />
+                <div className="d-grid">
+                  <button className="btn btn-primary btn-sm" disabled={loading}>
+                    {loading ? 'Loading...' : 'Apply'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </>
+    )}
 
-                                                                    {suppliergradetrends && (
-                                                                        <>
-                                                                            <div className='col-md-4'>
-                                                                                <div className='card'>
-                                                                                    <div className='card-header'>
-                                                                                        <h5 className='card-title text-center'>{t("Avarage Grade")}</h5>
-                                                                                    </div>
-                                                                                    <div className='card-body'>
-                                                                                        <h3 className="text-center text-primary fs-40">
-                                                                                            {yearFilterApplied
-                                                                                                ? (filteredGradeData.totalGrade > 0
-                                                                                                    ? (filteredGradeData.totalGrade).toFixed(2) + " %"
-                                                                                                    : <>
-                                                                                                        0.00 % <br /> No data found
-                                                                                                    </>)
-                                                                                                : (filteredGradeData.totalGrade > 0
-                                                                                                    ? (filteredGradeData.totalGrade).toFixed(2) + "%"
-                                                                                                    : <>
-                                                                                                        0.00 % <br /> No data found
-                                                                                                    </>)
-                                                                                            }
-                                                                                        </h3>
-
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="col-md-3">
-                                                                                <div className="card">
-                                                                                    <div className="card-header">
-                                                                                        <h5 className="card-title text-center mb-0">{t('Sort By')}</h5>
-                                                                                    </div>
-                                                                                    <div className="card-body">
-                                                                                        <form onSubmit={applyYearGradeFilter}>
-                                                                                            <div className="row mb-3">
-
-                                                                                                <div className="col-6 ">
-                                                                                                    <select className='form-control' name='year' >
-                                                                                                        <option value="2026">2026</option>
-                                                                                                        <option value="2025">2025</option>
-                                                                                                        <option value='2024'>2024</option>
-                                                                                                        <option value='2023'>2023</option>
-
-                                                                                                    </select>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <input type="hidden" name="mineral" value={mineral} />
-                                                                                            <div className="d-grid">
-                                                                                                <button className="btn btn-primary btn-sm" disabled={loading}>
-                                                                                                    {loading ? 'Loading...' : 'Apply'}
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        </form>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-
-                                                                        </>
-                                                                    )}
-                                                                    {suppliergradetrends && (
-                                                                        <div className='col-12 mt-4'>
-                                                                            <div className="card">
-                                                                                <div className="card-header">
-                                                                                    <h4 className="card-title">{t("Delivery Grade Trend Overview")}</h4>
-                                                                                </div>
-                                                                                <div className="card-body">
-                                                                                    <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                                        <span style={{ display: 'inline-block', width: '16px', height: '16px', backgroundColor: '#FFD700', borderRadius: '2px' }}></span>
-                                                                                        <span style={{ color: '#fff', fontSize: '14px', fontWeight: '500' }}>Gold</span>
-                                                                                    </div>
-                                                                                    {yearFilterApplied
-                                                                                        ? (filteredGradeData.totalGrade > 0 ? (
-                                                                                            <ReactApexChart
-                                                                                                options={chartOptions_Grade}
-                                                                                                series={chartSeries_Grade}
-                                                                                                type="bar"
-                                                                                                height={500}
-                                                                                            />
-                                                                                        ) : (
-                                                                                            <p className="text-center">No data found</p>
-                                                                                        ))
-                                                                                        :
-                                                                                        <ReactApexChart
-                                                                                            options={chartOptions_Grade}
-                                                                                            series={chartSeries_Grade}
-                                                                                            type="bar"
-                                                                                            height={500}
-                                                                                        />
-
-                                                                                    }
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            )
+    {suppliergradetrends && (
+      <div className='col-12 mt-4'>
+        <div className="card">
+          <div className="card-header">
+            <h4 className="card-title">{t("Delivery Grade Trend Overview")}</h4>
+          </div>
+          <div className="card-body">
+            {/* Gold legend — only shown for Gold + Togo */}
+            {access === 'gold' && country === 'Togo' && (
+              <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ display: 'inline-block', width: '16px', height: '16px', backgroundColor: '#FFD700', borderRadius: '2px' }}></span>
+                <span style={{ color: '#fff', fontSize: '14px', fontWeight: '500' }}>Gold</span>
+              </div>
+            )}
+            {/* 3TS minerals legend — shown for all other users */}
+            {!(access === 'gold' && country === 'Togo') && (
+              <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ display: 'inline-block', width: '16px', height: '16px', backgroundColor: '#FF6B6B', borderRadius: '2px' }}></span>
+                  <span style={{ color: '#fff', fontSize: '14px', fontWeight: '500' }}>Cassiterite</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ display: 'inline-block', width: '16px', height: '16px', backgroundColor: '#4ECDC4', borderRadius: '2px' }}></span>
+                  <span style={{ color: '#fff', fontSize: '14px', fontWeight: '500' }}>Coltan</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ display: 'inline-block', width: '16px', height: '16px', backgroundColor: '#45B7D1', borderRadius: '2px' }}></span>
+                  <span style={{ color: '#fff', fontSize: '14px', fontWeight: '500' }}>Wolframite</span>
+                </div>
+              </div>
+            )}
+            {yearFilterApplied
+              ? (filteredGradeData.totalGrade > 0 ? (
+                <ReactApexChart options={chartOptions_Grade} series={chartSeries_Grade} type="bar" height={500} />
+              ) : (
+                <p className="text-center">No data found</p>
+              ))
+              : (
+                <ReactApexChart options={chartOptions_Grade} series={chartSeries_Grade} type="bar" height={500} />
+              )
+            }
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+)
                                                                 :
                                                                 type === 'timetracking' ? (
 

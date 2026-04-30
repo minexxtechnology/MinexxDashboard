@@ -47,15 +47,16 @@ const LazyFileButton = ({ filePath, type }) => {
     const isImage = type === 'image';
 
     const openFile = (id) => {
-        if (isImage) {
-            window.dispatchEvent(new CustomEvent('show-purchase-attachment', {
-                detail: { image: id, field: 'Picture' }
-            }));
-        } else {
-            const url = `https://lh3.googleusercontent.com/d/${id}=w2160?authuser=0`;
-            window.open(url, '_blank');
-        }
-    };
+    if (isImage) {
+        window.dispatchEvent(new CustomEvent('show-purchase-attachment', {
+            detail: { image: id, field: 'Picture' }
+        }));
+    } else {
+        // Fix: use proper Google Drive URL format
+        const url = `https://drive.google.com/file/d/${id}/view`;
+        window.open(url, '_blank');
+    }
+};
 
     const handleClick = async () => {
         if (fileId) {
@@ -379,7 +380,7 @@ const Purchase = ({ language, country }) => {
                             alt={attachment.field}
                             className="rounded mt-2"
                             style={{ maxWidth: '100%' }}
-                            src={`https://lh3.googleusercontent.com/d/${attachment.image}=w2160?authuser=0`}
+                            src={`https://drive.google.com/uc?export=view&id=${attachment.image}`}
                         />
                     </Modal.Body>
                 </Modal>

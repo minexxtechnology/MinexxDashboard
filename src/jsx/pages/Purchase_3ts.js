@@ -376,11 +376,15 @@ const Purchase = ({ language, country }) => {
                         <Modal.Title>{attachment.field}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body className="text-center">
-                        <img
+                       <img
                             alt={attachment.field}
                             className="rounded mt-2"
                             style={{ maxWidth: '100%' }}
-                            src={`https://drive.google.com/uc?export=view&id=${attachment.image}`}
+                            src={`https://lh3.googleusercontent.com/d/${attachment.image}`}
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = `https://drive.google.com/uc?export=download&id=${attachment.image}`;
+                            }}
                         />
                     </Modal.Body>
                 </Modal>

@@ -387,6 +387,8 @@ const Purchase = ({ language, country }) => {
                             }}
                         />
                     </Modal.Body>
+
+                    
                 </Modal>
             )}
 

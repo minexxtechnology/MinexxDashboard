@@ -519,7 +519,7 @@ const Export = ({ country, language }) => {
         t("C2Form"),
         t("MineSheets"),
         t("ProcessingSheets"),
-        t("RRACustomsDeclaration"),
+      (country !== "DRC" ?  t("RRACustomsDeclaration") : t("DGDACustomsDeclaration")),
         t("TagList"),
         t("OtherTransporterDocument"),
       ]

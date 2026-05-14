@@ -113,6 +113,7 @@ export const getAvailableCountries = (user) => {
     Ethiopia: 'https://flagcdn.com/w320/et.png',
     Libya: 'https://flagcdn.com/w320/ly.png',
     Togo: 'https://flagcdn.com/w320/tg.png',
+    Niger: 'https://flagcdn.com/w320/ne.png',
   };
 
   // Countries without Togo (default available)
@@ -124,6 +125,7 @@ export const getAvailableCountries = (user) => {
     France: 'https://flagcdn.com/w320/fr.png',
     Ethiopia: 'https://flagcdn.com/w320/et.png',
     Togo: 'https://flagcdn.com/w320/tg.png',
+    Niger: 'https://flagcdn.com/w320/ne.png',
   };
 
   if (!user) {
@@ -207,6 +209,8 @@ export const getAccessLevel = (country, user) => {
       return 'both';
 
     case 'Togo':
+      return 'gold';
+    case 'Niger':
       return 'gold';
 
     default:

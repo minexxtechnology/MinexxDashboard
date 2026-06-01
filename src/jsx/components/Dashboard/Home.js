@@ -18,6 +18,8 @@ import MineralsPriceTable from './MineralsPriceTable';
 import MineVolumeChart from './MineVolumeChart';
 import PricePredictionCard from './PricePredictionCard';
 import PricePredictionCardGold from './PricePredictionCardGold';
+import TotalStockDelivery from './TotalStockDelivery';
+import LiveScreenCard from './LiveScreenCard';
 
 
 const Doughnutchart = loadable(() =>
@@ -318,36 +320,12 @@ function Home({ language, country }) {
         }
       </div>
       
-      {/* Second row: Market Status and Minerals Price */}
-      <div className="row mt-4">
-        <div className="col-md-8">
-          <div className="card">
-            <div className="card-header align-items-start pb-0 border-0">	
-              <div>
-                <h4 className="mb-0 fs-20">Market Status</h4>
-              </div>
-            </div>
-            
-            <MetalPricesChart data={apiData} country={country} />
-          </div>
-        </div>
-        <div className="col-md-4">
-          <MineralsPriceTable country={country} />
-        </div>
-      </div>
-      
-      {/* New row just for Price Prediction Card */}
-    
-      {country === 'Gabon' || country ==='Ghana' || country ==='France'|| country === 'Togo' ?  <div className="row mt-4">
-        <div className="col-md-12">
-          {/* Price Prediction Card component on its own row */}
-          <PricePredictionCardGold language={language} country={country}/>
-        </div>
-      </div> : (
-        <PricePredictionCard language={language} country={country}/>
-       
-      )}
+     {/* Live Screen Cards - Export and Purchase Overview */}
+      <LiveScreenCard language={language} country={country} access={access} />
 
+      
+      <TotalStockDelivery language={language} country={country} access={access}/>
+         
    
      
     </Fragment>

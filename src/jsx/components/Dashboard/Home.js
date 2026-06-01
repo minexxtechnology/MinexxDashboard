@@ -321,7 +321,7 @@ function Home({ language, country }) {
       </div>
       
      {/* Live Screen Cards - Export and Purchase Overview */}
-      <LiveScreenCard language={language} country={country} access={access} />
+      <LiveScreenCard language={language} country={country} access={access} user={user} />
 
       
       <TotalStockDelivery language={language} country={country} access={access}/>

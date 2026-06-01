@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '../../../services/AxiosInstance';
 // import { baseURL_ } from '../../../config';
 
-function LiveScreenCard({ language, country, access }) {
+function LiveScreenCard({ language, country, access,user }) {
   const [exportData, setExportData] = useState(null);
   const [stockData, setStockData] = useState(null);
   const [purchaseData, setPurchaseData] = useState(null);
@@ -116,7 +116,7 @@ function LiveScreenCard({ language, country, access }) {
     };
 
     fetchAll();
-  }, [country, access]);
+  }, [country, access,user]);
 
   const CardItem = ({ title, amount, weight }) => (
     <div className="card live-screen-card">
@@ -132,8 +132,17 @@ function LiveScreenCard({ language, country, access }) {
             </div>
           ) : (
             <>
-              <span className="amount-value">{amount}</span>
-              <span className="amount-label">{weight}</span>
+        {user.type ==='buyer' ||(user.type === 'investor_drc' && user.email === "ali.amine81@gmail.com" )||user.type === "buyer_rwanda" || user.type ==="buyers" ?<span></span>  :  <span className="amount-value">{amount}</span>}
+              <span className={
+                    user.type === 'buyer' || 
+                    (user.type === 'investor_drc' && user.email === "ali.amine81@gmail.com") || 
+                    user.type === "buyer_rwanda" || 
+                    user.type === "buyers" 
+                      ? "amount-label1" 
+                      : "amount-label"
+                }>
+                    {weight}
+                </span>
             </>
           )}
         </div>
@@ -190,6 +199,8 @@ function LiveScreenCard({ language, country, access }) {
             amount={formatValue(purchaseData?.ytdPurchases?.value)}
             weight={formatWeight(purchaseData?.ytdPurchases?.weight)}
           />
+
+          
         </div>
       </div>
 
@@ -238,6 +249,12 @@ function LiveScreenCard({ language, country, access }) {
         .amount-label {
           font-size: 10px;
           color: #a0aec0;
+        }
+        .amount-label1 {
+          font-size: 18px;
+          font-weight: 700;
+          color: white;
+
         }
         @media (max-width: 768px) {
           .amount-value { font-size: 16px; }

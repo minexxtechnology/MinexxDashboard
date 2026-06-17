@@ -329,25 +329,15 @@ const handleDisapprove = async (fieldName, index) => {
   }));
   
   try {
-    const response = await axiosInstance.post(
-      `${baseURL_}disapprove/exportfield/${exportId}?field=${fieldName}`,
-      {}
+    await axiosInstance.post(
+      `disapprove/exportfield/${exportId}?field=${fieldName}&country=${normalizedCountry}` // ← removed baseURL_
     );
     toast.success("Document disapproved successfully");
-    
-    // Force a full page reload after a short delay
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
-    
+    setTimeout(() => window.location.reload(), 1000);
   } catch (error) {
-    console.log(error.response?.data?.message || "Something went wrong");
+    toast.error(error.response?.data?.message || "Something went wrong");
     console.error(`Error disapproving document for ${fieldName}:`, error);
-    
-    setDocumentLoading(prev => ({
-      ...prev,
-      [index]: false
-    }));
+    setDocumentLoading(prev => ({ ...prev, [index]: false }));
   }
 };
     // Handle view document action
@@ -426,13 +416,13 @@ const handleDisapprove = async (fieldName, index) => {
                     <>
                       <button
                         className="btn btn-secondary"
-                        onClick={() => handleApprove(fieldName)}
+                        onClick={() => handleApprove(fieldName,index)}
                       >
                         {t("Approve")}
                       </button>
                       <button
                         className="btn btn-danger"
-                        onClick={() => handleDisapprove(fieldName)}
+                        onClick={() => handleDisapprove(fieldName,index)}
                       >
                         {t("Disapprove")}
                       </button>
@@ -649,7 +639,13 @@ const Export = ({ country, language }) => {
                                                                 { export_?.date ?
                                                                     <>
                                                                         <h4 className="text-primary mb-2 mt-4">{t("ExportationDate")}</h4>
-                                                                        <Link className="text-black">{export_?.date || `--`}</Link>
+                                                                        <Link className="text-black">
+                                                                        {export_?.date
+                                                                          ? (typeof export_.date.toDate === 'function'
+                                                                              ? export_.date.toDate().toLocaleDateString()
+                                                                              : export_.date)
+                                                                          : '--'}
+                                                                      </Link>
                                                                     </>
                                                                 : <></> }
                                                             

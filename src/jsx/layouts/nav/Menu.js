@@ -1,3 +1,5 @@
+import { Title } from "chart.js"
+
 export const RootMenu = [
     {   
         title:'Overview',
@@ -21,6 +23,11 @@ export const RootMenu = [
         title:'Suppliers',
         iconStyle: <i className="flaticon-location"></i>,
         to: 'mines',
+    },
+    {
+        title:'Tags',
+        iconStyle: <i className="fa fa-tags"></i>,
+        to: 'Tags',
     },
  
     {
@@ -137,6 +144,11 @@ export const RegulatorMenu = [
         title:'Suppliers',
         iconStyle: <i className="flaticon-location"></i>,
         to: 'mines',
+    },
+      {
+        title:'Tags',
+          iconStyle: <i className="fa fa-tags"></i>,
+        to: 'Tags',
     },
 
     {
@@ -333,6 +345,11 @@ export const IMenu = [
         title:'Suppliers',
         iconStyle: <i className="flaticon-location"></i>,
         to: 'mines',
+    },
+      {
+        title:'Tags',
+          iconStyle: <i className="fa fa-tags"></i>,
+          to: 'Tags',
     },
 
     {

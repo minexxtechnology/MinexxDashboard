@@ -153,6 +153,7 @@ import Systemhealth from "./pages/Systemhealth";
 import Mines from "./pages/Locations/Mines";
 import Kyc from "./pages/InnerPages/Kyc";
 import Export from "./pages/InnerPages/Export";
+import Tags from "./pages/Events/Tags";
 import ExportA from "./pages/InnerPages/ExportA";
 import Mine from "./pages/InnerPages/Mine";
 import Assessment from "./pages/InnerPages/Assessment";
@@ -233,6 +234,7 @@ const Markup = (props) => {
     { url: 'company/:id', component: <Company key={language} language={language} country={country}/> },
     { url: 'mines/:id', component: <Mine key={language} language={language}/> },
     { url: 'Kyc/:id', component: <Kyc key={language} language={language} country={country} /> },
+    {url: 'Tags', component: <Tags key={language} language={language} country={country}/> },
     { url: 'users', component: <Users/> },
 	  { url: 'incidents', component: <Incidents/> },
 	  { url: 'exports', component: <Exports key={language} language={language} country={country}/> },

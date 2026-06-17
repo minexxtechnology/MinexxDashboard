@@ -184,6 +184,7 @@ const SideBar = ({ language, country }) => {
 
   // Process the menu with country filters
   const processedMenu = processMenu(menu);
+  const filteredMenu = processedMenu.filter(item => item.to !== "Tags" || country === "DRC");
 
   let path = window.location.pathname;
   path = path.split("/");
@@ -205,7 +206,7 @@ const SideBar = ({ language, country }) => {
     >
       <PerfectScrollbar className="deznav-scroll">
         <ul className="metismenu" id="menu">
-             {processedMenu.filter(item => user.type !== "buyer" || user.type !== "buyers" ? item : item.to !== "reports").map((data, index) => {
+             {filteredMenu.filter(item => user.type !== "buyer" || user.type !== "buyers" ? item : item.to !== "reports").map((data, index) => {
             let menuClass = data.classChange;
             if (menuClass === "menu-title") {
               return (

@@ -269,6 +269,6 @@ const Tracking = ({ language, country }) => {
       </div>
     </div>
   );
-};
+}; 
 
 export default Tracking;

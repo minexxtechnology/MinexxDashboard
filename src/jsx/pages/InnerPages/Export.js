@@ -11,442 +11,355 @@ import { Turtle, CheckCircle, X, XCircle } from 'lucide-react';
 import { translations } from '../Events/Exporttranslation';
 
 // Updated DocumentsList component with document availability checking
-const DocumentsList = ({ documents, dashboard, exportId, language, country,user }) => {
-    // Individual loading states for each document
+// Updated DocumentsList component - replace the existing one
+
+const DocumentsList = ({ documents, dashboard, exportId, language, country, user }) => {
     const [documentLoading, setDocumentLoading] = useState({});
-    // Store file IDs separately, only fetch when needed
     const [fileIds, setFileIds] = useState({});
-    // Store available documents information
     const [availableDocuments, setAvailableDocuments] = useState([]);
-    // Loading state for initial available documents fetch
     const [loadingAvailability, setLoadingAvailability] = useState(true);
-    
+
     const t = (key) => {
-      if (!translations[language]) {
-        console.warn(`Translation for language "${language}" not found`);
-        return key;
-      }
-      return translations[language][key] || key;
+        if (!translations[language]) {
+            console.warn(`Translation for language "${language}" not found`);
+            return key;
+        }
+        return translations[language][key] || key;
     };
-  
-    // Create a normalized country value at component level
+
     const normalizedCountry = React.useMemo(() => {
-      let result = country.trim();
-      
-      if (result.toLowerCase() === 'rwanda') {
-          return '.Rwanda';
-      } else {
-          return result.replace(/^\.+|\.+$/g, '');
-      }
+        let result = country.trim();
+        if (result.toLowerCase() === 'rwanda') {
+            return '.Rwanda';
+        } else {
+            return result.replace(/^\.+|\.+$/g, '');
+        }
     }, [country]);
-  
-    // Map field names based on document index
+
     const getFieldName = (index) => {
-      // This should match your uploads array mapping in the main component
-      if (dashboard === '3ts' && country === 'Libya') {
-        const fieldNames = [
-          'invoice',
-          'loadingPermission',
-          'assayReport',
-          'loadingCertificate',
-          'slopCertificate',
-          'ullageReport',
-          'obqReport',
-          'bunkerReport',
-          'bol',
-          'cargoManifest',
-          'certificateOfOrigin',
-          'veritas'
-        ];
-        return fieldNames[index] || null;
-      } else if (dashboard === '3ts') {
-        const fieldNames = [
-          'provisionalInvoice',
-          'cargoReceipt',
-          'exporterApplicationDocument',
-          'scannedExportDocuments',
-          'asiDocument',
-          'packingReport',
-          'rraExportDocument',
-          'rmbExportDocument',
-          'otherDocument',
-          'warehouseCert',
-          'insuranceCert',
-          'billOfLanding',
-          'c2',
-          'mineSheets',
-          'processingSheets',
-          'customsDeclaration',
-          'tagList',           
-          'transporterDocument'
-        ];
-        return fieldNames[index] || null;
-      } else {
-        const fieldNames = [
-          'provisionalInvoice',
-          'packingReport',
-          'note',
-          'scannedExportDocuments',
-          'otherDocument',
-          'customsDeclaration',
-          'exporterApplicationDocument',
-        ];
-        return fieldNames[index] || null;
-      }
+        if (dashboard === '3ts' && country === 'Libya') {
+            const fieldNames = [
+                'invoice', 'loadingPermission', 'assayReport', 'loadingCertificate',
+                'slopCertificate', 'ullageReport', 'obqReport', 'bunkerReport',
+                'bol', 'cargoManifest', 'certificateOfOrigin', 'veritas'
+            ];
+            return fieldNames[index] || null;
+        } else if (dashboard === '3ts') {
+            const fieldNames = [
+                'provisionalInvoice', 'cargoReceipt', 'exporterApplicationDocument',
+                'scannedExportDocuments', 'asiDocument', 'packingReport',
+                'rraExportDocument', 'rmbExportDocument', 'otherDocument',
+                'warehouseCert', 'insuranceCert', 'billOfLanding', 'c2',
+                'mineSheets', 'processingSheets', 'customsDeclaration',
+                'tagList', 'transporterDocument'
+            ];
+            return fieldNames[index] || null;
+        } else {
+            const fieldNames = [
+                'provisionalInvoice', 'packingReport', 'note',
+                'scannedExportDocuments', 'otherDocument',
+                'customsDeclaration', 'exporterApplicationDocument',
+            ];
+            return fieldNames[index] || null;
+        }
     };
-    const getDocumentInfo = (fieldName) => {
-  const dbFieldName = getDbFieldName(fieldName);
-  return availableDocuments.find(doc => 
-    doc.fieldName === fieldName || 
-    doc.fieldName === dbFieldName || 
-    doc.dbFieldName === fieldName || 
-    doc.dbFieldName === dbFieldName
-  );
-};
-    
-    // Map field names to dbFieldNames for better matching with available documents
+
     const getDbFieldName = (fieldName) => {
-      if (country === 'Libya' && dashboard === '3ts') {
-        const mappings = {
-          'invoice': 'Invoice',
-          'loadingPermission': 'Loading Permission',
-          'assayReport': 'Assay Report from Refinery',
-          'loadingCertificate': 'Loading Certificate',
-          'slopCertificate': 'Slop Certificate',
-          'ullageReport': 'Ullage Report',
-          'obqReport': 'OBQ Report',
-          'bunkerReport': 'Bunker inspection Report',
-          'bol': 'BOL',
-          'cargoManifest': 'Cargo Manifest',
-          'certificateOfOrigin': 'Certificate of Origin',
-          'veritas': 'Testing report from Veritas'
-        };
-        return mappings[fieldName] || fieldName;
-      } else {
-        const mappings = {
-          'provisionalInvoice': 'ProvisionalInvoice',
-          'cargoReceipt': 'CargoReceipt',
-          'exporterApplicationDocument': 'ExporterApplicationDocument',
-          'scannedExportDocuments': 'ScannedExportDocuments',
-          'asiDocument': 'AsiDocument',
-          'packingReport': 'PackingReport',
-          'rraExportDocument': 'RraExportDocument',
-          'rmbExportDocument': 'RmbExportDocument',
-          'otherDocument': 'OtherDocument',
-          'warehouseCert': 'WarehouseCert',
-          'insuranceCert': 'InsuranceCert',
-          'billOfLanding': 'BillOfLanding',
-          'c2': 'C2',
-          'mineSheets': 'MineSheets',
-          'processingSheets': 'ProcessingSheets',
-          'customsDeclaration': 'CustomsDeclaration',
-          'tagList': 'TagList',
-          'transporterDocument': 'TransporterDocument',
-          'note': 'Note'
-        };
-        return mappings[fieldName] || fieldName;
-      }
+        if (country === 'Libya' && dashboard === '3ts') {
+            const mappings = {
+                'invoice': 'Invoice',
+                'loadingPermission': 'Loading Permission',
+                'assayReport': 'Assay Report from Refinery',
+                'loadingCertificate': 'Loading Certificate',
+                'slopCertificate': 'Slop Certificate',
+                'ullageReport': 'Ullage Report',
+                'obqReport': 'OBQ Report',
+                'bunkerReport': 'Bunker inspection Report',
+                'bol': 'BOL',
+                'cargoManifest': 'Cargo Manifest',
+                'certificateOfOrigin': 'Certificate of Origin',
+                'veritas': 'Testing report from Veritas'
+            };
+            return mappings[fieldName] || fieldName;
+        } else {
+            const mappings = {
+                'provisionalInvoice': 'ProvisionalInvoice',
+                'cargoReceipt': 'CargoReceipt',
+                'exporterApplicationDocument': 'ExporterApplicationDocument',
+                'scannedExportDocuments': 'ScannedExportDocuments',
+                'asiDocument': 'AsiDocument',
+                'packingReport': 'PackingReport',
+                'rraExportDocument': 'RraExportDocument',
+                'rmbExportDocument': 'RmbExportDocument',
+                'otherDocument': 'OtherDocument',
+                'warehouseCert': 'WarehouseCert',
+                'insuranceCert': 'InsuranceCert',
+                'billOfLanding': 'BillOfLanding',
+                'c2': 'C2',
+                'mineSheets': 'MineSheets',
+                'processingSheets': 'ProcessingSheets',
+                'customsDeclaration': 'CustomsDeclaration',
+                'tagList': 'TagList',
+                'transporterDocument': 'TransporterDocument',
+                'note': 'Note'
+            };
+            return mappings[fieldName] || fieldName;
+        }
     };
-  
-    // Fetch available documents when component mounts
-    useEffect(() => {
-      const fetchAvailableDocuments = async () => {
+
+    const getDocumentInfo = (fieldName) => {
+        const dbFieldName = getDbFieldName(fieldName);
+        return availableDocuments.find(doc =>
+            doc.fieldName === fieldName ||
+            doc.fieldName === dbFieldName ||
+            doc.dbFieldName === fieldName ||
+            doc.dbFieldName === dbFieldName
+        );
+    };
+
+    // ─── Extracted into useCallback so it can be called after mutations ───
+    const fetchAvailableDocuments = React.useCallback(async () => {
         setLoadingAvailability(true);
         try {
-          console.log(`Fetching available documents for export ID ${exportId}`);
-          const response = await axiosInstance.get(`/exports/available/${exportId}`, {
-            params: { 
-              country: normalizedCountry
-            }
-          });
-          
-          if (response.data.success && response.data.document && response.data.document.availableDocuments) {
-            console.log('Available documents:', response.data.document.availableDocuments);
-            setAvailableDocuments(response.data.document.availableDocuments);
-            
-            // Create a map of all field names we use in our component
-            const allFieldNames = Array.from({ length: documents.length }, (_, i) => getFieldName(i));
-            const initialFileIds = {};
-            
-            // For each field name we care about, check if it exists in the available documents
-            allFieldNames.forEach(fieldName => {
-              if (!fieldName) return;
-              
-              const dbFieldName = getDbFieldName(fieldName);
-              const docExists = response.data.document.availableDocuments.some(doc => 
-                doc.fieldName === fieldName || 
-                doc.fieldName === dbFieldName || 
-                doc.dbFieldName === fieldName || 
-                doc.dbFieldName === dbFieldName
-              );
-              
-              // Set as undefined if exists (to be fetched later) or null if doesn't exist
-              initialFileIds[fieldName] = docExists ? undefined : null;
+            const response = await axiosInstance.get(`/exports/available/${exportId}`, {
+                params: { country: normalizedCountry }
             });
-            
-            console.log('Initial document availability map:', initialFileIds);
-            setFileIds(initialFileIds);
-          } else {
-            console.warn('No available documents found or unexpected response format:', response.data);
-          }
-        } catch (error) {
-          console.error('Error fetching available documents:', error);
-          console.log(error.response?.data?.message || `${t("ErrorFetchingDocuments")}`);
-        } finally {
-          setLoadingAvailability(false);
-        }
-      };
-      
-      if (exportId) {
-        fetchAvailableDocuments();
-      }
-    }, [exportId, normalizedCountry, documents]);
-  
-    // Check if a document exists in the available documents list
-    const isDocumentAvailable = (fieldName) => {
-      // First check if we've directly set it in fileIds already
-      if (fileIds[fieldName] !== undefined) {
-        return fileIds[fieldName] !== null;
-      }
-      
-      // Otherwise check in the availableDocuments list
-      return availableDocuments.some(doc => 
-        doc.fieldName === fieldName || doc.dbFieldName === fieldName
-      );
-    };
-  
-    // Get file ID for a document - always use /exportsfield endpoint
-    const getFileId = async (index, fieldName) => {
-      console.log(`getFileId called for index ${index}, fieldName ${fieldName}, exportId ${exportId},`);
-      
-      // If we already have the file ID from a previous call, use it
-      if (fileIds[fieldName] && fileIds[fieldName] !== undefined) {
-        console.log(`Using cached fileId for ${fieldName}: ${fileIds[fieldName]}`);
-        return fileIds[fieldName];
-      }
-      
-      // If document doesn't exist according to availability check, don't fetch
-      if (fileIds[fieldName] === null) {
-        console.log(`Document ${fieldName} already known to not exist`);
-        return null;
-      }
-      
-      // If document availability is unknown or we know it exists but need the ID,
-      // make the API call to /exportsfield to get the actual file ID
-      
-      // If not found in available documents, need to fetch from API
-      setDocumentLoading(prev => ({
-        ...prev,
-        [index]: true
-      }));
-      
-      try {
-        console.log(`Making API request to: /exportsfield/${exportId}`);
-        const response = await axiosInstance.get(`/exportsfield/${exportId}`, {
-          params: { 
-            field: fieldName,
-            country: normalizedCountry
-          }
-        });
-        
-        console.log(`API response received:`, response.data);
-        
-        if (response.data.success && response.data.export && 
-            response.data.export.fileId) {
-          
-          const fileContent = response.data.export.fileContent;
-          console.log(`File content found: ${fileContent}`);
-          
-          setFileIds(prev => ({
-            ...prev,
-            [fieldName]: fileContent
-          }));
-          
-          return fileContent;
-        } else {
-          console.warn(`Document not found for ${fieldName}:`, response.data);
-          console.log(`${t("DocumentNotFound")}: ${documents[index]}`);
-          
-          setFileIds(prev => ({
-            ...prev,
-            [fieldName]: null
-          }));
-          
-          return null;
-        }
-      } catch (error) {
-        console.error('Error fetching file ID:', error);
-        
-        console.log(error.response?.data?.message || `${t("ErrorFetchingDocument")}`);
-        
-        setFileIds(prev => ({
-          ...prev,
-          [fieldName]: null
-        }));
-        
-        return null;
-      } finally {
-        setDocumentLoading(prev => ({
-          ...prev,
-          [index]: false
-        }));
-      }
-    };
-    //handle Approve Document
- const handleApprove = async (fieldName, index) => {
-  setDocumentLoading(prev => ({
-    ...prev,
-    [index]: true
-  }));
-  
-  try {
-    const response = await axiosInstance.post(
-      `${baseURL_}approve/exportfield/${exportId}?field=${fieldName}`,
-      {}
-    );
-    toast.success("Document approved successfully");
-    
-    // Force a full page reload after a short delay
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
-    
-  } catch (error) {
-    console.log(error.response?.data?.message || "Something went wrong");
-    console.error(`Error approving document for ${fieldName}:`, error);
-    
-    setDocumentLoading(prev => ({
-      ...prev,
-      [index]: false
-    }));
-  }
-};
 
-const handleDisapprove = async (fieldName, index) => {
-  setDocumentLoading(prev => ({
-    ...prev,
-    [index]: true
-  }));
-  
-  try {
-    await axiosInstance.post(
-      `disapprove/exportfield/${exportId}?field=${fieldName}&country=${normalizedCountry}` // ← removed baseURL_
-    );
-    toast.success("Document disapproved successfully");
-    setTimeout(() => window.location.reload(), 1000);
-  } catch (error) {
-    toast.error(error.response?.data?.message || "Something went wrong");
-    console.error(`Error disapproving document for ${fieldName}:`, error);
-    setDocumentLoading(prev => ({ ...prev, [index]: false }));
-  }
-};
-    // Handle view document action
-    const handleViewDocument = async (index) => {
-      const fieldName = getFieldName(index);
-      if (!fieldName) return;
-      
-      try {
-        const fileId = await getFileId(index, fieldName);
-        
-        if (fileId) {
-          window.open(`https://drive.google.com/file/d/${fileId}/preview`, '_blank');
+            if (
+                response.data.success &&
+                response.data.document &&
+                response.data.document.availableDocuments
+            ) {
+                const fetchedDocs = response.data.document.availableDocuments;
+                setAvailableDocuments(fetchedDocs);
+
+                const allFieldNames = Array.from(
+                    { length: documents.length },
+                    (_, i) => getFieldName(i)
+                );
+                const initialFileIds = {};
+
+                allFieldNames.forEach(fieldName => {
+                    if (!fieldName) return;
+                    const dbFieldName = getDbFieldName(fieldName);
+                    const docExists = fetchedDocs.some(doc =>
+                        doc.fieldName === fieldName ||
+                        doc.fieldName === dbFieldName ||
+                        doc.dbFieldName === fieldName ||
+                        doc.dbFieldName === dbFieldName
+                    );
+                    initialFileIds[fieldName] = docExists ? undefined : null;
+                });
+
+                setFileIds(initialFileIds);
+            } else {
+                console.warn('No available documents found or unexpected response format:', response.data);
+            }
+        } catch (error) {
+            console.error('Error fetching available documents:', error);
+            toast.error(error.response?.data?.message || t("ErrorFetchingDocuments"));
+        } finally {
+            setLoadingAvailability(false);
         }
-      } catch (error) {
-        console.error(`Error in handleViewDocument for ${fieldName}:`, error);
-      }
+    }, [exportId, normalizedCountry, documents.length]);
+    // ──────────────────────────────────────────────────────────────────────
+
+    useEffect(() => {
+        if (exportId) {
+            fetchAvailableDocuments();
+        }
+    }, [exportId, fetchAvailableDocuments]);
+
+    const isDocumentAvailable = (fieldName) => {
+        if (fileIds[fieldName] !== undefined) {
+            return fileIds[fieldName] !== null;
+        }
+        return availableDocuments.some(doc =>
+            doc.fieldName === fieldName || doc.dbFieldName === fieldName
+        );
     };
-    
-    // Handle download document action
+
+    const getFileId = async (index, fieldName) => {
+        if (fileIds[fieldName] && fileIds[fieldName] !== undefined) {
+            return fileIds[fieldName];
+        }
+        if (fileIds[fieldName] === null) {
+            return null;
+        }
+
+        setDocumentLoading(prev => ({ ...prev, [index]: true }));
+
+        try {
+            const response = await axiosInstance.get(`/exportsfield/${exportId}`, {
+                params: {
+                    field: fieldName,
+                    country: normalizedCountry
+                }
+            });
+
+            if (
+                response.data.success &&
+                response.data.export &&
+                response.data.export.fileId
+            ) {
+                const fileContent = response.data.export.fileContent;
+                setFileIds(prev => ({ ...prev, [fieldName]: fileContent }));
+                return fileContent;
+            } else {
+                setFileIds(prev => ({ ...prev, [fieldName]: null }));
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching file ID:', error);
+            toast.error(error.response?.data?.message || t("ErrorFetchingDocument"));
+            setFileIds(prev => ({ ...prev, [fieldName]: null }));
+            return null;
+        } finally {
+            setDocumentLoading(prev => ({ ...prev, [index]: false }));
+        }
+    };
+
+    // ─── Approve: re-fetch in place, no reload ────────────────────────────
+    const handleApprove = async (fieldName, index) => {
+        setDocumentLoading(prev => ({ ...prev, [index]: true }));
+        try {
+            await axiosInstance.post(
+                `approve/exportfield/${exportId}?field=${fieldName}`,
+                {}
+            );
+            toast.success("Document approved successfully");
+            // Re-fetch available documents to update status in-place
+            await fetchAvailableDocuments();
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Something went wrong");
+            console.error(`Error approving document for ${fieldName}:`, error);
+        } finally {
+            setDocumentLoading(prev => ({ ...prev, [index]: false }));
+        }
+    };
+    // ──────────────────────────────────────────────────────────────────────
+
+    // ─── Disapprove: re-fetch in place, no reload ─────────────────────────
+    const handleDisapprove = async (fieldName, index) => {
+        setDocumentLoading(prev => ({ ...prev, [index]: true }));
+        try {
+            await axiosInstance.post(
+                `disapprove/exportfield/${exportId}?field=${fieldName}&country=${normalizedCountry}`
+            );
+            toast.success("Document disapproved successfully");
+            // Re-fetch available documents to update status in-place
+            await fetchAvailableDocuments();
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Something went wrong");
+            console.error(`Error disapproving document for ${fieldName}:`, error);
+        } finally {
+            setDocumentLoading(prev => ({ ...prev, [index]: false }));
+        }
+    };
+    // ──────────────────────────────────────────────────────────────────────
+
+    const handleViewDocument = async (index) => {
+        const fieldName = getFieldName(index);
+        if (!fieldName) return;
+        try {
+            const fileId = await getFileId(index, fieldName);
+            if (fileId) {
+                window.open(`https://drive.google.com/file/d/${fileId}/preview`, '_blank');
+            }
+        } catch (error) {
+            console.error(`Error in handleViewDocument for ${fieldName}:`, error);
+        }
+    };
+
     const handleDownloadDocument = async (index) => {
-      const fieldName = getFieldName(index);
-      if (!fieldName) return;
-      
-      const fileId = await getFileId(index, fieldName);
-      if (fileId) {
-        window.open(`https://drive.usercontent.google.com/download?id=${fileId}&export=download&authuser=0`, '_blank');
-      }
+        const fieldName = getFieldName(index);
+        if (!fieldName) return;
+        const fileId = await getFileId(index, fieldName);
+        if (fileId) {
+            window.open(
+                `https://drive.usercontent.google.com/download?id=${fileId}&export=download&authuser=0`,
+                '_blank'
+            );
+        }
     };
-  
+
     if (loadingAvailability) {
-      return (
-        <div className="text-center py-4">
-          <div className="spinner-border text-primary" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <p className="mt-2">{t("CheckingDocumentAvailability")}</p>
-        </div>
-      );
-    }
-  
-    return (
-      <ListGroup>
-        {documents.map((document, index) => {
-          const fieldName = getFieldName(index);
-          const documentAvailable = isDocumentAvailable(fieldName);
-           const documentInfo = getDocumentInfo(fieldName); // Get full document info
-          
-          return (
-            <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
-              <span className="accordion-body">
-                {document}
-                {fileIds[fieldName]  !== null && <CheckCircle color="green" size={24} className="ms-2" />}
-                {fileIds[fieldName] === null && <XCircle color="red" size={24} className="ms-2" />}
-              </span>
-              <div className="mt-3 d-flex gap-2">
-                {documentLoading[index] ? (
-                  <div className="spinner-border spinner-border-sm text-primary" role="status">
+        return (
+            <div className="text-center py-4">
+                <div className="spinner-border text-primary" role="status">
                     <span className="sr-only">Loading...</span>
-                  </div>
-                  ) : documentAvailable ? (
-              <>
-                <button
-                  className="btn btn-info"
-                  onClick={() => handleViewDocument(index)}
-                >
-                  {t("View")}
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => handleDownloadDocument(index)}
-                >
-                  {t("Download")}
-                </button>
-                {user.type === "investor" && user.email === "info@minexx.co" && (
-                  documentInfo?.status !== "Approved" ? (
-                    <>
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => handleApprove(fieldName,index)}
-                      >
-                        {t("Approve")}
-                      </button>
-                      <button
-                        className="btn btn-danger"
-                        onClick={() => handleDisapprove(fieldName,index)}
-                      >
-                        {t("Disapprove")}
-                      </button>
-                    </>
-                  ) : (
-                    <span className="badge bg-success">{t("Approved")}</span>
-                  )
-                )}
-              </>
-            ) : (
-              <button
-                className="btn btn-danger"
-                disabled
-              >
-                {t("Missing")}
-              </button>
-            )}
-              </div>
-            </ListGroup.Item>
-          );
-        })}
-      </ListGroup>
+                </div>
+                <p className="mt-2">{t("CheckingDocumentAvailability")}</p>
+            </div>
+        );
+    }
+
+    return (
+        <ListGroup>
+            {documents.map((document, index) => {
+                const fieldName = getFieldName(index);
+                const documentAvailable = isDocumentAvailable(fieldName);
+                const documentInfo = getDocumentInfo(fieldName);
+
+                return (
+                    <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                        <span className="accordion-body">
+                            {document}
+                            {fileIds[fieldName] !== null && <CheckCircle color="green" size={24} className="ms-2" />}
+                            {fileIds[fieldName] === null && <XCircle color="red" size={24} className="ms-2" />}
+                        </span>
+                        <div className="mt-3 d-flex gap-2">
+                            {documentLoading[index] ? (
+                                <div className="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span className="sr-only">Loading...</span>
+                                </div>
+                            ) : documentAvailable ? (
+                                <>
+                                    <button
+                                        className="btn btn-info"
+                                        onClick={() => handleViewDocument(index)}
+                                    >
+                                        {t("View")}
+                                    </button>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => handleDownloadDocument(index)}
+                                    >
+                                        {t("Download")}
+                                    </button>
+                                    {user.type === "investor" && user.email === "info@minexx.co" && (
+                                        documentInfo?.status !== "Approved" ? (
+                                            <>
+                                                <button
+                                                    className="btn btn-secondary"
+                                                    onClick={() => handleApprove(fieldName, index)}
+                                                >
+                                                    {t("Approve")}
+                                                </button>
+                                                <button
+                                                    className="btn btn-danger"
+                                                    onClick={() => handleDisapprove(fieldName, index)}
+                                                >
+                                                    {t("Disapprove")}
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <span className="badge bg-success">{t("Approved")}</span>
+                                        )
+                                    )}
+                                </>
+                            ) : (
+                                <button className="btn btn-danger" disabled>
+                                    {t("Missing")}
+                                </button>
+                            )}
+                        </div>
+                    </ListGroup.Item>
+                );
+            })}
+        </ListGroup>
     );
-  };
+};
 
 // Main Export component
 const Export = ({ country, language }) => { 

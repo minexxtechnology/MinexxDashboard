@@ -7,7 +7,7 @@ import { baseURL_ } from '../../../config'
 import { translations } from '../../pages/Locations/MinesTranslation';
 import { CheckCircle, XCircle, FileText, Info, X, Check } from 'lucide-react';
 
-const Kyc = ({language,country}) => {
+const Kyc = ({language, country}) => {
   const { id } = useParams();
   const [company, setCompany] = useState(null);
   const [progress, setProgress] = useState(0);
@@ -17,13 +17,16 @@ const Kyc = ({language,country}) => {
   const [shareholder, setShareholder] = useState([]);
   const [beneficial, setBeneficial] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
+  // { [docId]: 'loading' | 'error' | '<driveFileId>' }
+  const [documentFiles, setDocumentFiles] = useState({});
+
   // Selection states
   const [selectedDocuments, setSelectedDocuments] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
-  
+
   // Loading states
   const [basicLoading, setBasicLoading] = useState(true);
   const [docsLoading, setDocsLoading] = useState(true);
@@ -40,17 +43,92 @@ const Kyc = ({language,country}) => {
     }
     return translations[language][key] || key;
   };
-   const normalizedCountry = React.useMemo(() => {
-        let result = country.trim();
-        
-        if (result.toLowerCase() === 'rwanda') {
-            return '.Rwanda';
-        } else {
-            return result.replace(/^\.+|\.+$/g, '');
-        }
-      }, [country]);
 
-  // Handle individual checkbox selection
+  const normalizedCountry = React.useMemo(() => {
+    let result = country.trim();
+    if (result.toLowerCase() === 'rwanda') {
+      return '.Rwanda';
+    } else {
+      return result.replace(/^\.+|\.+$/g, '');
+    }
+  }, [country]);
+
+  // ─── Lazy file fetch — fetch + open in ONE click ───────────────────────────
+  const fetchDocumentFile = async (docId, action = 'view') => {
+    const currentState = documentFiles[docId];
+
+    // Already loaded — open immediately
+    if (currentState && currentState !== 'loading' && currentState !== 'error') {
+      const driveId = currentState;
+      if (action === 'view') {
+        window.open(`https://drive.google.com/file/d/${driveId}/preview`, '_blank');
+      } else {
+        window.open(
+          `https://drive.usercontent.google.com/download?id=${driveId}&export=download&authuser=0`,
+          '_blank'
+        );
+      }
+      return;
+    }
+
+    // Currently loading — wait, don't double fetch
+    if (currentState === 'loading') return;
+
+    // Not yet fetched — start fetch
+    setDocumentFiles(prev => ({ ...prev, [docId]: 'loading' }));
+
+    try {
+      const response = await fetch(
+        `https://minexxapi-drc-p7n5ing2cq-uc.a.run.app/document/file/${docId}`,
+        {
+          method: 'GET',
+          headers: {
+            'x-platform': platform,
+            'Authorization': `Bearer ${localStorage.getItem('_authRfrsh')}`
+          }
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch file');
+
+      const data = await response.json();
+      const driveId = data.document?.file;
+
+      if (!driveId) {
+        setDocumentFiles(prev => ({ ...prev, [docId]: 'error' }));
+        toast.error('File not found for this document');
+        return;
+      }
+
+      // Save driveId in state
+      setDocumentFiles(prev => ({ ...prev, [docId]: driveId }));
+
+      // Open immediately — no second click needed
+      if (action === 'view') {
+        window.open(`https://drive.google.com/file/d/${driveId}/preview`, '_blank');
+      } else {
+        window.open(
+          `https://drive.usercontent.google.com/download?id=${driveId}&export=download&authuser=0`,
+          '_blank'
+        );
+      }
+    } catch (err) {
+      console.error(`Error fetching file for document ${docId}:`, err);
+      setDocumentFiles(prev => ({ ...prev, [docId]: 'error' }));
+      toast.error('Failed to fetch document file');
+    }
+  };
+
+  // Allow retry by clearing error state
+  const retryFetchDocumentFile = (docId) => {
+    setDocumentFiles(prev => {
+      const next = { ...prev };
+      delete next[docId];
+      return next;
+    });
+  };
+
+  // ─── Selection handlers ────────────────────────────────────────────────────
   const handleCheckboxChange = (docId) => {
     setSelectedDocuments(prev => {
       if (prev.includes(docId)) {
@@ -61,7 +139,6 @@ const Kyc = ({language,country}) => {
     });
   };
 
-  // Handle select all checkbox
   const handleSelectAll = () => {
     if (selectAll) {
       setSelectedDocuments([]);
@@ -72,7 +149,6 @@ const Kyc = ({language,country}) => {
     }
   };
 
-  // Update selectAll state when individual checkboxes change
   useEffect(() => {
     if (selectedDocuments.length === companyDocs.length && companyDocs.length > 0) {
       setSelectAll(true);
@@ -81,6 +157,7 @@ const Kyc = ({language,country}) => {
     }
   }, [selectedDocuments, companyDocs]);
 
+  // ─── Confirmation modal ────────────────────────────────────────────────────
   const showConfirmation = (action) => {
     setConfirmAction(action);
     setShowConfirmModal(true);
@@ -88,7 +165,7 @@ const Kyc = ({language,country}) => {
 
   const executeAction = async () => {
     setShowConfirmModal(false);
-    
+
     if (confirmAction.type === 'bulk-approve') {
       try {
         const approvePromises = selectedDocuments.map(docId =>
@@ -122,13 +199,13 @@ const Kyc = ({language,country}) => {
     } else if (confirmAction.type === 'single-disapprove') {
       await handledisapprove(confirmAction.docId);
     }
-    
+
     setConfirmAction(null);
   };
 
   const approveDocument = async (docId) => {
     try {
-      const response = await axiosInstance.post(`${baseURL_}approve/document/${docId}`);
+      await axiosInstance.post(`${baseURL_}approve/document/${docId}`);
       toast.success("Document approved successfully");
       fetchCompanyData(id);
     } catch (err) {
@@ -139,7 +216,7 @@ const Kyc = ({language,country}) => {
 
   const handledisapprove = async (docId) => {
     try {
-      const response = await axiosInstance.delete(`${baseURL_}disapprove/document/${docId}`);
+      await axiosInstance.delete(`${baseURL_}disapprove/document/${docId}`);
       toast.success("Document disapproved successfully");
       setLoading(true);
       fetchCompanyData(id);
@@ -175,6 +252,7 @@ const Kyc = ({language,country}) => {
     });
   };
 
+  // ─── Confirmation modal render ─────────────────────────────────────────────
   const renderConfirmationModal = () => {
     if (!confirmAction) return null;
 
@@ -183,8 +261,8 @@ const Kyc = ({language,country}) => {
     const isDanger = confirmAction.type.includes('disapprove');
 
     return (
-      <Modal 
-        show={showConfirmModal} 
+      <Modal
+        show={showConfirmModal}
         onHide={() => setShowConfirmModal(false)}
         centered
         backdrop="static"
@@ -192,7 +270,7 @@ const Kyc = ({language,country}) => {
         <Modal.Header closeButton className={`${isDanger ? 'bg-danger' : 'bg-success'} text-white`}>
           <Modal.Title>
             {isDanger ? <XCircle className="me-2" size={20} /> : <CheckCircle className="me-2" size={20} />}
-            {isApprove ? 'approve' : 'disapprove'} {isBulk ? 'Documents' : 'Document'}
+            {isApprove ? 'Approve' : 'Disapprove'} {isBulk ? 'Documents' : 'Document'}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -232,7 +310,7 @@ const Kyc = ({language,country}) => {
                 </div>
               </>
             )}
-            
+
             <div className={`alert ${isDanger ? 'alert-danger' : 'alert-info'} mt-4 mb-0`}>
               <Info className="me-2" size={18} />
               {isDanger ? (
@@ -248,17 +326,11 @@ const Kyc = ({language,country}) => {
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button 
-            variant="secondary" 
-            onClick={() => setShowConfirmModal(false)}
-          >
+          <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
             <X className="me-2" size={16} />
             Cancel
           </Button>
-          <Button 
-            variant={isDanger ? 'danger' : 'success'}
-            onClick={executeAction}
-          >
+          <Button variant={isDanger ? 'danger' : 'success'} onClick={executeAction}>
             <Check className="me-2" size={16} />
             Yes, {isApprove ? 'Approve' : 'Disapprove'}
           </Button>
@@ -267,11 +339,12 @@ const Kyc = ({language,country}) => {
     );
   };
 
+  // ─── Data fetching ─────────────────────────────────────────────────────────
   useEffect(() => {
-    if (id) { 
+    if (id) {
       fetchCompanyData(id);
     }
-  }, [id, language,country]);
+  }, [id, language, country]);
 
   const fetchCompanyData = async (id) => {
     try {
@@ -279,7 +352,10 @@ const Kyc = ({language,country}) => {
       setDocsLoading(true);
       setShareholderLoading(true);
       setBeneficialLoading(true);
-      
+
+      // Reset file cache on fresh data load
+      setDocumentFiles({});
+
       // Fetch company info
       const companyResponse = await fetch(
         `https://minexxapi-drc-p7n5ing2cq-uc.a.run.app/companies/country/${id}?country=${encodeURIComponent(normalizedCountry)}`,
@@ -291,14 +367,12 @@ const Kyc = ({language,country}) => {
           }
         }
       );
-      if (!companyResponse.ok) {
-        throw new Error('Network response was not ok for company details');
-      }
+      if (!companyResponse.ok) throw new Error('Network response was not ok for company details');
       const companyData = await companyResponse.json();
       setCompany(companyData);
       setBasicLoading(false);
 
-      // Fetch documents
+      // Fetch documents — metadata only, file field will be null
       const companyDocResponse = await fetch(
         `https://minexxapi-drc-p7n5ing2cq-uc.a.run.app/documentsnoAuth/${id}?country=${encodeURIComponent(normalizedCountry)}`,
         {
@@ -307,19 +381,15 @@ const Kyc = ({language,country}) => {
             'x-platform': platform,
             'Authorization': `Bearer ${localStorage.getItem('_authRfrsh')}`
           }
-          
-         
         }
       );
-      if (!companyDocResponse.ok) {
-        throw new Error('Network response was not ok for documents');
-      }
+      if (!companyDocResponse.ok) throw new Error('Network response was not ok for documents');
       const companyDocData = await companyDocResponse.json();
       const { documents, progress, totalDocuments, missingDocuments } = companyDocData.documents;
       setCompanyDocs(documents);
       setProgress(progress);
       setmissDocs(missingDocuments);
-      setTotalDocuments(totalDocuments); 
+      setTotalDocuments(totalDocuments);
       setDocsLoading(false);
 
       // Fetch shareholders
@@ -332,9 +402,7 @@ const Kyc = ({language,country}) => {
           }
         }
       );
-      if (!shareholderResponse.ok) {
-        throw new Error('Network response was not ok for shareholders');
-      }
+      if (!shareholderResponse.ok) throw new Error('Network response was not ok for shareholders');
       const shareholderData = await shareholderResponse.json();
       setShareholder(shareholderData.shareholders);
       setShareholderLoading(false);
@@ -349,12 +417,11 @@ const Kyc = ({language,country}) => {
           }
         }
       );
-      if (!beneficialResponse.ok) {
-        throw new Error('Network response was not ok for beneficial owners');
-      }
+      if (!beneficialResponse.ok) throw new Error('Network response was not ok for beneficial owners');
       const beneficialData = await beneficialResponse.json();
       setBeneficial(beneficialData.beneficial_owners);
-      setBeneficialLoading(false)
+      setBeneficialLoading(false);
+
     } catch (err) {
       console.error('Error fetching company data:', err);
       setBasicLoading(false);
@@ -364,6 +431,7 @@ const Kyc = ({language,country}) => {
     }
   };
 
+  // ─── Shared loading spinner ────────────────────────────────────────────────
   const LoadingSpinner = () => (
     <div className="d-flex justify-content-center align-items-center py-5">
       <div className="spinner-border text-primary" role="status">
@@ -372,10 +440,90 @@ const Kyc = ({language,country}) => {
     </div>
   );
 
+  // ─── Document row file actions ─────────────────────────────────────────────
+  const renderFileActions = (document) => {
+    const fileState = documentFiles[document.id];
+    const isLoading = fileState === 'loading';
+    const isError = fileState === 'error';
+    const driveId = fileState && fileState !== 'loading' && fileState !== 'error'
+      ? fileState
+      : null;
+
+    // Currently fetching
+    if (isLoading) {
+      return (
+        <div className="d-flex align-items-center gap-2">
+          <div className="spinner-border spinner-border-sm text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <span className="text-muted small">Fetching file...</span>
+        </div>
+      );
+    }
+
+    // Fetch failed
+    if (isError) {
+      return (
+        <>
+          <span className="text-danger small me-2">File unavailable</span>
+          <button
+            className="btn btn-outline-secondary btn-sm"
+            onClick={() => retryFetchDocumentFile(document.id)}
+          >
+            Retry
+          </button>
+        </>
+      );
+    }
+
+    // Already fetched — direct <a> links, single click opens
+    if (driveId) {
+      return (
+        <>
+          <a
+            target="_blank"
+            className="btn btn-info"
+            href={`https://drive.google.com/file/d/${driveId}/preview`}
+            rel="noreferrer"
+          >
+            {t("View")}
+          </a>
+          <a
+            target="_blank"
+            className="btn btn-primary"
+            href={`https://drive.usercontent.google.com/download?id=${driveId}&export=download&authuser=0`}
+            rel="noreferrer"
+          >
+            {t("Download")}
+          </a>
+        </>
+      );
+    }
+
+    // Not yet fetched — fetch AND open in one click via window.open
+    return (
+      <>
+        <button
+          className="btn btn-info"
+          onClick={() => fetchDocumentFile(document.id, 'view')}
+        >
+          {t("View")}
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={() => fetchDocumentFile(document.id, 'download')}
+        >
+          {t("Download")}
+        </button>
+      </>
+    );
+  };
+
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="row">
       {renderConfirmationModal()}
-      
+
       <div className="row page-titles">
         <ol className="breadcrumb">
           <li className="breadcrumb-item active"><Link to={"/overview"}>{t("Dashboard")}</Link></li>
@@ -417,9 +565,11 @@ const Kyc = ({language,country}) => {
             </div>
           </div>
         </div>
-        
+
         <div className="col-xl-12 col-xxl-12">
           <Tab.Content>
+
+            {/* ── Basic Info ── */}
             <Tab.Pane eventKey="basic" id="basic">
               <div className="card">
                 <div className="card-body">
@@ -453,6 +603,7 @@ const Kyc = ({language,country}) => {
               </div>
             </Tab.Pane>
 
+            {/* ── Documents ── */}
             <Tab.Pane eventKey="documents" id="documents">
               <div className="card">
                 <div className="card-body">
@@ -460,26 +611,27 @@ const Kyc = ({language,country}) => {
                     <LoadingSpinner />
                   ) : companyDocs.length > 0 || missDocs.length > 0 ? (
                     <>
+                      {/* Progress */}
                       <Container fluid className="mt-3">
                         <Row className="align-items-center">
                           <Col xs="auto">
                             <div className="d-flex align-items-baseline">
-                              <span style={{fontSize: '2.5rem'}} className="fw-bold">KYC Progress: </span>
-                              <span style={{fontSize: '2.5rem'}} className="text-primary fw-bold">  {progress}</span>
-                              <span style={{fontSize: '1.8rem'}} className="ms-1">%</span>
+                              <span style={{ fontSize: '2.5rem' }} className="fw-bold">KYC Progress: </span>
+                              <span style={{ fontSize: '2.5rem' }} className="text-primary fw-bold">&nbsp;{progress}</span>
+                              <span style={{ fontSize: '1.8rem' }} className="ms-1">%</span>
                             </div>
                           </Col>
                           <Col>
-                            <ProgressBar 
-                              now={progress} 
-                              variant="primary" 
-                              style={{ height: '1.5rem' }} 
+                            <ProgressBar
+                              now={progress}
+                              variant="primary"
+                              style={{ height: '1.5rem' }}
                             />
                           </Col>
                         </Row>
                       </Container>
 
-                      {/* Bulk Actions - Only show if there are unapproved documents */}
+                      {/* Bulk actions */}
                       {user.type === 'investor' && user.email === "info@minexx.co" && companyDocs.length > 0 && companyDocs.some(doc => doc.status !== 'Approved') && (
                         <div className="d-flex justify-content-between align-items-center mt-4 mb-3 p-3 bg-dark rounded">
                           <div className="form-check">
@@ -490,7 +642,7 @@ const Kyc = ({language,country}) => {
                               className="form-check-input"
                               id="selectAllDocs"
                             />
-                            <label className="form-check-label  fw-bold" htmlFor="selectAllDocs">
+                            <label className="form-check-label fw-bold" htmlFor="selectAllDocs">
                               Select All Documents
                             </label>
                           </div>
@@ -515,12 +667,15 @@ const Kyc = ({language,country}) => {
                         </div>
                       )}
 
-                      {/* Completed Documents Section */}
+                      {/* Found documents */}
                       {companyDocs.length > 0 && (
                         <div className="mt-4">
                           <ListGroup>
                             {companyDocs.map((document, index) => (
-                              <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                              <ListGroup.Item
+                                key={index}
+                                className="d-flex justify-content-between align-items-center"
+                              >
                                 <div className="d-flex align-items-center">
                                   {user.type === 'investor' && user.email === "info@minexx.co" && (
                                     <div className="form-check me-3">
@@ -538,24 +693,10 @@ const Kyc = ({language,country}) => {
                                     <CheckCircle color="green" size={24} className="ms-2" />
                                   </span>
                                 </div>
-                                
-                                <div className="mt-3 d-flex gap-2">
-                                  <a
-                                    target="_blank"
-                                    className="btn btn-info"
-                                    href={`https://drive.google.com/file/d/${document.file}/preview`}
-                                    rel="noreferrer"
-                                  >
-                                    {t("View")}
-                                  </a>
-                                  <a
-                                    target="_blank"
-                                    className="btn btn-primary"
-                                    href={`https://drive.usercontent.google.com/download?id=${document.file}&export=download&authuser=0`}
-                                    rel="noreferrer"
-                                  >
-                                    {t("Download")}
-                                  </a>
+
+                                <div className="mt-3 d-flex gap-2 align-items-center">
+                                  {renderFileActions(document)}
+
                                   {user.type === 'investor' && user.email === "info@minexx.co" && (
                                     document.status !== 'Approved' ? (
                                       <>
@@ -581,7 +722,7 @@ const Kyc = ({language,country}) => {
                                         </button>
                                       </>
                                     ) : (
-                                      <span className="btn btn-success text-white disabled">Approved</span>  
+                                      <span className="btn btn-success text-white disabled">Approved</span>
                                     )
                                   )}
                                 </div>
@@ -591,23 +732,21 @@ const Kyc = ({language,country}) => {
                         </div>
                       )}
 
-                      {/* Missing Documents Section */}
+                      {/* Missing documents */}
                       {missDocs.length > 0 && (
                         <div className="mt-4">
                           <ListGroup>
                             {missDocs.map((document, index) => (
-                              <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                              <ListGroup.Item
+                                key={index}
+                                className="d-flex justify-content-between align-items-center"
+                              >
                                 <span className="accordion-body">
-                                  {document} 
+                                  {document}
                                   <XCircle color="red" size={24} className="ms-2" />
                                 </span>
                                 <div className="mt-3 d-flex gap-2">
-                                  <a
-                                    target="_blank"
-                                    className="btn btn-danger"
-                                  >
-                                    Missing
-                                  </a>
+                                  <a className="btn btn-danger">Missing</a>
                                 </div>
                               </ListGroup.Item>
                             ))}
@@ -622,6 +761,7 @@ const Kyc = ({language,country}) => {
               </div>
             </Tab.Pane>
 
+            {/* ── Shareholders ── */}
             <Tab.Pane eventKey="shareholders" id="shareholders">
               <div className="card">
                 <div className="card-body">
@@ -652,6 +792,7 @@ const Kyc = ({language,country}) => {
               </div>
             </Tab.Pane>
 
+            {/* ── Beneficial Owners ── */}
             <Tab.Pane eventKey="beneficialOwners" id="beneficialOwners">
               <div className="card">
                 <div className="card-body">
@@ -681,6 +822,7 @@ const Kyc = ({language,country}) => {
                 </div>
               </div>
             </Tab.Pane>
+
           </Tab.Content>
         </div>
       </Tab.Container>

@@ -89,9 +89,11 @@ export const getInitialCountry = (user) => {
       : 'Rwanda';
   }
 
-  // Named buyer access (Rwanda only)
+  // Rwanda buyers can switch between Rwanda and DRC
   if (user?.type === 'buyer_rwanda') {
-    return 'Rwanda';
+    return storedCountry && (storedCountry === 'Rwanda' || storedCountry === 'DRC')
+      ? storedCountry
+      : 'Rwanda';
   }
 
   // Default fallback
@@ -165,9 +167,12 @@ export const getAvailableCountries = (user) => {
     return { Rwanda: countries.Rwanda };
   }
 
-  // Rwanda buyers
+  // Rwanda buyers can access Rwanda and DRC
   if (user.type === 'buyer_rwanda') {
-    return { Rwanda: countries.Rwanda };
+    return {
+      Rwanda: countries.Rwanda,
+      DRC: countries.DRC,
+    };
   }
 
   // Standard buyers can access Rwanda and DRC

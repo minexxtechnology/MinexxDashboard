@@ -159,6 +159,9 @@ import Mine from "./pages/InnerPages/Mine";
 import Assessment from "./pages/InnerPages/Assessment";
 import PurchaseWrapper from "./pages/PurchaseWrapper";
 
+import Minersts from "./pages/3Miners";
+import MinerDetails from "./pages/MinerDetails";
+
 const Markup = (props) => {
   const { menuToggle } = useContext(ThemeContext);
   const navigate = useNavigate();
@@ -235,6 +238,8 @@ const Markup = (props) => {
     { url: 'mines/:id', component: <Mine key={language} language={language}/> },
     { url: 'Kyc/:id', component: <Kyc key={language} language={language} country={country} /> },
     {url: 'Tags', component: <Tags key={language} language={language} country={country}/> },
+     { url: '3tsminers', component: <Minersts language={language} country={country}/> },
+    { url: '/3tsminers/:id', component: <MinerDetails language={language} country={country} /> },
     { url: 'users', component: <Users/> },
 	  { url: 'incidents', component: <Incidents/> },
 	  { url: 'exports', component: <Exports key={language} language={language} country={country}/> },

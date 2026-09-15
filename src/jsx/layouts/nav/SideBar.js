@@ -182,9 +182,11 @@ const SideBar = ({ language, country }) => {
     });
   };
 
-  // Process the menu with country filters
+  // Restrict DRC-only navigation entries to the DRC country view.
   const processedMenu = processMenu(menu);
-  const filteredMenu = processedMenu.filter(item => item.to !== "Tags" || country === "DRC");
+  const filteredMenu = processedMenu.filter(item =>
+    (item.to !== "Tags" && item.to !== "3tsminers") || country === "DRC"
+  );
 
   let path = window.location.pathname;
   path = path.split("/");

@@ -11,6 +11,11 @@ export const RootMenu = [
         iconStyle: <i className="flaticon-381-list"></i>,
         to: 'purchase',
     },
+     {
+        title: "Miners",
+        iconStyle: <i className="fas fa-users" />,
+        to: "3tsminers",
+    },
 
     {   
         title:'Exports',
@@ -131,6 +136,11 @@ export const RegulatorMenu = [
         title:'Purchase',
         iconStyle: <i className="flaticon-381-list"></i>,
         to: 'purchase',
+    },
+     {
+        title: "Miners",
+        iconStyle: <i className="fas fa-users" />,
+        to: "3tsminers",
     },
 
     {   
@@ -333,6 +343,11 @@ export const IMenu = [
         title:'Purchase',
         iconStyle: <i className="flaticon-381-list"></i>,
         to: 'purchase',
+    },
+     {
+        title: "Miners",
+        iconStyle: <i className="fas fa-users" />,
+        to: "3tsminers",
     },
     {   
         title:'Exports',

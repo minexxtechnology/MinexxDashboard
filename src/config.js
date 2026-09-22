@@ -10,7 +10,7 @@ export const getBaseURL = () => {
     return getAPIEndpoint(country);
   } catch (error) {
     // Fallback to DRC API if there's an error
-    return 'https://minexxapi-drc-p7n5ing2cq-uc.a.run.app/';
+    return getAPIEndpoint('DRC');
   }
 };
 

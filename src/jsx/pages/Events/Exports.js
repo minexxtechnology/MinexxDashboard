@@ -11,6 +11,24 @@ import { Loader, Segment } from 'semantic-ui-react';
 import QRCodeWithPrintButton from './QRCodeWithPrintButton';
 import { translations } from './Exporttranslation';
 
+// Sticky-column styling for the "Chain Verify" column so it stays visible
+// (pinned) while every other column keeps scrolling normally.
+const stickyVerifyHeaderStyle = {
+    position: 'sticky',
+    right: 0,
+    zIndex: 3,
+    backgroundColor: '#0d71d4',
+    boxShadow: '-2px 0 4px rgba(0,0,0,0.08)',
+};
+
+const stickyVerifyCellStyle = {
+    position: 'sticky',
+    right: 0,
+    zIndex: 2,
+    backgroundColor: '#fff',
+    boxShadow: '-2px 0 4px rgba(0,0,0,0.08)',
+};
+
 const Exports = ({ language, country }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -23,8 +41,19 @@ const Exports = ({ language, country }) => {
     const [progressData, setProgressData] = useState({});
     const [containerStatus, setContainerStatus] = useState({});
     const [statusUpdating, setStatusUpdating] = useState({});
+    const [verificationLoadingId, setVerificationLoadingId] = useState(null);
+    const CAN_VERIFY=['beda@minexx.email', 'b.akaffou@inexx.co'];
+    
+    const [verificationModal, setVerificationModal] = useState({
+        show: false,
+        status: 'idle',
+        exportId: null,
+        data: null,
+        error: null
+    });
     const access = localStorage.getItem(`_dash`) || '3ts';
     const user = JSON.parse(localStorage.getItem(`_authUsr`));
+    const canVerify = CAN_VERIFY.includes(user?.email);
     const PAGE_SIZE = 20;
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -201,6 +230,60 @@ const Exports = ({ language, country }) => {
         return "success";
     }, []);
 
+
+    const shortenHash = useCallback((hash) => {
+        if (!hash) return 'Not available';
+        if (hash.length <= 24) return hash;
+        return `${hash.slice(0, 12)}...${hash.slice(-10)}`;
+    }, []);
+
+    const closeVerificationModal = useCallback(() => {
+        setVerificationModal(prev => ({
+            ...prev,
+            show: false
+        }));
+    }, []);
+
+    const handleChainVerify = useCallback(async (exportId) => {
+        if (!exportId) {
+            toast.warning("Exportation ID is missing, so blockchain verification cannot run.");
+            return;
+        }
+
+        setVerificationLoadingId(exportId);
+        setVerificationModal({
+            show: true,
+            status: 'loading',
+            exportId,
+            data: null,
+            error: null
+        });
+
+        try {
+            const response = await axiosInstance.get(`export-blockchain/${encodeURIComponent(exportId)}/verify`);
+            const verified = response.data?.verified;
+
+            setVerificationModal({
+                show: true,
+                status: verified ? 'verified' : 'failed',
+                exportId,
+                data: response.data,
+                error: null
+            });
+        } catch (error) {
+            console.error("Error verifying chain:", error);
+            setVerificationModal({
+                show: true,
+                status: 'error',
+                exportId,
+                data: null,
+                error: error.response?.data?.error || error.response?.data?.message || error.message || "Failed to verify chain"
+            });
+        } finally {
+            setVerificationLoadingId(null);
+        }
+    }, []);
+
     // Handle container status change (with per-item updating flag + safer revert + deselect support)
     const handleStatusChange = useCallback(async (exportId, exportationID, status) => {
         const prevStatus = containerStatus[exportId];
@@ -283,6 +366,108 @@ const Exports = ({ language, country }) => {
                 : null
             }
 
+            <Modal centered size="lg" show={verificationModal.show} onHide={closeVerificationModal}>
+                <Modal.Header
+                    closeButton
+                    style={{
+                        borderBottom: 0,
+                        paddingBottom: 0
+                    }}
+                >
+                    <div>
+                        <h4 className="modal-title mb-1">Blockchain Verification</h4>
+                        <div className="text-muted" style={{ fontSize: 13 }}>
+                            Exportation ID: <span className="font-weight-bold">{verificationModal.exportId || 'Not available'}</span>
+                        </div>
+                    </div>
+                </Modal.Header>
+                <Modal.Body>
+                    {verificationModal.status === 'loading' ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" style={{ width: 54, height: 54 }} />
+                            <h4 className="mt-4 mb-2">Checking blockchain anchor</h4>
+                            <p className="text-muted mb-0">Comparing the MySQL export record with the on-chain hash.</p>
+                        </div>
+                    ) : (
+                        <div>
+                            <div
+                                style={{
+                                    borderRadius: 8,
+                                    padding: 22,
+                                    background: verificationModal.status === 'verified' ? '#eaf8f0' : '#fff1f1',
+                                    border: verificationModal.status === 'verified' ? '1px solid #b7e6c8' : '1px solid #ffc9c9',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 16,
+                                    marginBottom: 18
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: 58,
+                                        height: 58,
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: verificationModal.status === 'verified' ? '#22c55e' : '#ef4444',
+                                        color: '#fff',
+                                        flex: '0 0 auto',
+                                        fontSize: 28
+                                    }}
+                                >
+                                    <i className={verificationModal.status === 'verified' ? 'fa fa-check' : 'fa fa-times'} />
+                                </div>
+                                <div>
+                                    <h3 className="mb-1" style={{ color: verificationModal.status === 'verified' ? '#15803d' : '#b91c1c' }}>
+                                        {verificationModal.status === 'verified' ? 'Verified on blockchain' : 'Verification failed'}
+                                    </h3>
+                                    <div style={{ color: '#475569', lineHeight: 1.5 }}>
+                                        {verificationModal.data?.reason || verificationModal.error || 'The blockchain verification request did not complete successfully.'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="row">
+                                <div className="col-md-6 mb-3">
+                                    <div className="p-3" style={{ border: '1px solid #e5e7eb', borderRadius: 8, height: '100%' }}>
+                                        <div className="text-muted mb-1" style={{ fontSize: 12, textTransform: 'uppercase' }}>MySQL hash</div>
+                                        <div className="font-weight-bold" style={{ wordBreak: 'break-word' }}>
+                                            {shortenHash(verificationModal.data?.mysqlRecordHash)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="col-md-6 mb-3">
+                                    <div className="p-3" style={{ border: '1px solid #e5e7eb', borderRadius: 8, height: '100%' }}>
+                                        <div className="text-muted mb-1" style={{ fontSize: 12, textTransform: 'uppercase' }}>On-chain hash</div>
+                                        <div className="font-weight-bold" style={{ wordBreak: 'break-word' }}>
+                                            {shortenHash(verificationModal.data?.onChainRecordHash)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="d-flex flex-wrap" style={{ gap: 10 }}>
+                                <span className="badge light badge-primary">
+                                    Stage: {verificationModal.data?.onChainAsset?.stage || 'Export'}
+                                </span>
+                                <span className="badge light badge-info">
+                                    Anchored by: {verificationModal.data?.onChainAsset?.anchoredBy || 'Not available'}
+                                </span>
+                                <span className="badge light badge-secondary">
+                                    Anchored at: {verificationModal.data?.onChainAsset?.anchoredAt || 'Not available'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer style={{ borderTop: 0 }}>
+                    <button type="button" className="btn btn-primary" onClick={closeVerificationModal}>
+                        Close
+                    </button>
+                </Modal.Footer>
+            </Modal>
+
             <div className="page-titles">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item active"><Link to={"/overview"}>{t('Dashboard')}</Link></li>
@@ -337,6 +522,18 @@ const Exports = ({ language, country }) => {
                                                     <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('Container Status')}</th>
                                                 )}
                                                 <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('QrCode')}</th>
+                                               {canVerify && (
+                                                    <th
+                                                        className="sorting"
+                                                        tabIndex={0}
+                                                        aria-controls="example5"
+                                                        rowSpan={1}
+                                                        colSpan={1}
+                                                        style={stickyVerifyHeaderStyle}
+                                                    >
+                                                        {t('Chain Verify')}
+                                                    </th>
+                                                )}
                                                 {/* {user.type ==='investor' && user.email ==='info@minexx.co' && (
                                                     <th className="sorting" tabIndex={0} aria-controls="example5" rowSpan={1} colSpan={1}>{t('Actions')}</th>
                                                 )} */}
@@ -375,7 +572,7 @@ const Exports = ({ language, country }) => {
                                                             )}
                                                             {country !== 'Gabon' && (<td>
                                                                 {_export.exportationID && progressData[_export.exportationID] ?
-                                                                    <Link to={`/time-tracking/?id=${_export?.exportationID}`}  style={{ display: 'block', textDecoration: 'none', width: '100%' }}>
+                                                                    <a href={`/time-tracking/?id=${_export?.exportationID}`} rel="noreferrer" style={{ display: 'block', textDecoration: 'none', width: '100%' }}>
                                                                         <div className="d-flex align-items-center">
                                                                             <span className="me-2 font-weight-bold" style={{ minWidth: '40px' }}>
                                                                                 {progressData[_export.exportationID].percentage || 0}%
@@ -386,7 +583,7 @@ const Exports = ({ language, country }) => {
                                                                                 style={{ height: '20px', width: '100%', minWidth: '60px' }}
                                                                             />
                                                                         </div>
-                                                                    </Link> :
+                                                                    </a> :
                                                                     <span className="text-warning">Progress not available</span>
                                                                 }
                                                             </td>
@@ -496,6 +693,30 @@ const Exports = ({ language, country }) => {
                                                             )}
                                                             <td>
                                                                 <QRCodeWithPrintButton value={`https://end-end-overview.vercel.app/export/${_export?.id}/${_export?.company?.id}/?x-platform=${_export.mineral === 'Gold' ? 'gold' : '3ts'}`} />
+                                                            </td>
+
+                                                            <td style={stickyVerifyCellStyle}>
+                                                                {canVerify && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-secondary"
+                                                                    onClick={() => handleChainVerify(_export.exportationID)}
+                                                                    disabled={!_export.exportationID || verificationLoadingId === _export.exportationID}
+                                                                    style={{ minWidth: 98 }}
+                                                                >
+                                                                    {verificationLoadingId === _export.exportationID ? (
+                                                                        <>
+                                                                            <Spinner animation="border" size="sm" className="me-2" />
+                                                                            Checking
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <i className="fa fa-shield me-2" />
+                                                                            Verify
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                                )}
                                                             </td>
 
                                                             {/* {user.type === 'investor' && user.email === 'info@minexx.co' && (

@@ -82,6 +82,8 @@ const Miners = ({ language, country }) => {
     const [showModal, setShowModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [selectedImageField, setSelectedImageField] = useState('');
+    const CAN_VERIFY=['beda@minexx.email', 'b.akaffou@inexx.co'];
+    const canVerify = CAN_VERIFY.includes(user?.email);
     const [filters, setFilters] = useState({
         firstName: '',
         lastName: '',
@@ -651,8 +653,34 @@ const Miners = ({ language, country }) => {
                                                                     >
                                                                         <i className="fa fa-eye"></i>
                                                                     </button>
+                                                                    {/* <LazyImageButton
+                                                                        minerId={miner.ID}
+                                                                        field="Artisanal Mining Card"
+                                                                        fieldLabel={t("Artisanal Mining Card")}
+                                                                        onShowImage={showImage}
+                                                                    />
+                                                                    <LazyImageButton
+                                                                        minerId={miner.ID}
+                                                                        field="Signature"
+                                                                        fieldLabel={t("Signature")}
+                                                                        onShowImage={showImage}
+                                                                    /> */}
                                                                     
-                                                                   
+                                                                    {canVerify && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-sm btn-warning"
+                                                                        style={{ fontSize: '11px', padding: '4px 10px', minWidth: 74 }}
+                                                                        disabled={!miner.ID || isVerifying}
+                                                                        onClick={() => handleChainVerify(miner.ID)}
+                                                                    >
+                                                                        {isVerifying ? (
+                                                                            <span className="spinner-border spinner-border-sm" role="status" />
+                                                                        ) : (
+                                                                            <><i className="fa fa-shield me-1"></i>Verify</>
+                                                                        )}
+                                                                    </button>
+                                                                )}
                                                                 </div>
                                                             </td>
                                                         </tr>

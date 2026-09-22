@@ -4,6 +4,7 @@ import {
     loginConfirmedAction,
     Logout,
 } from '../store/actions/AuthActions';
+import { getAPIEndpoint } from './AccessControl';
 
 export function signUp(email, password) {
     //axios call
@@ -25,8 +26,9 @@ export function login(email, password) {
         password,
         returnSecureToken: true,
     };
+    const baseURL = getAPIEndpoint('DRC').replace(/\/$/, '');
     return axios.post( 
-        `https://minexxapi-drc-p7n5ing2cq-uc.a.run.app/login`,
+        `${baseURL}/login`,
         postData,
     );
 } 

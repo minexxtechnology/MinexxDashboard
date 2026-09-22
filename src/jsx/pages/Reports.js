@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { Button, Modal, Dropdown, Nav, Tab, Table, ListGroup } from 'react-bootstrap';
+import { Button, Modal, Dropdown, Nav, Tab, Table, ListGroup, Spinner } from 'react-bootstrap';
 import { Card, Form, InputGroup } from 'react-bootstrap';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ThemeContext } from '../../context/ThemeContext';
@@ -16,6 +16,7 @@ import { Select } from 'semantic-ui-react';
 import KPIs from './KPIs';
 import Stockmovement from './stockmovement';
 import Exportchemical from './exportchemical.js';
+// import ExcelReports from './ExcelReports.js';
 
 /**
  * UNIFIED Reports Component - Conditional Access by User Type
@@ -53,6 +54,7 @@ const ticketData = [
 ];
 
 const imageColumns = new Set(['Image', 'Images', 'Receipt', 'Seller ID Card', 'Miners_Images']);
+const CAN_VERIFY = ['beda@minexx.email', 'b.akaffou@inexx.co'];
 
 const Reports = ({ language, country }) => {
 
@@ -65,9 +67,19 @@ const Reports = ({ language, country }) => {
     // Check if user has Gold_Togo access
     const user = JSON.parse(localStorage.getItem(`_authUsr`) || '{}');
     const isGoldTogoUser = user?.access === 'Gold_Togo' || user?.access === 'Gold-Togo';
+    const canVerify = CAN_VERIFY.includes(user?.email);
     
     const [attachment, setattachment] = useState()
     const [loading, setLoading] = useState(false);
+    const [verificationLoadingId, setVerificationLoadingId] = useState(null);
+    const [verificationModal, setVerificationModal] = useState({
+        show: false,
+        status: 'idle',
+        identifier: null,
+        stage: null,
+        data: null,
+        error: null
+    });
     const [companies, setcompanies] = useState([]);
     const [suppliers, setsuppliers] = useState([]);
     const [suppliersgrade, setsuppliersgrade] = useState([]);
@@ -173,6 +185,92 @@ const Reports = ({ language, country }) => {
             return key;
         }
         return translations[language][key] || key;
+    };
+
+    const handleChainVerify = async (endpoint, identifier, stage) => {
+        if (!identifier) {
+            toast.warning(`${stage} identifier is missing, so blockchain verification cannot run.`);
+            return;
+        }
+
+        const requestId = `${stage}-${identifier}`;
+        setVerificationLoadingId(requestId);
+        setVerificationModal({
+            show: true,
+            status: 'loading',
+            identifier,
+            stage,
+            data: null,
+            error: null
+        });
+
+        try {
+            const response = await axiosInstance.get(endpoint);
+            const verified = response.data?.verified;
+            setVerificationModal({
+                show: true,
+                status: verified ? 'verified' : 'failed',
+                identifier,
+                stage,
+                data: response.data,
+                error: null
+            });
+        } catch (error) {
+            console.error(`Error verifying ${stage} chain:`, error);
+            setVerificationModal({
+                show: true,
+                status: 'error',
+                identifier,
+                stage,
+                data: null,
+                error: error.response?.data?.error || error.response?.data?.message || error.message || `Failed to verify ${stage} blockchain record.`
+            });
+        } finally {
+            setVerificationLoadingId(null);
+        }
+    };
+
+    const shortenHash = (hash) => {
+        if (!hash) return 'Not available';
+        if (hash.length <= 24) return hash;
+        return `${hash.slice(0, 12)}...${hash.slice(-10)}`;
+    };
+
+    const closeVerificationModal = () => {
+        setVerificationModal(prev => ({ ...prev, show: false }));
+    };
+
+    const getProductionTagNumber = (production, headers = []) => {
+        if (!production) return null;
+
+        const normalizedTagKey = (key) => String(key).toLowerCase().replace(/[^a-z0-9]/g, '').includes('tagnumber');
+
+        if (Array.isArray(production)) {
+            const tagIndex = headers.findIndex(normalizedTagKey);
+            return tagIndex >= 0 ? production[tagIndex] : null;
+        }
+
+        const tagKey = Object.keys(production).find(normalizedTagKey);
+        return tagKey ? production[tagKey] : production.tag || production.tagNumber || production.tag_number || null;
+    };
+
+    const ChainVerifyButton = ({ endpoint, identifier, stage, unavailable = false }) => {
+         if (!canVerify) return null;
+        const requestId = `${stage}-${identifier}`;
+        const isVerifying = verificationLoadingId === requestId;
+
+        return (
+            <Button
+                type="button"
+                variant="warning"
+                size="sm"
+                disabled={unavailable || isVerifying}
+                title={unavailable ? 'Blockchain verification is not available for drums.' : 'Verify blockchain record'}
+                onClick={() => handleChainVerify(endpoint, identifier, stage)}
+            >
+                {isVerifying ? <span className="spinner-border spinner-border-sm" role="status" /> : <><i className="fa fa-shield me-1" />Verify</>}
+            </Button>
+        );
     };
 
     // ── CSV Export Utility ──────────────────────────────────────────────
@@ -2194,7 +2292,7 @@ const Reports = ({ language, country }) => {
             },
         },
         tooltip: {
-            y: {
+            y: { 
                 formatter: function (val) {
                     return val.toFixed(2) + ' %';
                 },
@@ -2300,6 +2398,83 @@ const Reports = ({ language, country }) => {
                     <img alt='' className='rounded mt-4' width={'100%'} src={`https://lh3.googleusercontent.com/d/${attachment.image}=w2160?authuser=0`} />
                 </Modal.Body>
             </Modal> : null}
+            <Modal centered size="lg" show={verificationModal.show} onHide={closeVerificationModal}>
+                <Modal.Header closeButton style={{ borderBottom: 0, paddingBottom: 0 }}>
+                    <div>
+                        <h4 className="modal-title mb-1">Blockchain Verification</h4>
+                        <div className="text-muted" style={{ fontSize: 13 }}>
+                            {verificationModal.stage || 'Record'} ID: <span className="font-weight-bold">{verificationModal.identifier || 'Not available'}</span>
+                        </div>
+                    </div>
+                </Modal.Header>
+                <Modal.Body>
+                    {verificationModal.status === 'loading' ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" style={{ width: 54, height: 54 }} />
+                            <h4 className="mt-4 mb-2">Checking blockchain anchor</h4>
+                            <p className="text-muted mb-0">Comparing the MySQL record with the on-chain hash.</p>
+                        </div>
+                    ) : (
+                        <div>
+                            <div style={{
+                                borderRadius: 8,
+                                padding: 22,
+                                background: verificationModal.status === 'verified' ? '#eaf8f0' : '#fff1f1',
+                                border: verificationModal.status === 'verified' ? '1px solid #b7e6c8' : '1px solid #ffc9c9',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 16,
+                                marginBottom: 18
+                            }}>
+                                <div style={{
+                                    width: 58,
+                                    height: 58,
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: verificationModal.status === 'verified' ? '#22c55e' : '#ef4444',
+                                    color: '#fff',
+                                    flex: '0 0 auto',
+                                    fontSize: 28
+                                }}>
+                                    <i className={verificationModal.status === 'verified' ? 'fa fa-check' : 'fa fa-times'} />
+                                </div>
+                                <div>
+                                    <h3 className="mb-1" style={{ color: verificationModal.status === 'verified' ? '#15803d' : '#b91c1c' }}>
+                                        {verificationModal.status === 'verified' ? 'Verified on blockchain' : 'Verification failed'}
+                                    </h3>
+                                    <div style={{ color: '#475569', lineHeight: 1.5 }}>
+                                        {verificationModal.data?.reason || verificationModal.error || 'The blockchain verification request did not complete successfully.'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-md-6 mb-3">
+                                    <div className="p-3" style={{ border: '1px solid #e5e7eb', borderRadius: 8, height: '100%' }}>
+                                        <div className="text-muted mb-1" style={{ fontSize: 12, textTransform: 'uppercase' }}>MySQL hash</div>
+                                        <div className="font-weight-bold" style={{ wordBreak: 'break-word' }}>{shortenHash(verificationModal.data?.mysqlRecordHash)}</div>
+                                    </div>
+                                </div>
+                                <div className="col-md-6 mb-3">
+                                    <div className="p-3" style={{ border: '1px solid #e5e7eb', borderRadius: 8, height: '100%' }}>
+                                        <div className="text-muted mb-1" style={{ fontSize: 12, textTransform: 'uppercase' }}>On-chain hash</div>
+                                        <div className="font-weight-bold" style={{ wordBreak: 'break-word' }}>{shortenHash(verificationModal.data?.onChainRecordHash)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="d-flex flex-wrap" style={{ gap: 10 }}>
+                                <span className="badge light badge-primary">Stage: {verificationModal.data?.onChainAsset?.stage || verificationModal.stage || 'Not available'}</span>
+                                <span className="badge light badge-info">Anchored by: {verificationModal.data?.onChainAsset?.anchoredBy || 'Not available'}</span>
+                                <span className="badge light badge-secondary">Anchored at: {verificationModal.data?.onChainAsset?.anchoredAt || 'Not available'}</span>
+                            </div>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer style={{ borderTop: 0 }}>
+                    <button type="button" className="btn btn-primary" onClick={closeVerificationModal}>Close</button>
+                </Modal.Footer>
+            </Modal>
             <div className="page-titles">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item active"><Link to={"#"}>{t("Dashboard")}</Link></li>
@@ -3274,6 +3449,7 @@ const Reports = ({ language, country }) => {
                                                                                         <th className="text-center text-dark">
                                                                                             {t("Note")}
                                                                                         </th>
+                                                                                        {canVerify && <th className="text-center text-dark">{t("Chain Verify")}</th>}
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
@@ -3288,11 +3464,12 @@ const Reports = ({ language, country }) => {
                                                                                             <td>{prod.bags}</td>
                                                                                             <td>{prod.totalWeight}</td>
                                                                                             <td>{prod.note}</td>
+                                                                                            <td><ChainVerifyButton endpoint={`${baseURL_}production/${encodeURIComponent(getProductionTagNumber(prod))}/verify`} identifier={getProductionTagNumber(prod)} stage="Production" /></td>
                                                                                         </tr>)
                                                                                     }
                                                                                     {
                                                                                         trace.production.length === 0 ? <tr>
-                                                                                            <td colSpan={9}>{t('NoProduction')}</td>
+                                                                                            <td colSpan={10}>{t('NoProduction')}</td>
                                                                                         </tr> : <tr></tr>
                                                                                     }
                                                                                 </tbody>
@@ -3307,6 +3484,7 @@ const Reports = ({ language, country }) => {
                                                                                                 {t(h)}
                                                                                             </th>
                                                                                         ))}
+                                                                                        {canVerify && <th className="text-center text-dark">{t("Chain Verify")}</th>}
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
@@ -3314,6 +3492,8 @@ const Reports = ({ language, country }) => {
                                                                                         trace.production.production.map((prod, i) => {
                                                                                             // Check if prod is an object or an array
                                                                                             const rowData = Array.isArray(prod) ? prod : Object.values(prod);
+                                                                                            const productionTag = getProductionTagNumber(prod, trace.production?.header)
+                                                                                                || getProductionTagNumber(Object.fromEntries((trace.production?.header || []).map((headerName, index) => [headerName, rowData[index]])));
                                                                                             return (
                                                                                                 <tr key={`prod${i}`}>
                                                                                                     {trace.production?.header?.map((headerName, index) => {
@@ -3338,12 +3518,13 @@ const Reports = ({ language, country }) => {
                                                                                                             </td>
                                                                                                         );
                                                                                                     })}
+                                                                                                    <td><ChainVerifyButton endpoint={`${baseURL_}production/${encodeURIComponent(productionTag)}/verify`} identifier={productionTag} stage="Production" /></td>
                                                                                                 </tr>
                                                                                             );
                                                                                         })
                                                                                     ) : (
                                                                                         <tr>
-                                                                                            <td colSpan={9}>The selected company does not have any production to show.</td>
+                                                                                            <td colSpan={(trace.production?.header?.length || 0) + 1}>The selected company does not have any production to show.</td>
                                                                                         </tr>
                                                                                     )}
                                                                                 </tbody>
@@ -3414,6 +3595,7 @@ const Reports = ({ language, country }) => {
                                                                                                 <th className="text-center text-dark">
                                                                                                     {t("ProductionID")}
                                                                                                 </th>
+                                                                                                {canVerify && <th className="text-center text-dark">{t("Chain Verify")}</th>}
                                                                                             </tr>
                                                                                         </thead>
                                                                                         <tbody>
@@ -3433,11 +3615,12 @@ const Reports = ({ language, country }) => {
                                                                                                     <td>{bag.itinerary}</td>
                                                                                                     <td>{bag.time}</td>
                                                                                                     <td>{bag.production}</td>
+                                                                                                    <td><ChainVerifyButton endpoint={`${baseURL_}bags/${encodeURIComponent(bag.id || bag.ID)}/verify`} identifier={bag.id || bag.ID} stage="Bag" /></td>
                                                                                                 </tr>)
                                                                                             }
                                                                                             {
                                                                                                 trace?.bags.length === 0 ? <tr>
-                                                                                                    <td colSpan={14}>{t("NoSelected")}</td>
+                                                                                                    <td colSpan={15}>{t("NoSelected")}</td>
                                                                                                 </tr> : <tr></tr>
                                                                                             }
                                                                                         </tbody>
@@ -3593,6 +3776,9 @@ const Reports = ({ language, country }) => {
                                                                                                 <th className="text-center text-dark">
                                                                                                     {t("LotNumber")}
                                                                                                 </th>
+                                                                                                {canVerify && (
+                                                                                                    <th className="text-center text-dark">{t("Chain Verify")}</th>
+                                                                                                )}
                                                                                             </tr>
                                                                                         </thead>
                                                                                         <tbody>
@@ -3627,11 +3813,12 @@ const Reports = ({ language, country }) => {
                                                                                                     <td>{proc.paymentMethod}</td>
                                                                                                     <td>{proc.security}</td>
                                                                                                     <td>{proc.lot}</td>
+                                                                                                    <td><ChainVerifyButton endpoint={`${baseURL_}processing/${encodeURIComponent(proc.id || proc.ID)}/verify`} identifier={proc.id || proc.ID} stage="Processing" /></td>
                                                                                                 </tr>)
                                                                                             }
                                                                                             {
                                                                                                 trace.processing.length === 0 ? <tr>
-                                                                                                    <td colSpan={29}>{t("NoProcessing")}</td>
+                                                                                                    <td colSpan={30}>{t("NoProcessing")}</td>
                                                                                                 </tr> : <tr></tr>
                                                                                             }
                                                                                         </tbody>
@@ -3719,6 +3906,9 @@ const Reports = ({ language, country }) => {
                                                                                                 <th className="text-center text-dark">
                                                                                                     {t("Grade")}
                                                                                                 </th>
+                                                                                                {canVerify && (
+                                                                                                    <th className="text-center text-dark">{t("Chain Verify")}</th>
+                                                                                                )}
                                                                                             </tr>
                                                                                         </thead>
                                                                                         <tbody>
@@ -3735,10 +3925,11 @@ const Reports = ({ language, country }) => {
                                                                                                     <td>{bag.color}</td>
                                                                                                     <td>{bag.mineral}</td>
                                                                                                     <td>{bag.grade}</td>
+                                                                                                    <td><ChainVerifyButton endpoint={`${baseURL_}proc-bags/${encodeURIComponent(bag.id || bag.ID)}/verify`} identifier={bag.id || bag.ID} stage="Processed bag" /></td>
                                                                                                 </tr>)
                                                                                             }{
                                                                                                 trace?.bags_proc.length === 0 ? <tr>
-                                                                                                    <td colSpan={24}>{t("NoProcessedBags")}</td>
+                                                                                                    <td colSpan={25}>{t("NoProcessedBags")}</td>
                                                                                                 </tr> : <tr></tr>
                                                                                             }
                                                                                         </tbody>
@@ -3816,12 +4007,15 @@ const Reports = ({ language, country }) => {
                                                                                                         >
                                                                                                             {t(header)}
                                                                                                         </th>)}
+                                                                                                        {canVerify && (
+                                                                                                            <th className="sorting">{t("Chain Verify")}</th>
+                                                                                                        )}
                                                                                                     </tr>
                                                                                                 </thead>
                                                                                                 <tbody>
                                                                                                     {trace.blending['rows'].length === 0 ? (
                                                                                                         <tr>
-                                                                                                            <td colSpan={trace.blending['header'].length}>{t("NoBlendingRecords")}</td>
+                                                                                                            <td colSpan={trace.blending['header'].length + 1}>{t("NoBlendingRecords")}</td>
                                                                                                         </tr>
                                                                                                     ) : (
                                                                                                         trace.blending['rows'].map((row, index) => (
@@ -3848,6 +4042,7 @@ const Reports = ({ language, country }) => {
                                                                                                                         </td>
                                                                                                                     );
                                                                                                                 })}
+                                                                                                                <td><ChainVerifyButton endpoint={`${baseURL_}blending/lot/${encodeURIComponent(row.ID || row.id)}/verify`} identifier={row.ID || row.id} stage="Blending" /></td>
                                                                                                             </tr>
                                                                                                         ))
                                                                                                     )}
@@ -3901,6 +4096,9 @@ const Reports = ({ language, country }) => {
                                                                                                 <th className="text-center text-dark">
                                                                                                     {t("ASITagNumber")}
                                                                                                 </th>
+                                                                                                {canVerify && (
+                                                                                                    <th className="text-center text-dark">{t("Chain Verify")}</th>
+                                                                                                )}
                                                                                             </tr>
                                                                                         </thead>
                                                                                         <tbody>
@@ -3914,11 +4112,12 @@ const Reports = ({ language, country }) => {
                                                                                                     <td>{drum.grade}</td>
                                                                                                     <td>{drum.blending}</td>
                                                                                                     <td>{drum.asi}</td>
+                                                                                                    <td><ChainVerifyButton identifier={drum.id || drum.ID || drum.drum} stage="Drum" unavailable /></td>
                                                                                                 </tr>)
                                                                                             }
                                                                                             {
                                                                                                 trace.drums.length === 0 ? <tr>
-                                                                                                    <td colSpan={24}>{t("NoDrums")}</td>
+                                                                                                    <td colSpan={9}>{t("NoDrums")}</td>
                                                                                                 </tr> : <tr></tr>
                                                                                             }
                                                                                         </tbody>
@@ -5516,7 +5715,9 @@ const Reports = ({ language, country }) => {
                                                                             (
                                                                                 <Exportchemical language={language} country={country} />
                                                                             ) :
+                                                                           
                                                                             null}
+                                                                            
             </div >
         </>
     );

@@ -23,7 +23,7 @@ const getBaseURL = () => {
     return endpoint.replace(/\/$/, '');
   } catch (error) {
     console.warn('Error getting API endpoint:', error);
-    return 'https://minexxapi-drc-p7n5ing2cq-uc.a.run.app';
+    return getAPIEndpoint('DRC').replace(/\/$/, '');
   }
 };
 

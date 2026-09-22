@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Table, Modal } from 'react-bootstrap';
+import React, { useState, useEffect, useContext,useMemo } from 'react';
+import { Table, Modal, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { ThemeContext } from '../../context/ThemeContext';
 import { toast } from 'react-toastify';
@@ -13,7 +13,7 @@ const imageColumns = new Set(['Picture']);
 const fileColumns  = new Set(['Purchase Sheet', 'Assay Report', 'Holding Certificate']);
 const dateColumns  = new Set(['Delivery Date', 'Processing Date', 'Payment Date']);
 const ADMIN_EMAILS = ['beda@minexx.email', 'info@minexx.co'];
-
+const CAN_VERIFY=['beda@minexx.email', 'b.akaffou@inexx.co'];
 const DISPLAY_COLUMNS = [
     'Lot Number',
     'Delivery Date',
@@ -30,6 +30,7 @@ const DISPLAY_COLUMNS = [
     'Holding Certificate',
     'Purchase Sheet',
     'Assay Report',
+    'Chain Verify',
 ];
 
 const PENDING_STATUSES = new Set([
@@ -109,6 +110,12 @@ const Purchase = ({ language, country }) => {
     const access  = localStorage.getItem(`_dash`) || '3ts';
     const user    = JSON.parse(localStorage.getItem(`_authUsr`));
     const isAdmin = ADMIN_EMAILS.includes(user?.email);
+   const canVerify = CAN_VERIFY.includes(user?.email?.toLowerCase());
+
+const displayColumns = useMemo(
+    () => DISPLAY_COLUMNS.filter(col => col !== 'Chain Verify' || canVerify),
+    [canVerify]
+);
 
     const [companies,   setCompanies]   = useState([]);
     const [company,     setCompany]     = useState(null);
@@ -116,6 +123,14 @@ const Purchase = ({ language, country }) => {
     const [approvingId, setApprovingId] = useState(null);
     const [purchases,   setPurchases]   = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [verificationLoadingLot, setVerificationLoadingLot] = useState(null);
+    const [verificationModal, setVerificationModal] = useState({
+        show: false,
+        status: 'idle',
+        lotNumber: null,
+        data: null,
+        error: null
+    });
     const itemsPerPage = 20;
 
     // ── Listen for lazy image events ────────────────────────────────────
@@ -151,6 +166,19 @@ const Purchase = ({ language, country }) => {
         if (!value) return '—';
         const d = new Date(value);
         return isNaN(d) ? value : d.toLocaleDateString();
+    };
+
+    const shortenHash = (hash) => {
+        if (!hash) return 'Not available';
+        if (hash.length <= 24) return hash;
+        return `${hash.slice(0, 12)}...${hash.slice(-10)}`;
+    };
+
+    const closeVerificationModal = () => {
+        setVerificationModal(prev => ({
+            ...prev,
+            show: false
+        }));
     };
 
     // ── Normalize Country ───────────────────────────────────────────────
@@ -239,6 +267,47 @@ const Purchase = ({ language, country }) => {
         }
     };
 
+    // ── Blockchain Verify ───────────────────────────────────────────────
+    const handleChainVerify = async (lotNumber) => {
+        if (!lotNumber) {
+            toast.warning('Lot Number is missing, so blockchain verification cannot run.');
+            return;
+        }
+
+        setVerificationLoadingLot(lotNumber);
+        setVerificationModal({
+            show: true,
+            status: 'loading',
+            lotNumber,
+            data: null,
+            error: null
+        });
+
+        try {
+            const response = await axiosInstance.get(`/purchase-tracker/lot/${encodeURIComponent(lotNumber)}/verify`);
+            const verified = response.data?.verified;
+
+            setVerificationModal({
+                show: true,
+                status: verified ? 'verified' : 'failed',
+                lotNumber,
+                data: response.data,
+                error: null
+            });
+        } catch (err) {
+            console.error('Error verifying purchase tracker blockchain record:', err);
+            setVerificationModal({
+                show: true,
+                status: 'error',
+                lotNumber,
+                data: null,
+                error: err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to verify blockchain record'
+            });
+        } finally {
+            setVerificationLoadingLot(null);
+        }
+    };
+
     // ── Translation ─────────────────────────────────────────────────────
     const t = (key) => {
         if (!translations[language]) return key;
@@ -285,6 +354,37 @@ const Purchase = ({ language, country }) => {
     // ── Render Cell ─────────────────────────────────────────────────────
     const renderCell = (row, headerField) => {
         const fieldValue = row[headerField];
+
+        if (headerField === 'Chain Verify') {
+    const lotNumber = row['Lot Number'];
+    const isLoading = verificationLoadingLot === lotNumber;
+
+    if (!canVerify) {
+        return <span className="text-muted">—</span>;
+    }
+
+    return (
+        <button
+            type="button"
+            className="btn btn-xs btn-secondary"
+            style={{ fontSize: '11px', padding: '4px 10px', minWidth: 98 }}
+            disabled={!lotNumber || isLoading}
+            onClick={() => handleChainVerify(lotNumber)}
+        >
+            {isLoading ? (
+                <>
+                    <Spinner animation="border" size="sm" className="me-1" />
+                    Checking
+                </>
+            ) : (
+                <>
+                    <i className="fa fa-shield me-1"></i>
+                    Verify
+                </>
+            )}
+        </button>
+    );
+}
 
         // Image columns — lazy load
         if (imageColumns.has(headerField)) {
@@ -391,6 +491,108 @@ const Purchase = ({ language, country }) => {
                     
                 </Modal>
             )}
+
+            <Modal centered size="lg" show={verificationModal.show} onHide={closeVerificationModal}>
+                <Modal.Header
+                    closeButton
+                    style={{
+                        borderBottom: 0,
+                        paddingBottom: 0
+                    }}
+                >
+                    <div>
+                        <h4 className="modal-title mb-1">Blockchain Verification</h4>
+                        <div className="text-muted" style={{ fontSize: 13 }}>
+                            Lot Number: <span className="font-weight-bold">{verificationModal.lotNumber || 'Not available'}</span>
+                        </div>
+                    </div>
+                </Modal.Header>
+                <Modal.Body>
+                    {verificationModal.status === 'loading' ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" style={{ width: 54, height: 54 }} />
+                            <h4 className="mt-4 mb-2">Checking blockchain anchor</h4>
+                            <p className="text-muted mb-0">Comparing the MySQL purchase record with the on-chain hash.</p>
+                        </div>
+                    ) : (
+                        <div>
+                            <div
+                                style={{
+                                    borderRadius: 8,
+                                    padding: 22,
+                                    background: verificationModal.status === 'verified' ? '#eaf8f0' : '#fff1f1',
+                                    border: verificationModal.status === 'verified' ? '1px solid #b7e6c8' : '1px solid #ffc9c9',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 16,
+                                    marginBottom: 18
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: 58,
+                                        height: 58,
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: verificationModal.status === 'verified' ? '#22c55e' : '#ef4444',
+                                        color: '#fff',
+                                        flex: '0 0 auto',
+                                        fontSize: 28
+                                    }}
+                                >
+                                    <i className={verificationModal.status === 'verified' ? 'fa fa-check' : 'fa fa-times'} />
+                                </div>
+                                <div>
+                                    <h3 className="mb-1" style={{ color: verificationModal.status === 'verified' ? '#15803d' : '#b91c1c' }}>
+                                        {verificationModal.status === 'verified' ? 'Verified on blockchain' : 'Verification failed'}
+                                    </h3>
+                                    <div style={{ color: '#475569', lineHeight: 1.5 }}>
+                                        {verificationModal.data?.reason || verificationModal.error || 'The blockchain verification request did not complete successfully.'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="row">
+                                <div className="col-md-6 mb-3">
+                                    <div className="p-3" style={{ border: '1px solid #e5e7eb', borderRadius: 8, height: '100%' }}>
+                                        <div className="text-muted mb-1" style={{ fontSize: 12, textTransform: 'uppercase' }}>MySQL hash</div>
+                                        <div className="font-weight-bold" style={{ wordBreak: 'break-word' }}>
+                                            {shortenHash(verificationModal.data?.mysqlRecordHash)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="col-md-6 mb-3">
+                                    <div className="p-3" style={{ border: '1px solid #e5e7eb', borderRadius: 8, height: '100%' }}>
+                                        <div className="text-muted mb-1" style={{ fontSize: 12, textTransform: 'uppercase' }}>On-chain hash</div>
+                                        <div className="font-weight-bold" style={{ wordBreak: 'break-word' }}>
+                                            {shortenHash(verificationModal.data?.onChainRecordHash)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="d-flex flex-wrap" style={{ gap: 10 }}>
+                                <span className="badge light badge-primary">
+                                    Stage: {verificationModal.data?.onChainAsset?.stage || 'Purchase Tracker'}
+                                </span>
+                                <span className="badge light badge-info">
+                                    Anchored by: {verificationModal.data?.onChainAsset?.anchoredBy || 'Not available'}
+                                </span>
+                                <span className="badge light badge-secondary">
+                                    Anchored at: {verificationModal.data?.onChainAsset?.anchoredAt || 'Not available'}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Footer style={{ borderTop: 0 }}>
+                    <button type="button" className="btn btn-primary" onClick={closeVerificationModal}>
+                        Close
+                    </button>
+                </Modal.Footer>
+            </Modal>
 
             {/* Breadcrumb */}
             <div className="page-titles">

@@ -4,9 +4,27 @@
  * country-specific features, and API endpoint routing
  */
 
+const ensureTrailingSlash = (url) => url.endsWith('/') ? url : `${url}/`;
+
+const getDRCAPIEndpoint = () => {
+  const envEndpoint = typeof process !== 'undefined'
+    ? process.env.REACT_APP_DRC_API_URL
+    : undefined;
+
+  if (envEndpoint) {
+    return ensureTrailingSlash(envEndpoint);
+  }
+
+  if (typeof window !== 'undefined' && window.location?.protocol === 'https:') {
+    return '/api/';
+  }
+
+  return 'http://34.28.252.35:3500/';
+};
+
 // API Endpoints for each country/mode
 const API_ENDPOINTS = {
-  DRC: 'https://minexxapi-drc-p7n5ing2cq-uc.a.run.app/',
+  DRC: getDRCAPIEndpoint(),
   Togo: 'https://minexxapi-togo-clone-p7n5ing2cq-uc.a.run.app/',
 };
 
@@ -22,7 +40,10 @@ export const getAPIEndpoint = (country) => {
   return API_ENDPOINTS[country] || DEFAULT_API_ENDPOINT;
 };
 
+
 /**
+ * 
+ * 
  * Check if user has Gold-Togo access level
  * @param {object} user - User object from localStorage
  * @returns {boolean}
@@ -89,11 +110,9 @@ export const getInitialCountry = (user) => {
       : 'Rwanda';
   }
 
-  // Rwanda buyers can switch between Rwanda and DRC
+  // Named buyer access (Rwanda only)
   if (user?.type === 'buyer_rwanda') {
-    return storedCountry && (storedCountry === 'Rwanda' || storedCountry === 'DRC')
-      ? storedCountry
-      : 'Rwanda';
+    return 'Rwanda';
   }
 
   // Default fallback
@@ -167,12 +186,9 @@ export const getAvailableCountries = (user) => {
     return { Rwanda: countries.Rwanda };
   }
 
-  // Rwanda buyers can access Rwanda and DRC
+  // Rwanda buyers
   if (user.type === 'buyer_rwanda') {
-    return {
-      Rwanda: countries.Rwanda,
-      DRC: countries.DRC,
-    };
+    return { Rwanda: countries.Rwanda };
   }
 
   // Standard buyers can access Rwanda and DRC
@@ -321,7 +337,6 @@ export const initializeAccessControl = () => {
   localStorage.setItem('_country', initialCountry);
   localStorage.setItem('_dash', accessLevel);
   localStorage.setItem('_lang', language);
-
   return {
     country: initialCountry,
     accessLevel,

@@ -33,7 +33,7 @@ const Incidents = () =>{
 
 	const fetchIncidents = async()=>{
 		try{
-			let response = await axios.get(`${baseURL_}incidents`)
+			let response = await axios.get(`incidents`)
 			setlevels(response.data.levels)
 			setincidents(response.data.incidents)
 			setfiltered(response.data.incidents)

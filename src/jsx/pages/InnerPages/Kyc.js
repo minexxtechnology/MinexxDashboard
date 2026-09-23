@@ -169,7 +169,7 @@ const Kyc = ({language, country}) => {
     if (confirmAction.type === 'bulk-approve') {
       try {
         const approvePromises = selectedDocuments.map(docId =>
-          axiosInstance.post(`${baseURL_}approve/document/${docId}`)
+          axiosInstance.post(`approve/document/${docId}`)
         );
         await Promise.all(approvePromises);
         toast.success(`${selectedDocuments.length} document(s) approved successfully`);
@@ -183,7 +183,7 @@ const Kyc = ({language, country}) => {
     } else if (confirmAction.type === 'bulk-disapprove') {
       try {
         const disapprovePromises = selectedDocuments.map(docId =>
-          axiosInstance.delete(`${baseURL_}disapprove/document/${docId}`)
+          axiosInstance.delete(`disapprove/document/${docId}`)
         );
         await Promise.all(disapprovePromises);
         toast.success(`${selectedDocuments.length} document(s) disapproved successfully`);
@@ -205,7 +205,7 @@ const Kyc = ({language, country}) => {
 
   const approveDocument = async (docId) => {
     try {
-      await axiosInstance.post(`${baseURL_}approve/document/${docId}`);
+      await axiosInstance.post(`approve/document/${docId}`);
       toast.success("Document approved successfully");
       fetchCompanyData(id);
     } catch (err) {
@@ -216,7 +216,7 @@ const Kyc = ({language, country}) => {
 
   const handledisapprove = async (docId) => {
     try {
-      await axiosInstance.delete(`${baseURL_}disapprove/document/${docId}`);
+      await axiosInstance.delete(`disapprove/document/${docId}`);
       toast.success("Document disapproved successfully");
       setLoading(true);
       fetchCompanyData(id);

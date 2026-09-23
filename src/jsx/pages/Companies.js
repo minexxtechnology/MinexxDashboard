@@ -25,7 +25,7 @@ const Companies = () => {
 
 	const fetchCompanies = async()=>{
 		try{
-			let response = await axios.get(`${baseURL_}companies`)
+			let response = await axios.get(`companies`)
 			setcompanies( user.type === `minexx` ? response.data.companies : response.data.companies.filter(single=>single.type === `Exporter`))
 			setfiltered( user.type === `minexx` ? response.data.companies : response.data.companies.filter(single=>single.type === `Exporter`))
 		}catch(err){

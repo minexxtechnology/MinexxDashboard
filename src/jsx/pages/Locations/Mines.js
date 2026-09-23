@@ -46,14 +46,14 @@ const Mines = ({ language,country }) => {
                 // For other countries, remove leading/trailing dots and spaces
                 normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
             }
-            let response = await axiosInstance.get(`${baseURL_}companies`,
+            let response = await axiosInstance.get(`companies`,
                 {
                     headers: apiHeaders,
                     params: {
                         country: normalizedCountry,
                     }
                 })
-            let response_ = await axiosInstance.get(`${baseURL_}mines`, { headers: apiHeaders })
+            let response_ = await axiosInstance.get(`mines`, { headers: apiHeaders })
             setinit(response.data.companies[0].id)
             setsuppliers(response.data.companies)
             setfiltered(response.data.companies)

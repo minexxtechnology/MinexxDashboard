@@ -77,7 +77,7 @@ const KPIs = ({ country, language }) => {
                 params.quarter = selectedMonth;
             }
 
-            const response = await axiosInstance.get(`${baseURL_}report/kpisyeartest`, {
+            const response = await axiosInstance.get(`report/kpisyeartest`, {
                 params: params
             });
             console.log('KPI Data:', response.data);

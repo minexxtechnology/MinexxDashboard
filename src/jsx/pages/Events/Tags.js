@@ -16,7 +16,7 @@ const fetchKPIs = async (country = null) => {
     const params = new URLSearchParams();
     if (country) params.append('country', country);
     try {
-        const response = await axiosInstance.get(`${baseURL_}tag/kpis?${params}`);
+        const response = await axiosInstance.get(`tag/kpis?${params}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching KPIs:', error);
@@ -28,7 +28,7 @@ const fetchCompanyBreakdown = async (timePeriod, country = null) => {
     const params = new URLSearchParams({ timePeriod });
     if (country) params.append('country', country);
     try {
-        const response = await axiosInstance.get(`${baseURL_}tag/breakdown?${params}`);
+        const response = await axiosInstance.get(`tag/breakdown?${params}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching breakdown:', error);
@@ -40,7 +40,7 @@ const fetchDashboard = async (country = null) => {
     const params = new URLSearchParams();
     if (country) params.append('country', country);
     try {
-        const response = await axiosInstance.get(`${baseURL_}tag/dashboard?${params}`);
+        const response = await axiosInstance.get(`tag/dashboard?${params}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching dashboard:', error);
@@ -57,7 +57,7 @@ const fetchDashboard = async (country = null) => {
  */
 const addTagAPI = async (companyId, tagCategory, tagNumber, platform = '3ts') => {
     try {
-        const response = await axiosInstance.post(`${baseURL_}tag/add`, {
+        const response = await axiosInstance.post(`tag/add`, {
             companyId,
             tagCategory,
             tagNumber,

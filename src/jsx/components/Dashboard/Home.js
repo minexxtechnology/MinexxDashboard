@@ -95,7 +95,7 @@ function Home({ language, country }) {
     if(user?.type !== 'minexx'){
       return
     }
-    axiosInstance.get(`${baseURL_}/admin/${selection}`).then(response=>{
+    axiosInstance.get(`/admin/${selection}`).then(response=>{
       setapex({
         keys: Object.keys(response.data).slice(1).reverse(),
         values: Object.values(response.data).slice(1).reverse()
@@ -115,7 +115,7 @@ function Home({ language, country }) {
 
   const loadOverview = async() => {
     if(user?.type !== 'minexx'){
-      axiosInstance.get(`${baseURL_}metals-api`).then(response=>{
+      axiosInstance.get(`metals-api`).then(response=>{
         setrates(response.data.rates)
       })
     }
@@ -130,7 +130,7 @@ function Home({ language, country }) {
         // For other countries, remove leading/trailing dots and spaces
         normalizedCountrys = normalizedCountrys.replace(/^\.+|\.+$/g, '');
     }
-    axiosInstance.get(`${baseURL_}overview/risks`,
+    axiosInstance.get(`overview/risks`,
       {
         params: {
             country:normalizedCountrys,
@@ -149,7 +149,7 @@ function Home({ language, country }) {
       }
     })
 
-    axiosInstance.get(`${baseURL_}overview/incidents`,
+    axiosInstance.get(`overview/incidents`,
       {
         params:
         {
@@ -170,7 +170,7 @@ function Home({ language, country }) {
         console.log(err.message)
       }
     })
-    axiosInstance.get(`${baseURL_}metals-api/yearly`
+    axiosInstance.get(`metals-api/yearly`
     ).then(response=>{
     console.log("Mineral Data", response.data.data.data);
     setApiData(response.data.data);
@@ -195,8 +195,8 @@ function Home({ language, country }) {
     } else {
         // For other countries, remove leading/trailing dots and spaces
         normalizedCountry = normalizedCountry.replace(/^\.+|\.+$/g, '');
-    }
-    axiosInstance.get(`${baseURL_}overview/exports`,
+    } 
+    axiosInstance.get(`overview/exports`,
       {
         params: {
             country:normalizedCountry,
@@ -229,7 +229,7 @@ function Home({ language, country }) {
         // For other countries, remove leading/trailing dots and spaces
         normalizedCountryq = normalizedCountryq.replace(/^\.+|\.+$/g, '');
     }
-    axiosInstance.get(`${baseURL_}overview/assessments`,
+    axiosInstance.get(`overview/assessments`,
       {
         params:
         {
@@ -298,6 +298,7 @@ function Home({ language, country }) {
                     </defs>
                   </svg>
                 </div>
+                
               </div>
               { loading ? <div className="progress mt-2 mb-2" style={{height:"12px"}}>
                 <div className="progress-bar-striped progress-bar-animated" style={{width: "100%", height:"12px"}} role="progressbar">

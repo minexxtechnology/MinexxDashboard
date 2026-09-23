@@ -190,7 +190,7 @@ const Mine = ({ language }) => {
         
         setTabLoading('basic', true);
         try {
-            const mineResponse = await axiosInstance.get(`${baseURL_}mines/${id}`);
+            const mineResponse = await axiosInstance.get(`mines/${id}`);
             changeTitle(mineResponse.data.mine.name + ` | Minexx`);
             setpicture(`https://lh3.googleusercontent.com/d/${mineResponse.data.mine.image}=w2160?authuser=0`);
             setmine(mineResponse.data.mine);
@@ -208,8 +208,8 @@ const Mine = ({ language }) => {
         setTabLoading('gallery', true);
         try {
             const [imagesResponse, videosResponse] = await Promise.all([
-                axiosInstance.get(`${baseURL_}mines/images/${id}`),
-                axiosInstance.get(`${baseURL_}mines/videos/${id}`)
+                axiosInstance.get(`mines/images/${id}`),
+                axiosInstance.get(`mines/videos/${id}`)
             ]);
             
             const imageData = imagesResponse.data.images || [];
@@ -238,7 +238,7 @@ const Mine = ({ language }) => {
     
     setTabLoading('assessments', true);
     try {
-        const response = await axiosInstance.get(`${baseURL_}assessments/mine/${id}`);
+        const response = await axiosInstance.get(`assessments/mine/${id}`);
         setassessments(response.data.assessments);
         setheaders(response.data.header);
         if (response.data.assessments.length > 0) {
@@ -265,7 +265,7 @@ const Mine = ({ language }) => {
         
         setTabLoading('incidents', true);
         try {
-            const response = await axiosInstance.get(`${baseURL_}incidents/mine/${id}`);
+            const response = await axiosInstance.get(`incidents/mine/${id}`);
             setincidents(response.data.incidents);
             setLoadedTabs(prev => new Set(prev).add('incidents'));
         } catch (err) {
@@ -279,7 +279,7 @@ const Mine = ({ language }) => {
     const executeApprove = async (incidentID) => {
         setTabLoading('incidents', true);
         try {
-            const response = await axiosInstance.post(`${baseURL_}incident/approve/${incidentID}`);
+            const response = await axiosInstance.post(`incident/approve/${incidentID}`);
             toast.success(response.data.message || 'Incident approved successfully');
             await fetchIncidents();
         } catch (err) {
@@ -293,7 +293,7 @@ const Mine = ({ language }) => {
     const executeDisapprove = async (incidentID) => {
         setTabLoading('incidents', true);
         try {
-            const response = await axiosInstance.delete(`${baseURL_}incident/disapproved/${incidentID}`);
+            const response = await axiosInstance.delete(`incident/disapproved/${incidentID}`);
             toast.success(response.data.message || 'Incident disapproved successfully');
             await fetchIncidents();
         } catch (err) {
@@ -309,7 +309,7 @@ const Mine = ({ language }) => {
         try {
             const incidentIds = Array.from(selectedIncidents);
             const promises = incidentIds.map(incidentId => 
-                axiosInstance.post(`${baseURL_}incident/approve/${incidentId}`)
+                axiosInstance.post(`incident/approve/${incidentId}`)
             );
             
             const results = await Promise.allSettled(promises);
@@ -339,7 +339,7 @@ const Mine = ({ language }) => {
         try {
             const incidentIds = Array.from(selectedIncidents);
             const promises = incidentIds.map(incidentId => 
-                axiosInstance.delete(`${baseURL_}incident/disapproved/${incidentId}`)
+                axiosInstance.delete(`incident/disapproved/${incidentId}`)
             );
             
             const results = await Promise.allSettled(promises);
@@ -368,7 +368,7 @@ const Mine = ({ language }) => {
         
         setTabLoading('miners', true);
         try {
-            const response = await axiosInstance.get(`${baseURL_}miners/${mine?.name}`);
+            const response = await axiosInstance.get(`miners/${mine?.name}`);
             setminers(response.data.miners);
             setminersHeader(response.data.header);
             setLoadedTabs(prev => new Set(prev).add('miners'));
@@ -380,7 +380,7 @@ const Mine = ({ language }) => {
     };
 
     const showAttachment = (file, field) => {
-        axiosInstance.post(`${baseURL_}image`, {
+        axiosInstance.post(`image`, {
             file
         }).then(response => {
             setattachment({ image: response.data.image, field });

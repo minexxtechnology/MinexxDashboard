@@ -57,7 +57,7 @@ const MineVolumeChart = ({ country, height = 220 }) => {
     }
     
     try {
-      const response = await axiosInstance.get(`${baseURL_}report/sales/${mineral}`, {
+      const response = await axiosInstance.get(`report/sales/${mineral}`, {
         params: { country }
       });
       

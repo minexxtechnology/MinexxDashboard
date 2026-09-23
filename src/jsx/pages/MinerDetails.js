@@ -8,6 +8,181 @@ import axiosInstance from '../../services/AxiosInstance';
 import { useDispatch } from 'react-redux';
 import { Logout } from '../../store/actions/AuthActions';
 
+// ── Dark/Blue theme tokens (scoped, no external CSS file needed) ────
+const ThemeStyles = () => (
+    <style>{`
+        .md-dark-wrap {
+            --md-bg: #24292d;
+            --md-panel: #2f363e;
+            --md-panel-alt: #24292d;
+            --md-border: #3a424a;
+            --md-text: #e5edf7;
+            --md-text-muted: #93a3bd;
+            --md-blue: #2f6fed;
+            --md-blue-soft: rgba(47, 111, 237, 0.15);
+            --md-blue-bright: #4f8cff;
+        }
+        .md-dark-wrap {
+            background: var(--md-bg);
+            color: var(--md-text);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .md-page-content { max-width: 1440px; margin: 0 auto; }
+        .md-breadcrumb .breadcrumb-item a,
+        .md-breadcrumb .breadcrumb-item.active {
+            color: var(--md-text-muted);
+        }
+        .md-breadcrumb .breadcrumb-item a:hover { color: var(--md-blue-bright); }
+
+        .md-card {
+            background: var(--md-panel) !important;
+            border: 1px solid var(--md-border) !important;
+            color: var(--md-text) !important;
+            border-radius: 14px !important;
+        }
+        .md-card .card-body { color: var(--md-text); }
+
+        .md-profile-hero {
+            background: linear-gradient(112deg, var(--md-panel) 0%, #39434d 100%);
+            border: 1px solid var(--md-border);
+            border-radius: 16px;
+            padding: 22px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .md-profile-hero::after {
+            content: '';
+            width: 240px;
+            height: 240px;
+            position: absolute;
+            right: -90px;
+            top: -145px;
+            border: 34px solid rgba(79, 140, 255, .08);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .md-profile-title { color: var(--md-text); font-size: clamp(1.35rem, 2vw, 1.8rem); }
+        .md-profile-subtitle { color: var(--md-text-muted); }
+        .md-section-card { height: 100%; }
+        .md-section-title {
+            color: var(--md-text);
+            font-size: .93rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        .md-section-icon {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--md-blue-soft);
+            border: 1px solid rgba(47, 111, 237, .55);
+            border-radius: 9px;
+            color: var(--md-blue-bright);
+        }
+        .md-info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .md-info-item { padding: 14px 16px; min-width: 0; }
+        .md-info-item:nth-child(odd) { border-right: 1px solid var(--md-border); }
+        .md-info-item:nth-child(n + 3) { border-top: 1px solid var(--md-border); }
+        .md-info-value { color: var(--md-text); margin-top: 3px; overflow-wrap: anywhere; }
+        .md-document-row { padding: 12px 0; }
+        .md-document-row + .md-document-row { border-top: 1px solid var(--md-border); }
+        .md-document-icon { color: var(--md-blue-bright); width: 22px; text-align: center; }
+
+        .md-label {
+            color: var(--md-text-muted) !important;
+            letter-spacing: 0.04em;
+        }
+        .md-value { color: var(--md-text); }
+
+        .md-btn-outline {
+            background: transparent;
+            border: 1px solid var(--md-blue);
+            color: var(--md-blue-bright);
+        }
+        .md-btn-outline:hover {
+            background: var(--md-blue-soft);
+            color: #ffffff;
+            border-color: var(--md-blue-bright);
+        }
+        .md-btn-primary {
+            background: var(--md-blue);
+            border: 1px solid var(--md-blue);
+            color: #ffffff;
+        }
+        .md-btn-primary:hover {
+            background: var(--md-blue-bright);
+            border-color: var(--md-blue-bright);
+        }
+
+        .md-link-btn {
+            color: var(--md-blue-bright) !important;
+        }
+        .md-link-btn:hover { color: #ffffff !important; text-decoration: underline; }
+
+        .md-badge-blue {
+            background: var(--md-blue-soft) !important;
+            color: var(--md-blue-bright) !important;
+            border: 1px solid var(--md-blue);
+            font-weight: 500;
+        }
+
+        .md-divider {
+            border-color: var(--md-border) !important;
+            opacity: 1;
+        }
+
+        .md-icon-blue { color: var(--md-blue-bright) !important; }
+
+        /* ── Profile picture: fixed box for BOTH loading + loaded state ── */
+        .md-avatar-box {
+            width: 112px;
+            height: 112px;
+            border-radius: 50%;
+            border: 3px solid var(--md-blue);
+            background: var(--md-panel-alt);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin: 0 auto 10px auto;
+            position: relative;
+        }
+        .md-avatar-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            cursor: pointer;
+            opacity: 0;
+            animation: mdFadeIn 0.25s ease forwards;
+        }
+        @keyframes mdFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .md-modal-content {
+            background: var(--md-panel) !important;
+            color: var(--md-text) !important;
+            border: 1px solid var(--md-border) !important;
+        }
+        .md-modal-content .modal-header,
+        .md-modal-content .modal-footer {
+            border-color: var(--md-border) !important;
+        }
+        @media (max-width: 575.98px) {
+            .md-dark-wrap { padding: 14px; border-radius: 0; }
+            .md-profile-hero { padding: 18px; }
+            .md-info-grid { grid-template-columns: 1fr; }
+            .md-info-item:nth-child(odd) { border-right: 0; }
+            .md-info-item:not(:first-child) { border-top: 1px solid var(--md-border); }
+        }
+    `}</style>
+);
+
 // ── Lazy Image Button for Miner Details (matches export pattern) ────
 const LazyImageButton = ({ minerId, field, fieldLabel, onShowImage, variant = 'link' }) => {
     const [loading, setLoading] = useState(false);
@@ -20,18 +195,18 @@ const LazyImageButton = ({ minerId, field, fieldLabel, onShowImage, variant = 'l
                 params: { field },
                 headers: { 'x-platform': access }
             });
-            
+
             const { fileId, fileContent } = res.data.file || {};
-            
+
             if (!fileId) {
                 toast.warn('No image available');
                 return;
             }
-            
+
             const driveId = fileContent || fileId;
             const fullSizeUrl = `https://lh3.googleusercontent.com/d/${driveId}=w2160?authuser=0`;
             const thumbnailUrl = `https://lh3.googleusercontent.com/d/${driveId}=w400?authuser=0`;
-            
+
             onShowImage({ fullSizeUrl, thumbnailUrl, driveId }, fieldLabel);
         } catch (err) {
             console.error('Failed to load file:', err);
@@ -44,7 +219,7 @@ const LazyImageButton = ({ minerId, field, fieldLabel, onShowImage, variant = 'l
     if (variant === 'link') {
         return (
             <button
-                className="btn btn-sm btn-link p-0 text-primary"
+                className="btn btn-sm btn-link md-link-btn p-0"
                 onClick={handleClick}
                 disabled={loading}
                 title={fieldLabel}
@@ -61,7 +236,7 @@ const LazyImageButton = ({ minerId, field, fieldLabel, onShowImage, variant = 'l
 
     return (
         <button
-            className={`btn btn-sm ${variant}`}
+            className={`btn btn-sm ${variant === 'primary' ? 'md-btn-primary' : 'md-btn-outline'}`}
             onClick={handleClick}
             disabled={loading}
             title={fieldLabel}
@@ -89,8 +264,8 @@ const MinerDetails = ({ language, country }) => {
     const [showModal, setShowModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [selectedImageField, setSelectedImageField] = useState('');
-    
-    // ── New states for auto-loading profile picture ──────────────────
+
+    // ── Profile picture states ────────────────────────────────────────
     const [profilePicUrl, setProfilePicUrl] = useState(null);
     const [profilePicLoading, setProfilePicLoading] = useState(false);
 
@@ -134,7 +309,11 @@ const MinerDetails = ({ language, country }) => {
                 'Not provided': 'Not provided',
                 'No image available': 'No image available',
                 'Miner ID': 'Miner ID',
-                'Registration': 'Registration'
+                'Registration': 'Registration',
+                'Registered Miner': 'Registered Miner',
+                'Location': 'Location',
+                'Documents': 'Documents',
+                'No documents available': 'No documents available'
             },
             fr: {
                 'Miner Details': 'Détails du mineur',
@@ -144,7 +323,7 @@ const MinerDetails = ({ language, country }) => {
                 'Personal Information': 'Informations personnelles',
                 'Mining Information': 'Informations minières',
                 'Document': 'Document',
-                 'Copy of identity card (CNI) or passport': 'Copie de la carte d\'identité (CNI) ou du passeport',
+                'Copy of identity card (CNI) or passport': 'Copie de la carte d\'identité (CNI) ou du passeport',
                 'Full Name': 'Nom complet',
                 'First Name': 'Prénom',
                 'Last Name': 'Nom',
@@ -173,7 +352,11 @@ const MinerDetails = ({ language, country }) => {
                 'Not provided': 'Non fourni',
                 'No image available': 'Aucune image disponible',
                 'Miner ID': 'ID du mineur',
-                'Registration': 'Inscription'
+                'Registration': 'Inscription',
+                'Registered Miner': 'Mineur inscrit',
+                'Location': 'Localisation',
+                'Documents': 'Documents',
+                'No documents available': 'Aucun document disponible'
             }
         };
         return translations[language]?.[key] || key;
@@ -211,35 +394,40 @@ const MinerDetails = ({ language, country }) => {
 
     // ── Auto-load profile picture ──────────────────────────────────────
     useEffect(() => {
+        let cancelled = false;
+
         const fetchProfilePic = async () => {
             if (!miner || !miner['Profile Picture']) {
                 setProfilePicUrl(null);
                 return;
             }
-            
+
             setProfilePicLoading(true);
             try {
                 const res = await axiosInstance.get(`/minerfield/${miner.ID}`, {
                     params: { field: 'Profile Picture' },
                     headers: { 'x-platform': access }
                 });
-                
+
                 const { fileId, fileContent } = res.data.file || {};
-                if (fileId) {
-                    const driveId = fileContent || fileId;
-                    setProfilePicUrl(`https://lh3.googleusercontent.com/d/${driveId}=w2160?authuser=0`);
-                } else {
-                    setProfilePicUrl(null);
+                if (!cancelled) {
+                    if (fileId) {
+                        const driveId = fileContent || fileId;
+                        setProfilePicUrl(`https://lh3.googleusercontent.com/d/${driveId}=w2160?authuser=0`);
+                    } else {
+                        setProfilePicUrl(null);
+                    }
                 }
             } catch (err) {
                 console.error('Failed to auto-load profile picture:', err);
-                setProfilePicUrl(null);
+                if (!cancelled) setProfilePicUrl(null);
             } finally {
-                setProfilePicLoading(false);
+                if (!cancelled) setProfilePicLoading(false);
             }
         };
-        
+
         fetchProfilePic();
+        return () => { cancelled = true; };
     }, [miner, access]);
 
     // ── Show Image Modal ──────────────────────────────────────────────
@@ -259,9 +447,8 @@ const MinerDetails = ({ language, country }) => {
             toast.warn('No profile picture available');
             return;
         }
-        
-        // Use the already resolved URL
-        showImage({ 
+
+        showImage({
             fullSizeUrl: profilePicUrl,
             thumbnailUrl: profilePicUrl.replace('=w2160', '=w400'),
             driveId: profilePicUrl.split('/d/')[1]?.split('=')[0] || ''
@@ -274,26 +461,29 @@ const MinerDetails = ({ language, country }) => {
         if (id) {
             loadMinerDetails();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id, language, country]);
 
     if (loading) {
         return (
-            <div className="text-center py-5">
-                <div className="spinner-border text-primary" role="status">
+            <div className="md-dark-wrap text-center py-5">
+                <ThemeStyles />
+                <div className="spinner-border" role="status" style={{ color: '#4f8cff' }}>
                     <span className="visually-hidden">{t('Loading...')}</span>
                 </div>
-                <p className="mt-2">{t('Loading...')}</p>
+                <p className="mt-2" style={{ color: '#93a3bd' }}>{t('Loading...')}</p>
             </div>
         );
     }
 
     if (!miner) {
         return (
-            <div className="text-center py-5">
-                <i className="fa fa-user-slash fa-3x text-muted mb-3"></i>
+            <div className="md-dark-wrap text-center py-5">
+                <ThemeStyles />
+                <i className="fa fa-user-slash fa-3x mb-3" style={{ color: '#93a3bd' }}></i>
                 <h4>{t('Miner not found')}</h4>
-                <p className="text-muted">The miner you're looking for doesn't exist</p>
-                <Button as={Link} to="/3tsminers" variant="primary">
+                <p style={{ color: '#93a3bd' }}>The miner you're looking for doesn't exist</p>
+                <Button as={Link} to="/3tsminers" className="md-btn-primary">
                     <i className="fa fa-arrow-left me-2"></i> {t('Back to List')}
                 </Button>
             </div>
@@ -301,32 +491,36 @@ const MinerDetails = ({ language, country }) => {
     }
 
     return (
-        <>
+        <div className="md-dark-wrap">
+            <ThemeStyles />
+
             {/* Image Modal */}
             <Modal size='lg' show={showModal} onHide={() => setShowModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>{selectedImageField || t('Image')}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="text-center">
-                    {selectedImage ? (
-                        <img
-                            alt={selectedImageField || 'Image'}
-                            className='rounded'
-                            width={'100%'}
-                            style={{ maxHeight: '600px', objectFit: 'contain' }}
-                            src={selectedImage.fullSizeUrl || selectedImage.thumbnailUrl}
-                            onError={(e) => {
-                                e.target.src = '/assets/images/placeholder.png';
-                            }}
-                        />
-                    ) : (
-                        <p className="text-muted">{t('No image available')}</p>
-                    )}
-                </Modal.Body>
+                <div className="md-modal-content">
+                    <Modal.Header closeButton>
+                        <Modal.Title>{selectedImageField || t('Image')}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body className="text-center">
+                        {selectedImage ? (
+                            <img
+                                alt={selectedImageField || 'Image'}
+                                className='rounded'
+                                width={'100%'}
+                                style={{ maxHeight: '600px', objectFit: 'contain' }}
+                                src={selectedImage.fullSizeUrl || selectedImage.thumbnailUrl}
+                                onError={(e) => {
+                                    e.target.src = '/assets/images/placeholder.png';
+                                }}
+                            />
+                        ) : (
+                            <p style={{ color: '#93a3bd' }}>{t('No image available')}</p>
+                        )}
+                    </Modal.Body>
+                </div>
             </Modal>
 
             {/* Breadcrumb Header */}
-            <div className="page-titles">
+            <div className="page-titles md-breadcrumb">
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item active">
                         <Link to={"#"}>{t("Dashboard")}</Link>
@@ -340,251 +534,91 @@ const MinerDetails = ({ language, country }) => {
                 </ol>
             </div>
 
-            {/* Main Content - Compact Layout */}
-            <div className='row'>
-                <div className='col-12'>
-                    {/* Header - More compact */}
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <div>
-                            <h5 className="mb-0">{t('Miner Details')}</h5>
-                            <small className="text-muted">
-                                <i className="fa fa-id-card me-1"></i> {t('Miner ID')}: {miner.ID}
-                            </small>
+            <main className="md-page-content">
+                <section className="md-profile-hero mb-3">
+                    <div className="d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-3 position-relative" style={{ zIndex: 1 }}>
+                        <div className="md-avatar-box mb-0 flex-shrink-0">
+                            {profilePicLoading ? <div className="spinner-border spinner-border-sm" role="status" style={{ color: '#4f8cff' }} /> : profilePicUrl ? (
+                                <img key={profilePicUrl} src={profilePicUrl} alt={miner['First Name']} onClick={handleProfilePictureClick} onError={(e) => { e.target.onerror = null; e.target.src = '/assets/images/avatar.png'; }} />
+                            ) : <i className="fa fa-user fa-3x" style={{ color: '#4f8cff' }} />}
                         </div>
-                        <Button as={Link} to="/3tsminers" variant="secondary" size="sm">
-                            <i className="fa fa-arrow-left me-2"></i> {t('Back to List')}
-                        </Button>
-                    </div>
-
-                    <Row className="align-items-stretch">
-                        {/* Profile Card - Left Column */}
-                        <Col lg={3} md={4} className="d-flex">
-                            <Card className="mb-3 shadow-sm w-100">
-                                <Card.Body className="text-center p-3 d-flex flex-column">
-                                    {miner['Profile Picture'] ? (
-                                        <div className="position-relative d-inline-block mx-auto">
-                                            {profilePicLoading ? (
-                                                <div
-                                                    className="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 border border-3 border-primary"
-                                                    style={{ width: '120px', height: '120px' }}
-                                                >
-                                                    <div className="spinner-border spinner-border-sm text-primary" role="status">
-                                                        <span className="visually-hidden">Loading...</span>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <img
-                                                    src={profilePicUrl || '/assets/images/avatar.png'}
-                                                    alt={miner['First Name']}
-                                                    className="rounded-circle mb-2 border border-3 border-primary"
-                                                    style={{ 
-                                                        width: '120px', 
-                                                        height: '120px', 
-                                                        objectFit: 'cover', 
-                                                        cursor: 'pointer',
-                                                        padding: '3px'
-                                                    }}
-                                                    onClick={handleProfilePictureClick}
-                                                    onError={(e) => {
-                                                        e.target.src = '/assets/images/avatar.png';
-                                                    }}
-                                                />
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div 
-                                            className="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 border border-3 border-primary"
-                                            style={{ width: '120px', height: '120px' }}
-                                        >
-                                            <i className="fa fa-user fa-4x text-secondary"></i>
-                                        </div>
-                                    )}
-                                    <h5 className="mb-0">{miner['First Name']} {miner['Last Name']}</h5>
-                                    <Badge bg={miner.Gender === 'Male' ? 'info' : miner.Gender === 'Female' ? 'warning' : 'secondary'} className="mt-1">
-                                        {miner.Gender || t('Not provided')}
-                                    </Badge>
-                                    <hr className="my-2" />
-                                    <div className="text-start flex-grow-1" style={{ fontSize: '13px' }}>
-                                        <p className="mb-1">
-                                            <i className="fa fa-envelope text-primary me-2" style={{ width: '18px' }}></i>
-                                            <strong>{t('Email')}:</strong> {miner.Email || t('Not provided')}
-                                        </p>
-                                        <p className="mb-1">
-                                            <i className="fa fa-phone text-success me-2" style={{ width: '18px' }}></i>
-                                            <strong>{t('Contact')}:</strong> {miner.Contact || t('Not provided')}
-                                        </p>
-                                        <p className="mb-0">
-                                            <i className="fa fa-calendar text-info me-2" style={{ width: '18px' }}></i>
-                                            <strong>{t('Registration Date')}:</strong> {miner.formattedDateTime || '-'}
-                                        </p>
+                        <div className="text-center text-sm-start flex-grow-1 pt-sm-2">
+                            <div className="d-flex flex-column flex-sm-row justify-content-between gap-3">
+                                <div>
+                                    <div className="md-label small text-uppercase fw-bold mb-1">{t('Registered Miner')}</div>
+                                    <h1 className="md-profile-title mb-2">{miner['First Name']} {miner['Last Name']}</h1>
+                                    <div className="d-flex flex-wrap justify-content-center justify-content-sm-start align-items-center gap-2">
+                                        <Badge bg="" className="md-badge-blue">{miner.Gender || t('Not provided')}</Badge>
+                                        <span className="md-profile-subtitle small"><i className="fa fa-id-card me-1 md-icon-blue" />{t('Miner ID')}: {miner.ID}</span>
                                     </div>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-
-                        {/* Details Cards - Right Column */}
-                        <Col lg={9} md={8} className="d-flex">
-                            <div className="w-100 d-flex flex-column">
-                                <Row className="flex-grow-1 mb-3">
-                                    <Col lg={6} className="d-flex">
-                                        {/* Personal Information - Compact */}
-                                        <Card className="shadow-sm w-100">
-                                            <Card.Body className="py-2">
-                                                <Row>
-                                                    <Col sm={6}>
-                                                        <div className="mb-1">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Date of Birth')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>{miner.formattedDateOfBirth || '-'}</p>
-                                                        </div>
-                                                        <div className="mb-1">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Place of Birth')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>{miner['Place of Birth'] || '-'}</p>
-                                                        </div>
-                                                        <div className="mb-0">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Permanent Residence')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>{miner['Permanent residence'] || '-'}</p>
-                                                        </div>
-                                                    </Col>
-                                                    <Col sm={6}>
-                                                        <div className="mb-1">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('National ID')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>{miner['National ID'] || t('Not provided')}</p>
-                                                        </div>
-                                                        <div className="mb-0">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Identification Card Number')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>{miner['Identification Card Number'] || '-'}</p>
-                                                        </div>
-                                                    </Col>
-                                                </Row>
-                                            </Card.Body>
-                                        </Card>
-                                    </Col>
-
-                                    <Col lg={6} className="d-flex">
-                                        {/* Mining Information - Compact */}
-                                        <Card className="shadow-sm w-100">
-                                            <Card.Body className="py-2">
-                                                <Row>
-                                                    <Col sm={6}>
-                                                        <div className="mb-1">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Mine/Concession Name')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>
-                                                                <i className="fa fa-industry me-1 text-primary" style={{ fontSize: '12px' }}></i>
-                                                                {miner['Mine/Concession Name'] || '-'}
-                                                            </p>
-                                                        </div>
-                                                        <div className="mb-0">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Substance to be Mined')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>
-                                                                <i className="fa fa-cube me-1 text-warning" style={{ fontSize: '12px' }}></i>
-                                                                {miner['Substance to be Mined'] || '-'}
-                                                            </p>
-                                                        </div>
-                                                    </Col>
-                                                    <Col sm={6}>
-                                                        <div className="mb-1">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Province')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>
-                                                                <i className="fa fa-map-marker me-1 text-danger" style={{ fontSize: '12px' }}></i>
-                                                                {miner.Province || '-'}
-                                                            </p>
-                                                        </div>
-                                                        <div className="mb-0">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Department')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>{miner.Department || '-'}</p>
-                                                        </div>
-                                                    </Col>
-                                                </Row>
-                                            </Card.Body>
-                                        </Card>
-                                    </Col>
-                                </Row>
-
-                                <Row className="flex-grow-1">
-                                    <Col md={12} className="d-flex">
-                                        {/* Documents & Registration - Full Width, Compact */}
-                                        <Card className="shadow-sm w-100">
-                                            <Card.Body className="py-2">
-                                                <Row>
-                                                    <Col md={6}>
-                                                        <div className="mb-1">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Registration Date')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>{miner.formattedDateTime || '-'}</p>
-                                                        </div>
-                                                        <div className="mb-0">
-                                                            <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Place')}</label>
-                                                            <p className="mb-0" style={{ fontSize: '13px' }}>{miner.Place || '-'}</p>
-                                                        </div>
-                                                    </Col>
-                                                    <Col md={6}>
-                                                        {miner['Identification Card'] && (
-                                                            <div className="mb-1">
-                                                                <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Identification Card')}</label>
-                                                                <p className="mb-0">
-                                                                    <LazyImageButton
-                                                                        minerId={miner.ID}
-                                                                        field="Identification Card"
-                                                                        fieldLabel={t('Identification Card')}
-                                                                        onShowImage={showImage}
-                                                                        variant="link"
-                                                                    />
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                        {miner['Artisanal Mining Card'] && (
-                                                            <div className="mb-1">
-                                                                <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Artisanal Mining Card')}</label>
-                                                                <p className="mb-0">
-                                                                    <LazyImageButton
-                                                                        minerId={miner.ID}
-                                                                        field="Artisanal Mining Card"
-                                                                        fieldLabel={t('Artisanal Mining Card')}
-                                                                        onShowImage={showImage}
-                                                                        variant="link"
-                                                                    />
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                        {miner.Signature && (
-                                                            <div className="mb-1">
-                                                                <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Signature')}</label>
-                                                                <p className="mb-0">
-                                                                    <LazyImageButton
-                                                                        minerId={miner.ID}
-                                                                        field="Signature"
-                                                                        fieldLabel={t('Signature')}
-                                                                        onShowImage={showImage}
-                                                                        variant="link"
-                                                                    />
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                        {miner['Copy of identity card (CNI) or passport'] && (
-                                                            <div className="mb-0">
-                                                                <label className="text-muted small text-uppercase fw-bold" style={{ fontSize: '10px' }}>{t('Copy of identity card (CNI) or passport')}</label>
-                                                                <p className="mb-0">
-                                                                    <LazyImageButton
-                                                                        minerId={miner.ID}
-                                                                        field="Copy of identity card (CNI) or passport"
-                                                                        fieldLabel={t('Copy of identity card (CNI) or passport')}
-                                                                        onShowImage={showImage}
-                                                                        variant="link"
-                                                                    />
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                    </Col>
-                                                </Row>
-                                            </Card.Body>
-                                        </Card>
-                                    </Col>
-                                </Row>
+                                </div>
+                                <Button as={Link} to="/3tsminers" size="sm" className="md-btn-outline align-self-center align-self-sm-start"><i className="fa fa-arrow-left me-2" />{t('Back to List')}</Button>
                             </div>
-                        </Col>
-                    </Row>
-                </div>
-            </div>
-        </>
+                        </div>
+                    </div>
+                </section>
+
+                <Row className="g-3">
+                    <Col lg={4}>
+                        <Card className="md-card md-section-card">
+                            <Card.Body className="p-0">
+                                <div className="d-flex align-items-center gap-2 px-3 py-3 border-bottom" style={{ borderColor: 'var(--md-border) !important' }}><span className="md-section-icon"><i className="fa fa-user" /></span><h2 className="md-section-title">{t('Personal Information')}</h2></div>
+                                <div className="md-info-grid">
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Date of Birth')}</div><div className="md-info-value">{miner.formattedDateOfBirth || '-'}</div></div>
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Place of Birth')}</div><div className="md-info-value">{miner['Place of Birth'] || '-'}</div></div>
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('National ID')}</div><div className="md-info-value">{miner['National ID'] || t('Not provided')}</div></div>
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Identification Card Number')}</div><div className="md-info-value">{miner['Identification Card Number'] || '-'}</div></div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={4}>
+                        <Card className="md-card md-section-card">
+                            <Card.Body className="p-0">
+                                <div className="d-flex align-items-center gap-2 px-3 py-3 border-bottom" style={{ borderColor: 'var(--md-border) !important' }}><span className="md-section-icon"><i className="fa fa-industry" /></span><h2 className="md-section-title">{t('Mining Information')}</h2></div>
+                                <div className="md-info-grid">
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Mine/Concession Name')}</div><div className="md-info-value">{miner['Mine/Concession Name'] || '-'}</div></div>
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Substance to be Mined')}</div><div className="md-info-value">{miner['Substance to be Mined'] || '-'}</div></div>
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Province')}</div><div className="md-info-value">{miner.Province || '-'}</div></div>
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Department')}</div><div className="md-info-value">{miner.Department || '-'}</div></div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={4}>
+                        <Card className="md-card md-section-card">
+                            <Card.Body className="p-0">
+                                <div className="d-flex align-items-center gap-2 px-3 py-3 border-bottom" style={{ borderColor: 'var(--md-border) !important' }}><span className="md-section-icon"><i className="fa fa-address-book" /></span><h2 className="md-section-title">{t('Contact')}</h2></div>
+                                <div className="md-info-grid">
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Email')}</div><div className="md-info-value">{miner.Email || t('Not provided')}</div></div>
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Contact')}</div><div className="md-info-value">{miner.Contact || t('Not provided')}</div></div>
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Permanent Residence')}</div><div className="md-info-value">{miner['Permanent residence'] || '-'}</div></div>
+                                    <div className="md-info-item"><div className="md-label small text-uppercase">{t('Location')}</div><div className="md-info-value">{miner.Place || '-'}</div></div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={7}>
+                        <Card className="md-card md-section-card">
+                            <Card.Body className="p-0">
+                                <div className="d-flex align-items-center gap-2 px-3 py-3 border-bottom" style={{ borderColor: 'var(--md-border) !important' }}><span className="md-section-icon"><i className="fa fa-file-text" /></span><h2 className="md-section-title">{t('Documents')}</h2></div>
+                                <div className="px-3 py-1">
+                                    {[
+                                        ['Identification Card', 'Identification Card'], ['Artisanal Mining Card', 'Artisanal Mining Card'], ['Signature', 'Signature'], ['Copy of identity card (CNI) or passport', 'Copy of identity card (CNI) or passport']
+                                    ].filter(([field]) => miner[field]).map(([field, label]) => (
+                                        <div className="md-document-row d-flex justify-content-between align-items-center gap-3" key={field}><span className="d-flex align-items-center gap-2"><i className="fa fa-file-image-o md-document-icon" />{t(label)}</span><LazyImageButton minerId={miner.ID} field={field} fieldLabel={t(label)} onShowImage={showImage} variant="link" /></div>
+                                    ))}
+                                    {!['Identification Card', 'Artisanal Mining Card', 'Signature', 'Copy of identity card (CNI) or passport'].some((field) => miner[field]) && <p className="md-profile-subtitle small my-3">{t('No documents available')}</p>}
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={5}>
+                        <Card className="md-card md-section-card"><Card.Body className="p-0"><div className="d-flex align-items-center gap-2 px-3 py-3 border-bottom" style={{ borderColor: 'var(--md-border) !important' }}><span className="md-section-icon"><i className="fa fa-calendar" /></span><h2 className="md-section-title">{t('Registration')}</h2></div><div className="md-info-grid"><div className="md-info-item"><div className="md-label small text-uppercase">{t('Registration Date')}</div><div className="md-info-value">{miner.formattedDateTime || '-'}</div></div><div className="md-info-item"><div className="md-label small text-uppercase">{t('Locality')}</div><div className="md-info-value">{miner.Locality || '-'}</div></div></div></Card.Body></Card>
+                    </Col>
+                </Row>
+            </main>
+        </div>
     );
 };
 

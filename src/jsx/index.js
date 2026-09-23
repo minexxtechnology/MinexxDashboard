@@ -226,7 +226,7 @@ const Markup = (props) => {
       localStorage.setItem('_country', newCountry);
       navigate('/overview');
     }
-  };
+  }; 
   
   const allroutes = [
     /// Dashboard

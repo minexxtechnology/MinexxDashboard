@@ -301,7 +301,7 @@ const DocumentsList = ({ documents, dashboard, exportId, language, country,user 
   
   try {
     const response = await axiosInstance.post(
-      `${baseURL_}approve/exportfield/${exportId}?field=${fieldName}`,
+      `approve/exportfield/${exportId}?field=${fieldName}`,
       {}
     );
     toast.success("Document approved successfully");

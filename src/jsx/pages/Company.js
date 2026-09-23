@@ -177,7 +177,7 @@ const Company = ({ language, country }) => {
 
     const fetchDocuments = async () => {
         try {
-            const response = await axiosInstance.get(`${baseURL_}documentsnoAuth/${id}`, {
+            const response = await axiosInstance.get(`documentsnoAuth/${id}`, {
                 params: { country: normalizedCountrys }
             });
             setDocuments(response.data.documents.documents);
@@ -190,7 +190,7 @@ const Company = ({ language, country }) => {
 
     const fetchShareholders = async () => {
         try {
-            const response = await axiosInstance.get(`${baseURL_}shareholders/${id}`, {
+            const response = await axiosInstance.get(`shareholders/${id}`, {
                 params: { country: normalizedCountrys }
             });
             setShareholders(response.data.shareholders);
@@ -203,7 +203,7 @@ const Company = ({ language, country }) => {
 
     const fetchBeneficialOwners = async () => {
         try {
-            const response = await axiosInstance.get(`${baseURL_}owners/${id}`, {
+            const response = await axiosInstance.get(`owners/${id}`, {
                 params: { country: normalizedCountrys }
             });
             setBeneficialOwners(response.data.beneficial_owners);
@@ -218,7 +218,7 @@ const Company = ({ language, country }) => {
     const fetchIncidents = async () => {
         setLoadingStates(prev => ({ ...prev, incidents: true }));
         try {
-            const response = await axiosInstance.get(`${baseURL_}incidents/company/${id}`, {
+            const response = await axiosInstance.get(`incidents/company/${id}`, {
                 params: { country: normalizedCountrys }
             });
             setIncidents(response.data.incidents);
@@ -233,7 +233,7 @@ const Company = ({ language, country }) => {
     const executeApprove = async (incidentID) => {
         setLoadingStates(prev => ({ ...prev, incidents: true }));
         try {
-            const response = await axiosInstance.post(`${baseURL_}incident/approve/${incidentID}`);
+            const response = await axiosInstance.post(`incident/approve/${incidentID}`);
             toast.success(response.data.message || 'Incident approved successfully');
             await fetchIncidents();
         } catch (err) {
@@ -247,7 +247,7 @@ const Company = ({ language, country }) => {
     const executeDisapprove = async (incidentID) => {
         setLoadingStates(prev => ({ ...prev, incidents: true }));
         try {
-            const response = await axiosInstance.delete(`${baseURL_}incident/disapproved/${incidentID}`);
+            const response = await axiosInstance.delete(`incident/disapproved/${incidentID}`);
             toast.success(response.data.message || 'Incident disapproved successfully');
             await fetchIncidents();
         } catch (err) {
@@ -263,7 +263,7 @@ const Company = ({ language, country }) => {
         try {
             const incidentIds = Array.from(selectedIncidents);
             const promises = incidentIds.map(incidentId => 
-                axiosInstance.post(`${baseURL_}incident/approve/${incidentId}`)
+                axiosInstance.post(`incident/approve/${incidentId}`)
             );
             
             const results = await Promise.allSettled(promises);
@@ -293,7 +293,7 @@ const Company = ({ language, country }) => {
         try {
             const incidentIds = Array.from(selectedIncidents);
             const promises = incidentIds.map(incidentId => 
-                axiosInstance.delete(`${baseURL_}incident/disapproved/${incidentId}`)
+                axiosInstance.delete(`incident/disapproved/${incidentId}`)
             );
             
             const results = await Promise.allSettled(promises);

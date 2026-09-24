@@ -42,7 +42,7 @@ const Exports = ({ language, country }) => {
     const [containerStatus, setContainerStatus] = useState({});
     const [statusUpdating, setStatusUpdating] = useState({});
     const [verificationLoadingId, setVerificationLoadingId] = useState(null);
-    const CAN_VERIFY=['beda@minexx.email', 'b.akaffou@inexx.co'];
+    const CAN_VERIFY=['beda@minexx.email', 'b.akaffou@minexx.co'];
     
     const [verificationModal, setVerificationModal] = useState({
         show: false,

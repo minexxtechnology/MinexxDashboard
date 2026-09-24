@@ -82,7 +82,7 @@ const Miners = ({ language, country }) => {
     const [showModal, setShowModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [selectedImageField, setSelectedImageField] = useState('');
-    const CAN_VERIFY=['beda@minexx.email', 'b.akaffou@inexx.co'];
+    const CAN_VERIFY=['beda@minexx.email', 'b.akaffou@minexx.co'];
     const canVerify = CAN_VERIFY.includes(user?.email);
     const [filters, setFilters] = useState({
         firstName: '',

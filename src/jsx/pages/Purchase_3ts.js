@@ -13,7 +13,7 @@ const imageColumns = new Set(['Picture']);
 const fileColumns  = new Set(['Purchase Sheet', 'Assay Report', 'Holding Certificate']);
 const dateColumns  = new Set(['Delivery Date', 'Processing Date', 'Payment Date']);
 const ADMIN_EMAILS = ['beda@minexx.email', 'info@minexx.co'];
-const CAN_VERIFY=['beda@minexx.email', 'b.akaffou@inexx.co'];
+const CAN_VERIFY=['beda@minexx.email', 'b.akaffou@minexx.co'];
 const DISPLAY_COLUMNS = [
     'Lot Number',
     'Delivery Date',

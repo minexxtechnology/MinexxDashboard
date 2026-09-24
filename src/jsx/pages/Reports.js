@@ -54,7 +54,7 @@ const ticketData = [
 ];
 
 const imageColumns = new Set(['Image', 'Images', 'Receipt', 'Seller ID Card', 'Miners_Images']);
-const CAN_VERIFY = ['beda@minexx.email', 'b.akaffou@inexx.co'];
+const CAN_VERIFY = ['beda@minexx.email', 'b.akaffou@minexx.co'];
 
 const Reports = ({ language, country }) => {
 
@@ -3464,7 +3464,7 @@ const Reports = ({ language, country }) => {
                                                                                             <td>{prod.bags}</td>
                                                                                             <td>{prod.totalWeight}</td>
                                                                                             <td>{prod.note}</td>
-                                                                                            <td><ChainVerifyButton endpoint={`${baseURL_}production/${encodeURIComponent(getProductionTagNumber(prod))}/verify`} identifier={getProductionTagNumber(prod)} stage="Production" /></td>
+                                                                                            <td><ChainVerifyButton endpoint={`production/${encodeURIComponent(getProductionTagNumber(prod))}/verify`} identifier={getProductionTagNumber(prod)} stage="Production" /></td>
                                                                                         </tr>)
                                                                                     }
                                                                                     {
@@ -3518,7 +3518,7 @@ const Reports = ({ language, country }) => {
                                                                                                             </td>
                                                                                                         );
                                                                                                     })}
-                                                                                                    <td><ChainVerifyButton endpoint={`${baseURL_}production/${encodeURIComponent(productionTag)}/verify`} identifier={productionTag} stage="Production" /></td>
+                                                                                                    <td><ChainVerifyButton endpoint={`production/${encodeURIComponent(productionTag)}/verify`} identifier={productionTag} stage="Production" /></td>
                                                                                                 </tr>
                                                                                             );
                                                                                         })
@@ -3615,7 +3615,7 @@ const Reports = ({ language, country }) => {
                                                                                                     <td>{bag.itinerary}</td>
                                                                                                     <td>{bag.time}</td>
                                                                                                     <td>{bag.production}</td>
-                                                                                                    <td><ChainVerifyButton endpoint={`${baseURL_}bags/${encodeURIComponent(bag.id || bag.ID)}/verify`} identifier={bag.id || bag.ID} stage="Bag" /></td>
+                                                                                                    <td><ChainVerifyButton endpoint={`bags/${encodeURIComponent(bag.id || bag.ID)}/verify`} identifier={bag.id || bag.ID} stage="Bag" /></td>
                                                                                                 </tr>)
                                                                                             }
                                                                                             {
@@ -3813,7 +3813,7 @@ const Reports = ({ language, country }) => {
                                                                                                     <td>{proc.paymentMethod}</td>
                                                                                                     <td>{proc.security}</td>
                                                                                                     <td>{proc.lot}</td>
-                                                                                                    <td><ChainVerifyButton endpoint={`${baseURL_}processing/${encodeURIComponent(proc.id || proc.ID)}/verify`} identifier={proc.id || proc.ID} stage="Processing" /></td>
+                                                                                                    <td><ChainVerifyButton endpoint={`processing/${encodeURIComponent(proc.id || proc.ID)}/verify`} identifier={proc.id || proc.ID} stage="Processing" /></td>
                                                                                                 </tr>)
                                                                                             }
                                                                                             {
@@ -3925,7 +3925,7 @@ const Reports = ({ language, country }) => {
                                                                                                     <td>{bag.color}</td>
                                                                                                     <td>{bag.mineral}</td>
                                                                                                     <td>{bag.grade}</td>
-                                                                                                    <td><ChainVerifyButton endpoint={`${baseURL_}proc-bags/${encodeURIComponent(bag.id || bag.ID)}/verify`} identifier={bag.id || bag.ID} stage="Processed bag" /></td>
+                                                                                                    <td><ChainVerifyButton endpoint={`proc-bags/${encodeURIComponent(bag.id || bag.ID)}/verify`} identifier={bag.id || bag.ID} stage="Processed bag" /></td>
                                                                                                 </tr>)
                                                                                             }{
                                                                                                 trace?.bags_proc.length === 0 ? <tr>
@@ -4042,7 +4042,7 @@ const Reports = ({ language, country }) => {
                                                                                                                         </td>
                                                                                                                     );
                                                                                                                 })}
-                                                                                                                <td><ChainVerifyButton endpoint={`${baseURL_}blending/lot/${encodeURIComponent(row.ID || row.id)}/verify`} identifier={row.ID || row.id} stage="Blending" /></td>
+                                                                                                                <td><ChainVerifyButton endpoint={`blending/lot/${encodeURIComponent(row.ID || row.id)}/verify`} identifier={row.ID || row.id} stage="Blending" /></td>
                                                                                                             </tr>
                                                                                                         ))
                                                                                                     )}

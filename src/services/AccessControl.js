@@ -19,7 +19,7 @@ const getDRCAPIEndpoint = () => {
     return '/api/';
   }
 
-  return 'http://34.28.252.35:3500/';
+  return 'http://34.133.122.228:3500/';
 };
 
 // API Endpoints for each country/mode

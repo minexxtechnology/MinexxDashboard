@@ -18,6 +18,7 @@ const getDRCAPIEndpoint = () => {
   if (typeof window !== 'undefined' && window.location?.protocol === 'https:') {
     return '/api/';
   }
+  
 
   return 'http://34.133.122.228:3500/';
 };

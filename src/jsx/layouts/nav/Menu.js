@@ -155,10 +155,10 @@ export const RegulatorMenu = [
         iconStyle: <i className="flaticon-location"></i>,
         to: 'mines',
     },
-      {
-        title:'Tags',
-          iconStyle: <i className="fa fa-tags"></i>,
-        to: 'Tags',
+       {
+        title:'Tag Management',
+        iconStyle: <i className="flaticon-381-price-tag"></i>,
+        to: 'tag-management',
     },
 
     {
@@ -349,12 +349,14 @@ export const IMenu = [
         iconStyle: <i className="flaticon-location"></i>,
         to: 'mines',
     },
-      {
-        title:'Tags',
-          iconStyle: <i className="fa fa-tags"></i>,
-          to: 'Tags',
+    ,
+       {
+        title:'Tag Management',
+        iconStyle: <i className="flaticon-381-price-tag"></i>,
+        to: 'tag-management',
     },
 
+     
     {
         title: 'Knowledge Base',
         iconStyle: <i className="flaticon-monitor"></i>,
